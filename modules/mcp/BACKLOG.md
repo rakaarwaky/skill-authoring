@@ -52,6 +52,19 @@ identically through both entry points.
 | Risk         | None                                                         |
 | Updated      | 2026-11-04                                                   |
 
+### DS-MCP-004: Agent-readable result contract
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `execute_tool` returns a stable envelope (`ok`, `content`    |
+|              | with a single text block) drawn from `SkillsResult`; state   |
+|              | is conveyed by the textual payload, never by spatial layout  |
+|              | or color.                                                    |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-04                                                   |
+
 ## Reference
 
 | Artifact     | Purpose                                    | Link |
