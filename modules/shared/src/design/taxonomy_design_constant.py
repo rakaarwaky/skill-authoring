@@ -25,32 +25,6 @@ from typing import Final
 # Originally ``librarian.py`` (retired); now this module is the SSOT.
 MAX_DESCRIPTION_LEN: Final = 1024
 
-#: Naming budget for skill directory names. Consumed by
-#: ``is_valid_skill_name`` in ``taxonomy_design_vo.py``.
-NAME_MIN: Final = 2
-NAME_MAX: Final = 64
-NAME_RE: Final = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
-
-#: Archive directory the ``archive`` mutation moves skills into; the
-#: walker skips it (it is in ``IGNORED_CATEGORY_DIRS``).
-ARCHIVE_DIRNAME: Final = "_archive"
-
-# ── DM1 / DM2 markers ────────────────────────────────────────────────
-
-#: The DM2 asset-container marker file. A category directory that carries
-#: it (with frontmatter ``kind: assets``) declares itself a cross-skill
-#: asset container, not a category of skills: ``validate`` and the weed
-#: report skip its ``empty-category`` / ``missing-category-description``
-#: checks. Declared file, not a directory-name heuristic.
-ASSETS_MARKER_FILENAME: Final = "ASSETS.md"
-
-#: The DM1 nested-pack marker file. A subdirectory of a category that
-#: holds its own ``SKILL.md`` files one level deeper than the loader's
-#: two-level walk declares itself a nested pack by carrying this marker:
-#: ``validate`` skips the ``too-deep`` error for those files. Opt-in
-#: only — without the marker, depth violations are unchanged.
-PACK_MARKER_FILENAME: Final = "pack.toml"
-
 # ── Rule documentation ───────────────────────────────────────────────
 
 #: One-line summaries for the skill-rules reference doc headings.
@@ -119,8 +93,8 @@ CITATIONS: Final = {
 LIFECYCLE_STATES: Final = ("active", "stale", "archived")
 
 __all__ = [
-    "ARCHIVE_DIRNAME",
     "ASSETS_MARKER_FILENAME",
+    "ARCHIVE_DIRNAME",
     "CITATIONS",
     "LIFECYCLE_STATES",
     "MAX_DESCRIPTION_LEN",

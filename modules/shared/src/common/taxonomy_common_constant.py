@@ -61,6 +61,13 @@ ASSETS_MARKER_FILENAME: Final = "ASSETS.md"
 #: The DM1 nested-pack marker file.
 PACK_MARKER_FILENAME: Final = "pack.toml"
 
+# ─── Exit codes ────────────────────────────────────────────────────────
+
+#: Exit code for unknown or malformed op.
+EXIT_USAGE: Final = 2
+#: Exit code for issues found during an op.
+EXIT_ISSUES_FOUND: Final = 1
+
 __all__ = [
     "ARCHIVE_DIRNAME",
     "ASSETS_MARKER_FILENAME",
@@ -68,6 +75,8 @@ __all__ = [
     "CATALOG_FILENAME",
     "CATEGORY_DESCRIPTION_FILENAME",
     "DRIFT_WARNING",
+    "EXIT_ISSUES_FOUND",
+    "EXIT_USAGE",
     "IGNORED_CATEGORY_DIRS",
     "NAME_MAX",
     "NAME_MIN",

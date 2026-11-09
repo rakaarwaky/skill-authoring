@@ -27,6 +27,11 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 
+from shared.src.common.taxonomy_common_constant import (
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
+)
 from shared.src.common.taxonomy_common_vo import (
     MutationOutcome,
     MutationPlan,
@@ -34,9 +39,6 @@ from shared.src.common.taxonomy_common_vo import (
 )
 from shared.src.design.taxonomy_design_constant import (
     CITATIONS,
-    NAME_MAX,
-    NAME_MIN,
-    NAME_RE,
     SUMMARIES,
 )
 

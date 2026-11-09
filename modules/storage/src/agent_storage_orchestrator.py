@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import cast
 
+from shared.src.common.taxonomy_common_constant import EXIT_ISSUES_FOUND, EXIT_USAGE
 from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
@@ -20,10 +21,6 @@ from shared.src.storage.contract_storage_protocol import (
     ISkillsBackupProtocol,
     ISkillsRestoreProtocol,
     ISkillsRollbackProtocol,
-)
-from shared.src.storage.taxonomy_storage_constant import (
-    EXIT_ISSUES_FOUND,
-    EXIT_USAGE,
 )
 from shared.src.storage.taxonomy_storage_request import (
     SkillsRoot,

@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import cast
 
+from shared.src.common.taxonomy_common_constant import EXIT_ISSUES_FOUND, EXIT_USAGE
 from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
@@ -22,10 +23,6 @@ from shared.src.governance.contract_governance_protocol import (
     ISkillsLockerProtocol,
     ISkillsMoverProtocol,
     ISkillsPinerProtocol,
-)
-from shared.src.governance.taxonomy_governance_constant import (
-    EXIT_ISSUES_FOUND,
-    EXIT_USAGE,
 )
 from shared.src.governance.taxonomy_governance_request import (
     GovernanceRequest,
