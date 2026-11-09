@@ -19,9 +19,11 @@ from shared.src.common.utility_common_skills import default_pack_root
 __all__ = ["SkillsBootstrap"]
 
 
+# ─── Block 1: Module Declaration ───
 class SkillsBootstrap(ISkillsBootstrapProtocol):
     """Bootstrap capability: initialize a skill pack root."""
 
+    # ─── Block 2: Module Contract ───
     def bootstrap(self, root: SkillsRoot | None = None) -> StorageResponse:
         """Create the standard category dirs and pack sidecar under *root*.
 
@@ -38,6 +40,7 @@ class SkillsBootstrap(ISkillsBootstrapProtocol):
                 category_dir.mkdir(parents=True, exist_ok=True)
                 created.append(category)
 
+        # ─── Block 3: Module Helpers ───
         manifest = {
             "verb": StorageVerb.BOOTSTRAP.value,
             "root": str(skills_root),

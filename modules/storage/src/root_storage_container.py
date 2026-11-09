@@ -15,6 +15,7 @@ from pathlib import Path
 from agent_storage_orchestrator import SkillsStorageAgent
 from capabilities_skills_archiver import SkillsArchiver
 from capabilities_skills_backup import SkillsBackup
+from capabilities_skills_bootstrap import SkillsBootstrap
 from capabilities_skills_restore import SkillsRestore
 from capabilities_skills_rollback import SkillsRollback
 from shared.src.storage.contract_storage_aggregate import ISkillsStorageAggregate
@@ -27,12 +28,13 @@ __all__ = [
 
 
 class StorageContainer:
-    """Construct the four capabilities and the storage orchestrator (wiring only)."""
+    """Construct the storage capabilities and the storage orchestrator (wiring only)."""
 
     def __init__(
         self,
         archiver: SkillsArchiver | None = None,
         backup: SkillsBackup | None = None,
+        bootstrap: SkillsBootstrap | None = None,
         restore: SkillsRestore | None = None,
         rollback: SkillsRollback | None = None,
         default_root: Path | None = None,
@@ -40,6 +42,7 @@ class StorageContainer:
         root = default_root if default_root is not None else default_pack_root()
         self._archiver = archiver or SkillsArchiver()
         self._backup = backup or SkillsBackup()
+        self._bootstrap = bootstrap or SkillsBootstrap()
         self._restore = restore or SkillsRestore()
         self._rollback = rollback or SkillsRollback(backup=self._backup)
         self._orchestrator = SkillsStorageAgent(
