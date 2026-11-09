@@ -155,6 +155,47 @@ category under the same pack root. The move is dry-run by default;
 |---------------|-------|
 | Containment invariant | no apply writes outside the pack root |
 
+### FR-GOVERNANCE-004: Execute a governance operation through the aggregate contract
+
+**Description:** Route a governance `SkillsOp` (lock, unlock, pin, unpin, move) through the `ISkillsGovernanceAggregate` entry point, which dispatches to the owning capability protocol seam.
+
+#### Business Logic
+
+- `execute(request)` parses the request verb into a `GovernanceVerb` and routes to the matching `_execute_*` handler.
+- Each handler requires its capability (locker, piner, or mover) to be wired; an unwired capability raises a typed error before any work begins.
+- The agent performs no I/O, domain data, or computation — it only orchestrates the capability seams.
+
+#### Edge Cases
+
+- Unknown verb → usage error naming the op.
+- Unwired capability → typed error before any work begins.
+- Missing skill name → usage error naming the skill.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | `GovernanceRequest` (verb, query, root, flags) |
+| **Output** | `GovernanceResponse` (ok, verb, exit_code, message, root, plan, outcome) |
+| **Protocol** | `ISkillsGovernanceAggregate` |
+| **Method** | `execute(request)` |
+| **Event** | — |
+| **Error** | unknown verb, missing skill, unwired capability → typed error |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Valid lock op | `sac skills lock <skill>` | routes to `ISkillsLockerProtocol.lock`, exit 0 |
+| Unknown op | `sac skills bogus <skill>` | exit 2 naming the op |
+| Unwired capability | agent without locker | typed error before work |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Routing fidelity | every `GovernanceVerb` maps to exactly one capability handler |
+
 ## Public Interface
 
 | Aspect | Detail |

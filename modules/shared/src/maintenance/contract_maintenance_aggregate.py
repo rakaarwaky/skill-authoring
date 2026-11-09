@@ -14,6 +14,23 @@ from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsPurgerProtocol,
     ISkillsRestorerProtocol,
 )
+from shared.src.maintenance.taxonomy_maintenance_constant import (
+    MAINTENANCE_LOCK_FILENAME,
+    MAINTENANCE_SIDECAR_FILENAME,
+    PRUNE_TTL_DEFAULT_DAYS,
+    PURGE_TTL_DEFAULT_DAYS,
+)
+from shared.src.maintenance.taxonomy_maintenance_entity import (
+    MaintenanceRecord,
+    PruneCandidate,
+)
+from shared.src.maintenance.taxonomy_maintenance_error import (
+    MaintenanceError,
+    PruneEmptyError,
+    PurgeEmptyError,
+    SkillNotArchivedError,
+)
+from shared.src.maintenance.taxonomy_maintenance_vo import MaintenanceOp, MaintenanceOpId
 from shared.src.maintenance.taxonomy_maintenance_request import MaintenanceRequest
 from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
 
@@ -23,6 +40,13 @@ __all__ = [
     "ISkillsPrunerProtocol",
     "ISkillsPurgerProtocol",
     "ISkillsRestorerProtocol",
+    "MaintenanceError",
+    "MaintenanceOp",
+    "MaintenanceOpId",
+    "MaintenanceRecord",
+    "PruneCandidate",
+    "PurgeEmptyError",
+    "SkillNotArchivedError",
 ]
 
 

@@ -13,14 +13,29 @@ from shared.src.governance.contract_governance_protocol import (
     ISkillsMoverProtocol,
     ISkillsPinerProtocol,
 )
+from shared.src.governance.taxonomy_governance_entity import LockState, PinState
+from shared.src.governance.taxonomy_governance_error import (
+    GovernanceError,
+    SkillAlreadyLockedError,
+    SkillAlreadyPinnedError,
+    SkillNotLockedError,
+    SkillNotPinnedError,
+)
 from shared.src.governance.taxonomy_governance_request import GovernanceRequest
 from shared.src.governance.taxonomy_governance_response import GovernanceResponse
 
 __all__ = [
+    "GovernanceError",
     "ISkillsGovernanceAggregate",
     "ISkillsLockerProtocol",
     "ISkillsMoverProtocol",
     "ISkillsPinerProtocol",
+    "LockState",
+    "PinState",
+    "SkillAlreadyLockedError",
+    "SkillAlreadyPinnedError",
+    "SkillNotLockedError",
+    "SkillNotPinnedError",
 ]
 
 

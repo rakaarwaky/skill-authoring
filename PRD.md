@@ -48,7 +48,7 @@ Persona priority: **Skill Maintainer agent** first (bulk consolidation, prune, c
 
 ## Project Requirements
 
-### PR-SKILLDESIGN-001: `--create` builds a publishable SKILL.md + references
+### PR-SKILLDESIGN-001: .mypy_cache
 <!-- Tier P0: entry -001 is always P0. -->
 
 #### User Stories
@@ -68,7 +68,7 @@ The `--create` path copies `template/skill.md` (registered in `template/template
 3. It writes the new `SKILL.md` + `references/` under `<category>/<skill>/`.
 4. It runs `sac lint` on the new folder and reports pass/fail.
 
-### PR-SKILLDESIGN-002: `--improve` audits then repairs an existing skill
+### PR-SKILLDESIGN-002: __pycache__
 <!-- Tier P1: the first P1 entry. -->
 
 #### User Stories
@@ -88,7 +88,7 @@ The `--create` path copies `template/skill.md` (registered in `template/template
 3. It applies every fix and records the snapshot SHA.
 4. It re-runs `sac lint` and reports the result.
 
-### PR-SKILLDESIGN-003: `--prune` collapses overlapping skills
+### PR-SKILLDESIGN-003: cli
 <!-- Tier P2: the first P2 entry. -->
 
 #### User Stories

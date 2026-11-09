@@ -52,6 +52,16 @@ requirements are implemented.
 | Risk         | None                                                         |
 | Updated      | 2026-11-08                                                   |
 
+### FR-GOVERNANCE-004: Execute a governance operation through the aggregate contract
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `agent_governance_orchestrator.py` implements `ISkillsGovernanceAggregate.execute`, routing each `GovernanceVerb` to its capability handler. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-08                                                   |
+
 ## Reference
 
 | Artifact | Purpose | Link |

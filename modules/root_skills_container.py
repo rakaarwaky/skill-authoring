@@ -36,6 +36,7 @@ from maintenance.src.capabilities_skills_purge import SkillsPurge
 from observability.src.agent_observability_orchestrator import SkillsObservabilityAgent
 from observability.src.agent_skills_phrase_orchestrator import SkillsPhraseAgent
 from observability.src.capabilities_skills_ledger import SkillsLedger
+from observability.src.capabilities_skills_phrase_scan import SkillsPhraseScan
 from observability.src.capabilities_skills_telemetry import SkillsTelemetry
 from shared.src.common.taxonomy_common_vo import (
     SkillRecord,
@@ -160,7 +161,10 @@ def default_aggregate(
         rollback=rollback or SkillsRollback(backup or SkillsBackup()),
         default_root=root,
     )
-    traces = SkillsPhraseAgent(default_root=root)
+    traces = SkillsPhraseAgent(
+        scan=SkillsPhraseScan(),
+        default_root=root,
+    )
 
     return _ComposedAggregate(
         design=design,

@@ -21,6 +21,7 @@ from shared.src.storage.utility_path_bootstrap import _REPO_ROOT
 _ = _REPO_ROOT
 
 from cli.src.surface_skills_command import cmd_skills
+from mcp.src.surface_mcp_command import SkillsMcpAdapter
 from root_skills_container import default_aggregate
 
 

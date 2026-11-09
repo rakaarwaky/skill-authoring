@@ -67,6 +67,7 @@ Last Updated: 2026-11-04
 | Artifact     | Purpose                                    | Link |
 |--------------|--------------------------------------------|------|
 | PRD          | Business goals and scope                   | [PRD.md](../../../../../PRD.md) |
+| FRD          | Functional requirements                    | [FRD.md](FRD.md) |
 | Data         | Data requirements and shared value objects | [DATA.md](DATA.md) |
 | Roadmap      | Timeline, phasing, and dependencies        | [ROADMAP.md](../../../../../ROADMAP.md) |
 | Architecture | System boundaries, tech stack, and infra   | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |

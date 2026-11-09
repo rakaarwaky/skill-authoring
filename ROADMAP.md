@@ -6,7 +6,7 @@ The skill-design pack ships three invocation modes — `--create`, `--improve`, 
 
 ## Roadmap Status
 
-### PR-SKILLDESIGN-001: `--create` builds a publishable SKILL.md + references
+### PR-SKILLDESIGN-001: .mypy_cache
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
@@ -14,7 +14,7 @@ The skill-design pack ships three invocation modes — `--create`, `--improve`, 
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-002: `--improve` audits then repairs an existing skill
+### PR-SKILLDESIGN-002: __pycache__
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
@@ -22,7 +22,7 @@ The skill-design pack ships three invocation modes — `--create`, `--improve`, 
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-003: `--prune` collapses overlapping skills
+### PR-SKILLDESIGN-003: cli
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
