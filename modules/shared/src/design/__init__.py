@@ -8,9 +8,6 @@ from shared.src.common.taxonomy_common_constant import (
     BM25F_SCORE_SCALE,
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
-    NAME_MAX,
-    NAME_MIN,
-    NAME_RE,
 )
 from shared.src.common.taxonomy_common_entity import (
     CategorySummary,
@@ -38,6 +35,9 @@ from shared.src.design.contract_design_protocol import (
 )
 from shared.src.design.taxonomy_design_constant import (
     ARCHIVE_DIRNAME,
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
 )
 from shared.src.design.taxonomy_design_entity import (
     Issue,

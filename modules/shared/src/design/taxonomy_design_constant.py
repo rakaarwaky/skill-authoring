@@ -19,10 +19,17 @@ must read these constants rather than restate them.
 
 from __future__ import annotations
 
+import re
 from typing import Final
 
 # Originally ``librarian.py`` (retired); now this module is the SSOT.
 MAX_DESCRIPTION_LEN: Final = 1024
+
+#: Naming budget for skill directory names. Consumed by
+#: ``is_valid_skill_name`` in ``taxonomy_design_vo.py``.
+NAME_MIN: Final = 2
+NAME_MAX: Final = 64
+NAME_RE: Final = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
 
 #: Archive directory the ``archive`` mutation moves skills into; the
 #: walker skips it (it is in ``IGNORED_CATEGORY_DIRS``).
