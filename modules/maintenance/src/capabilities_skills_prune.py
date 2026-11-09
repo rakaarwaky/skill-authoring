@@ -8,13 +8,13 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from shared.src.maintenance.taxonomy_maintenance_request import SkillsRoot
 from shared.src.design.taxonomy_design_vo import (
     load_lifecycle_config,
 )
 from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsPrunerProtocol,
 )
+from shared.src.maintenance.taxonomy_maintenance_request import SkillsRoot
 from shared.src.maintenance.utility_lifecycle_support import (
     ACTIVE,
     _cron_referenced,

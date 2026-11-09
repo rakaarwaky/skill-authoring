@@ -1,7 +1,14 @@
-"""Skills-design MCP adapter (AES surface layer).
+"""Skills-design MCP adapter surface (AES surface layer).
 
-MCP adapter exposing every ``sac`` skill command as an MCP tool with
-1:1 CLI equivalence. Each MCP tool delegates to the composed
-``ISkillsAggregate.execute`` path — the same path the CLI uses — and
-therefore triggers the same telemetry view recording on success.
+Re-exports ``SkillsMcpAdapter`` from ``surface_mcp_command`` so the
+package surface and the command module share one implementation — no
+duplication between the barrel and the module.
 """
+
+from .surface_mcp_command import SkillsMcpAdapter
+
+__all__ = ["SkillsMcpAdapter"]
+
+_layer_symbols = {
+    "SkillsMcpAdapter": SkillsMcpAdapter,
+}

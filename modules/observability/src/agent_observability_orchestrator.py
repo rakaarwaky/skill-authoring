@@ -21,8 +21,8 @@ from shared.src.observability.contract_observability_protocol import (
     ISkillsTelemetryProtocol,
 )
 from shared.src.observability.taxonomy_observability_request import (
-    ObservabilityRequest,
     ObservabilityOp,
+    ObservabilityRequest,
     SkillsRoot,
 )
 from shared.src.observability.taxonomy_observability_response import (

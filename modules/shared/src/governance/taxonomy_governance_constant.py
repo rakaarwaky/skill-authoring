@@ -21,7 +21,14 @@ PIN_STATE_PINNED: Final = "pinned"
 #: The sidecar file holding lock/pin state per skill.
 LOCK_STATE_FILENAME: Final = ".lock_state.json"
 
+#: Exit code for unknown or malformed governance op.
+EXIT_USAGE: Final = 2
+#: Exit code for issues found during governance op.
+EXIT_ISSUES_FOUND: Final = 1
+
 __all__ = [
+    "EXIT_ISSUES_FOUND",
+    "EXIT_USAGE",
     "LOCK_STATE_ACTIVE",
     "LOCK_STATE_FILENAME",
     "LOCK_STATE_LOCKED",
@@ -30,6 +37,8 @@ __all__ = [
 ]
 
 _layer_symbols = {
+    "EXIT_ISSUES_FOUND": EXIT_ISSUES_FOUND,
+    "EXIT_USAGE": EXIT_USAGE,
     "LOCK_STATE_ACTIVE": LOCK_STATE_ACTIVE,
     "LOCK_STATE_LOCKED": LOCK_STATE_LOCKED,
     "LOCK_STATE_FILENAME": LOCK_STATE_FILENAME,

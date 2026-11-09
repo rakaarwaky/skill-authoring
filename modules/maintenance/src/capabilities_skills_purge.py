@@ -9,13 +9,13 @@ import shutil
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from shared.src.maintenance.taxonomy_maintenance_request import SkillsRoot
 from shared.src.design.taxonomy_design_vo import (
     load_lifecycle_config,
 )
 from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsPurgerProtocol,
 )
+from shared.src.maintenance.taxonomy_maintenance_request import SkillsRoot
 from shared.src.maintenance.utility_lifecycle_support import (
     _parse_iso,
     find_skill_dir,

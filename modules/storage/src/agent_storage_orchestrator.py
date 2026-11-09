@@ -21,10 +21,14 @@ from shared.src.storage.contract_storage_protocol import (
     ISkillsRestoreProtocol,
     ISkillsRollbackProtocol,
 )
+from shared.src.storage.taxonomy_storage_constant import (
+    EXIT_ISSUES_FOUND,
+    EXIT_USAGE,
+)
 from shared.src.storage.taxonomy_storage_request import (
+    SkillsRoot,
     StorageRequest,
     StorageVerb,
-    SkillsRoot,
 )
 from shared.src.storage.taxonomy_storage_response import StorageResponse
 
@@ -32,9 +36,6 @@ __all__ = [
     "ISkillsStorageAggregate",
     "SkillsStorageAgent",
 ]
-
-EXIT_USAGE = 2
-EXIT_ISSUES_FOUND = 1
 
 
 class SkillsStorageAgent(ISkillsStorageAggregate):
