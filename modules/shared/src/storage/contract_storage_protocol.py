@@ -1,7 +1,7 @@
 """Storage-domain capability contracts (AES contract layer, ABC traits).
 
-One seam per storage-side capability: bootstrap, lister, reader,
-archiver, backup, restore, rollback. Capabilities implement these;
+One seam per storage-side capability: bootstrap, archiver, backup,
+restore, rollback. Capabilities implement these;
 the composition root injects them into the agent. No import of
 sibling domain contracts — storage keeps its own seams.
 
@@ -11,14 +11,11 @@ No implementation code here — ABCs only, bodies are ``...``.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import (
     EntryId,
-    SkillContent,
     SkillName,
-    SkillRecord,
 )
 from shared.src.design.taxonomy_design_vo import (
     MutationOutcome,
@@ -33,22 +30,6 @@ class ISkillsBootstrapProtocol(ABC):
 
     @abstractmethod
     def bootstrap(self, root: SkillsRoot | None = None) -> StorageResponse:
-        ...
-
-
-class ISkillsListerProtocol(ABC):
-    """Read-only listing of the skill pack."""
-
-    @abstractmethod
-    def list_skills(self, root: SkillsRoot | None = None) -> Sequence[SkillRecord]:
-        ...
-
-
-class ISkillsReaderProtocol(ABC):
-    """Read-only content access to one skill's SKILL.md."""
-
-    @abstractmethod
-    def read_skill(self, skill: SkillName, root: SkillsRoot | None = None) -> SkillContent | None:
         ...
 
 
@@ -123,8 +104,6 @@ __all__ = [
     "ISkillsArchiverProtocol",
     "ISkillsBackupProtocol",
     "ISkillsBootstrapProtocol",
-    "ISkillsListerProtocol",
-    "ISkillsReaderProtocol",
     "ISkillsRestoreProtocol",
     "ISkillsRollbackProtocol",
     "ISkillsStorageAggregate",
@@ -134,8 +113,6 @@ _layer_symbols = {
     "ISkillsArchiverProtocol": ISkillsArchiverProtocol,
     "ISkillsBackupProtocol": ISkillsBackupProtocol,
     "ISkillsBootstrapProtocol": ISkillsBootstrapProtocol,
-    "ISkillsListerProtocol": ISkillsListerProtocol,
-    "ISkillsReaderProtocol": ISkillsReaderProtocol,
     "ISkillsRestoreProtocol": ISkillsRestoreProtocol,
     "ISkillsRollbackProtocol": ISkillsRollbackProtocol,
     "ISkillsStorageAggregate": ISkillsStorageAggregate,

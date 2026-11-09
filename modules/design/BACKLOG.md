@@ -4,7 +4,7 @@ FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../../../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
-Last Updated: 2026-11-09
+Last Updated: 2026-11-10
 
 ## Progress Overview
 
@@ -15,35 +15,45 @@ sequences the capabilities and returns a typed `SkillsResult`.
 
 ## Backlog Status
 
-### FR-DESIGN-001: Orchestrate design-side skill operations
+### FR-DESIGN-001: Creator capability contract
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `SkillsDesignAgent.execute` routes all six design ops via `ISkillsDesignAggregate` |
+| Done         | `SkillsCreator` implements `ISkillsCreatorProtocol` with `create_skill` and `create_category` |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Updated      | 2026-11-10                                                   |
 
-### FR-DESIGN-002: Capability contract implementation
+### FR-DESIGN-002: Adopter capability contract
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | Four capability files implement their protocols; no sibling imports |
+| Done         | `SkillsAdopter` implements `ISkillsAdopterProtocol` with `adopt` |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Updated      | 2026-11-10                                                   |
 
-### FR-DESIGN-003: Design aggregate contract
+### FR-DESIGN-003: Linter capability contract
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `ISkillsDesignAggregate` in `shared/src/design/`; agent registered in root |
+| Done         | `SkillsLinter` implements `ISkillsLinterProtocol` with `lint` |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Updated      | 2026-11-10                                                   |
+
+### FR-DESIGN-004: Runner capability contract
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `SkillsRunner` implements `ISkillsRunnerProtocol` with `apply_automatic_transitions`, `pause`, `resume` |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-10                                                   |
 
 ## Reference
 
