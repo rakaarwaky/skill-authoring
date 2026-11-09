@@ -38,11 +38,6 @@ from shared.src.common.taxonomy_common_error import (
     SkillNotFoundError,
     SkillsUsageError,
 )
-from shared.src.common.utility_common_skills import (
-    assert_within_root,
-    find_skill_dir,
-    set_field,
-)
 
 __all__ = [
     "ACTIVE",
@@ -124,6 +119,44 @@ _CACHE_MARKERS: frozenset[str] = frozenset({"__pycache__"})
 # SkillsRoot is a maintenance-local NewType over Path; it is not imported
 # from a sibling domain.
 SkillsRoot = NewType("SkillsRoot", Path)
+
+
+def _find_skill_dir(skill: str, root: Path, in_archive: bool = False) -> Path | None:
+    """Find a skill directory by name under root (optionally inside archive)."""
+    search_root = root / ARCHIVE_DIRNAME if in_archive else root
+    if not search_root.is_dir():
+        return None
+    matches: list[Path] = []
+    for p in search_root.rglob("SKILL.md"):
+        if p.parent.name == skill:
+            matches.append(p.parent)
+    return min(matches) if matches else None
+
+
+def _assert_within_root(path: Path, root: Path) -> None:
+    """Fail closed when a computed destination escapes the skills root."""
+    try:
+        contained = path.resolve().is_relative_to(root.resolve())
+    except OSError:
+        contained = False
+    if not contained:
+        raise SkillsUsageError(f"Refusing to write outside the skills root: {path}")
+
+
+def _atomic_write_json(path: Path, payload: object) -> None:
+    """Atomically write ``payload`` as JSON to ``path`` (temp + os.replace)."""
+    tmp = path.with_name(path.name + ".tmp")
+    try:
+        with tmp.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp, path)
+    finally:
+        try:
+            tmp.unlink(missing_ok=True)
+        except OSError:
+            pass
 
 
 def _now_iso() -> str:
@@ -397,7 +430,7 @@ def read_record(skill_dir: Path) -> dict:
 
 
 def write_record(skill_dir: Path, record: dict) -> None:
-    atomic_write_json(_usage_path(skill_dir), record)
+    _atomic_write_json(_usage_path(skill_dir), record)
 
 
 def set_state(skill_dir: Path, state: str, archived_at: str | None = None) -> None:
@@ -409,15 +442,15 @@ def set_state(skill_dir: Path, state: str, archived_at: str | None = None) -> No
 
 
 def archive_skill(skill: str, pack_root: Path) -> dict:
-    skill_dir = find_skill_dir(skill, pack_root, in_archive=False)
+    skill_dir = _find_skill_dir(skill, pack_root, in_archive=False)
     if skill_dir is None:
-        if find_skill_dir(skill, pack_root, in_archive=True) is not None:
+        if _find_skill_dir(skill, pack_root, in_archive=True) is not None:
             return {"skill": skill, "archived": False, "reason": "already-archived"}
         raise SkillNotFoundError(f"No skill directory found for: {skill}")
 
     category = skill_dir.parent.name
     destination = archive_root(pack_root) / category / skill
-    assert_within_root(destination, pack_root)
+    _assert_within_root(destination, pack_root)
     record = read_record(skill_dir)
     prior_state = record.get("state", "active")
     now_iso_val = _now_iso()
@@ -440,15 +473,15 @@ def archive_skill(skill: str, pack_root: Path) -> dict:
 
 
 def restore_skill(skill: str, pack_root: Path, reanchor=None) -> dict:
-    archived_dir = find_skill_dir(skill, pack_root, in_archive=True)
+    archived_dir = _find_skill_dir(skill, pack_root, in_archive=True)
     if archived_dir is None:
-        if find_skill_dir(skill, pack_root, in_archive=False) is None:
+        if _find_skill_dir(skill, pack_root, in_archive=False) is None:
             raise SkillNotFoundError(f"No skill directory found for: {skill}")
         return {"skill": skill, "restored": False, "reason": "not-archived"}
 
     category = archived_dir.parent.name
     destination = pack_root / category / skill
-    assert_within_root(destination, pack_root)
+    _assert_within_root(destination, pack_root)
     record = read_record(archived_dir)
     prior_state = record.get("state", "archived")
     prior_archived_at = record.get("archived_at")

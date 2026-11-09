@@ -19,7 +19,6 @@ must read these constants rather than restate them.
 
 from __future__ import annotations
 
-import re
 from typing import Final
 
 # Originally ``librarian.py`` (retired); now this module is the SSOT.

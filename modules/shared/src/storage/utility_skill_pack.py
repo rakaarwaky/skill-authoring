@@ -11,12 +11,10 @@ import re
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_constant import (
-    IGNORED_CATEGORY_DIRS,
     NAME_MAX,
     NAME_MIN,
     NAME_RE,
 )
-from shared.src.common.utility_common_skills import default_pack_root
 
 __all__ = [
     "default_pack_root",
@@ -25,6 +23,11 @@ __all__ = [
     "read_skill_md",
     "sanitize_skill_name",
 ]
+
+
+def default_pack_root() -> Path:
+    """Return the default pack root path (repo root resolved from this file)."""
+    return Path(__file__).resolve().parents[6]
 
 
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:

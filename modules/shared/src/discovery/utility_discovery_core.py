@@ -25,7 +25,14 @@ from shared.src.common.taxonomy_common_entity import (
     SkillEntry,
 )
 from shared.src.common.taxonomy_common_error import SkillsRootError
-from shared.src.common.utility_common_skills import relpath
+
+
+def relpath(path: Path, skills_root: Path) -> str:
+    """A skills-root-relative path when possible, else the absolute one."""
+    try:
+        return str(path.relative_to(skills_root))
+    except ValueError:
+        return str(path)
 
 _yaml_mod: ModuleType | None
 try:
