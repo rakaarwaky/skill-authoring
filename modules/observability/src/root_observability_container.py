@@ -21,7 +21,6 @@ from capabilities_skills_telemetry import SkillsTelemetry
 from shared.src.observability.contract_observability_aggregate import (
     ISkillsObservabilityAggregate,
 )
-from shared.src.observability.contract_traces_aggregate import ISkillsTracesAggregate
 from shared.src.storage.utility_skill_pack import default_pack_root
 
 __all__ = [
@@ -57,7 +56,7 @@ class ObservabilityContainer:
         return self._observability
 
     @property
-    def traces(self) -> ISkillsTracesAggregate:
+    def traces(self) -> SkillsPhraseAgent:
         """Expose the traces agent aggregate contract."""
         return self._traces
 

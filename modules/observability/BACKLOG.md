@@ -7,6 +7,7 @@ Health: root § State Definitions
 Last Updated: 2026-11-09
 
 ## Progress Overview
+
 The observability feature owns the audit-ledger and per-skill telemetry side:
 `SkillsLedger` (append/read/compact/rollback), `SkillsTelemetry` (seed,
 reanchor, curated report, views bump), and `SkillsPhraseScan`
