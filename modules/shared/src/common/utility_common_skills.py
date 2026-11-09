@@ -15,13 +15,11 @@ import os
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_constant import ARCHIVE_DIRNAME, IGNORED_CATEGORY_DIRS, NAME_MAX, NAME_MIN, NAME_RE
-from shared.src.common.taxonomy_common_entity import CategorySummary, SkillEntry
 from shared.src.common.taxonomy_common_error import (
     CategoryNameError,
     SkillNotFoundError,
     SkillsUsageError,
 )
-from shared.src.common.taxonomy_common_vo import SkillsRoot
 
 __all__ = [
     "assert_within_root",

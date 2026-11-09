@@ -32,11 +32,6 @@ from shared.src.common.taxonomy_common_constant import (
     NAME_MIN,
     NAME_RE,
 )
-from shared.src.common.taxonomy_common_vo import (
-    MutationOutcome,
-    MutationPlan,
-    MutationStep,
-)
 from shared.src.design.taxonomy_design_constant import (
     CITATIONS,
     SUMMARIES,

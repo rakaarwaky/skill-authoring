@@ -31,17 +31,7 @@ from shared.src.common.taxonomy_common_constant import (
 )
 from shared.src.common.taxonomy_common_entity import CategorySummary, SkillEntry
 from shared.src.common.taxonomy_common_error import (
-    CategoryNameError,
-    SkillNotFoundError,
     SkillsRootError,
-    SkillsUsageError,
-)
-from shared.src.common.utility_common_skills import (
-    assert_within_root,
-    default_pack_root,
-    relpath,
-    resolve_skill_dir,
-    validate_category_name,
 )
 from shared.src.common.taxonomy_common_vo import (
     MutationPlan,
@@ -50,7 +40,6 @@ from shared.src.common.taxonomy_common_vo import (
 
 __all__ = [
     "archive_root",
-    "assert_within_root",
     "atomic_write_json",
     "category_dirs",
     "category_summaries",
@@ -62,11 +51,8 @@ __all__ = [
     "plan_repair",
     "plan_weed",
     "read_skill_md",
-    "relpath",
-    "resolve_skill_dir",
     "sanitize_skill_name",
     "skill_entries",
-    "validate_category_name",
 ]
 
 

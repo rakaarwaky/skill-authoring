@@ -12,7 +12,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import NewType
 
 from shared.src.common.taxonomy_common_vo import SkillName, SkillsRoot
 

@@ -48,7 +48,6 @@ from shared.src.maintenance.utility_maintenance_core import (
     maintenance_sidecar_path,
 )
 from shared.src.maintenance.utility_skills_mutation import (
-    assert_within_root,
     plan_repair,
     plan_weed,
 )
@@ -78,7 +77,6 @@ __all__ = [
     "SkillNotArchivedError",
     "SkillsRoot",
     "archive_skill",
-    "assert_within_root",
     "default_prune_ttl_days",
     "default_purge_ttl_days",
     "maintenance_lock_path",
@@ -108,7 +106,6 @@ _layer_symbols = {
     "SkillNotArchivedError": SkillNotArchivedError,
     "SkillsRoot": SkillsRoot,
     "archive_skill": archive_skill,
-    "assert_within_root": assert_within_root,
     "default_purge_ttl_days": default_purge_ttl_days,
     "default_prune_ttl_days": default_prune_ttl_days,
     "maintenance_lock_path": maintenance_lock_path,

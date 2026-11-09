@@ -23,27 +23,26 @@ from shared.src.observability.contract_observability_protocol import (
     ISkillsTelemetryProtocol,
     ISkillsTracesProtocol,
 )
-from shared.src.observability.taxonomy_observability_constant import (
-    GROK_HOME_ENV,
-    MIN_SESSIONS_DEFAULT,
-    MIN_TURNS_DEFAULT,
-)
-from shared.src.observability.taxonomy_observability_error import (
-    GrokHomeMissingError,
-    NoSessionsError,
-    ObservabilityError,
+from shared.src.observability.taxonomy_observability_request import ObservabilityOp
+from shared.src.observability.taxonomy_observability_response import ObservabilityExitCode
+
+#: Operations the observability aggregate exposes (re-exported for discovery).
+OBSERVABILITY_OPS = (ObservabilityOp.PHRASES, ObservabilityOp.SCAN)
+#: Exit codes the observability aggregate reports (re-exported for discovery).
+OBSERVABILITY_EXIT_CODES = (
+    ObservabilityExitCode.CLEAN,
+    ObservabilityExitCode.ISSUES_FOUND,
+    ObservabilityExitCode.USAGE_ERROR,
+    ObservabilityExitCode.CATALOG_DRIFT,
 )
 
 __all__ = [
-    "GROK_HOME_ENV",
     "ISkillsLedgerProtocol",
     "IObservabilityAggregate",
     "ISkillsTelemetryProtocol",
     "ISkillsTracesProtocol",
-    "MIN_SESSIONS_DEFAULT",
-    "MIN_TURNS_DEFAULT",
-    "NoSessionsError",
-    "ObservabilityError",
+    "OBSERVABILITY_OPS",
+    "OBSERVABILITY_EXIT_CODES",
 ]
 
 
