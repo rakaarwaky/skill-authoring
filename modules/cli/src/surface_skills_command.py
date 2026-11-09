@@ -39,16 +39,8 @@ from __future__ import annotations
 import argparse
 import sys
 
-from shared.src.observability.utility_logging_setup import (
-    BOLD,
-    CYAN,
-    RESET,
-    banner,
-    err,
-    info,
-)
-from shared.src.design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.common.taxonomy_common_error import SkillsUsageError
+from shared.src.design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
@@ -57,6 +49,14 @@ from shared.src.design.taxonomy_skills_request import (
 from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
+)
+from shared.src.observability.utility_logging_setup import (
+    BOLD,
+    CYAN,
+    RESET,
+    banner,
+    err,
+    info,
 )
 
 _EXIT_USAGE = SkillsExitCode.USAGE_ERROR
@@ -247,17 +247,10 @@ def _render_phrases(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
 def _lifecycle_verb_parser(sub: str) -> argparse.ArgumentParser:
     """Build the argparse parser for one lifecycle verb."""
     parser = argparse.ArgumentParser(prog=f"sac {sub}", add_help=True)
-    if sub in ("pin", "unpin", "lock", "unlock", "restore", "adopt"):
+    if sub in ("pin", "unpin", "lock", "unlock", "restore", "adopt") or sub == "archive":
         parser.add_argument("query")
         parser.add_argument("--apply", action="store_true", default=False)
-    elif sub == "archive":
-        parser.add_argument("query")
-        parser.add_argument("--apply", action="store_true", default=False)
-    elif sub == "prune":
-        parser.add_argument("--days", type=str, default=None)
-        parser.add_argument("--dry-run", action="store_true", default=False)
-        parser.add_argument("--apply", action="store_true", default=False)
-    elif sub == "purge":
+    elif sub == "prune" or sub == "purge":
         parser.add_argument("--days", type=str, default=None)
         parser.add_argument("--dry-run", action="store_true", default=False)
         parser.add_argument("--apply", action="store_true", default=False)
@@ -699,7 +692,7 @@ def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
             err("Internal error: no catalog check produced")
             return 1
         if check.in_sync:
-            print(f"[OK] catalog.json is in sync with the live tree")
+            print("[OK] catalog.json is in sync with the live tree")
             return result.exit_code
         err(check.message or "catalog.json drifted from the live tree")
         return result.exit_code or 3

@@ -18,9 +18,9 @@ from shared.src.design.taxonomy_skills_request import (
     SkillsRequest,
     SkillsRoot,
 )
-from shared.src.traces.contract_traces_aggregate import ISkillsTracesAggregate
-from shared.src.traces.contract_traces_protocol import ISkillsTracesProtocol
-from shared.src.traces.taxonomy_traces_response import (
+from shared.src.observability.contract_traces_aggregate import ISkillsTracesAggregate
+from shared.src.observability.contract_traces_protocol import ISkillsTracesProtocol
+from shared.src.observability.taxonomy_traces_response import (
     SkillsExitCode,
     SkillsResult,
 )

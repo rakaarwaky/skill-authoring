@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 from shared.src.design.taxonomy_skills_request import SkillsOp
 
 if TYPE_CHECKING:
-    from shared.src.traces.taxonomy_traces_vo import PhraseRow, ScanResult
+    from shared.src.observability.taxonomy_traces_vo import PhraseRow, ScanResult
 
 
 class SkillsExitCode(IntEnum):
@@ -43,10 +43,10 @@ class SkillsResult:
     exit_code: int = 0
     message: str = ""
     root: Path | None = None
-    phrases_exact: tuple["PhraseRow", ...] = ()
-    phrases_stems: tuple["PhraseRow", ...] = ()
-    phrases_lines: tuple["PhraseRow", ...] = ()
-    scan_summary: "ScanResult | None" = None
+    phrases_exact: tuple[PhraseRow, ...] = ()
+    phrases_stems: tuple[PhraseRow, ...] = ()
+    phrases_lines: tuple[PhraseRow, ...] = ()
+    scan_summary: ScanResult | None = None
 
 
 __all__ = ["SkillsExitCode", "SkillsResult"]

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from shared.src.traces.taxonomy_traces_vo import (
+from shared.src.observability.taxonomy_traces_vo import (
     GrokHome,
     PhrasesReport,
     ScanResult,

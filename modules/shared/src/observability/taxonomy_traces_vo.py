@@ -7,8 +7,8 @@ capabilities, agent, root, or surface layers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from collections.abc import Mapping
+from dataclasses import dataclass, field
 from typing import NewType
 
 #: The ``$GROK_HOME`` directory the phrase pipeline reads session traces from.
