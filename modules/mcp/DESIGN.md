@@ -12,20 +12,22 @@ the same `SkillsRequest` shape, then hands it to `ISkillsAggregate.execute`.
 No surface module imports a capability module directly; the aggregate is
 injected by the composition root.
 
-## Surface Kind
+**Surface kind:** MCP adapter. The surface publishes a tool registry
+(`list_tools`) and a dispatcher (`execute_tool`); it does not own
+lifecycle, storage, or discovery state — all state transitions flow
+through the injected aggregate.
 
-MCP adapter. The surface publishes a tool registry (`list_tools`) and a
-dispatcher (`execute_tool`); it does not own lifecycle, storage, or
-discovery state — all state transitions flow through the injected
-aggregate.
+**Entry points:** `SkillsMcpAdapter` (class, public) exposes every `sac`
+verb as an MCP tool, constructed with the composed `ISkillsAggregate`;
+`SkillsMcpAdapter.list_tools` returns MCP tool descriptors, one per `sac`
+verb (24 tools); `SkillsMcpAdapter.execute_tool` dispatches an MCP tool
+call to the aggregate and returns an MCP result envelope (`ok`, `content`).
 
-## Entry Points
-
-| Entry point | Kind | Role |
-|-------------|------|------|
-| `SkillsMcpAdapter` | class (public) | Adapter exposing every `sac` verb as an MCP tool; constructed with the composed `ISkillsAggregate`. |
-| `SkillsMcpAdapter.list_tools` | method | Returns MCP tool descriptors, one per `sac` verb (24 tools). |
-| `SkillsMcpAdapter.execute_tool` | method | Dispatches an MCP tool call to the aggregate and returns an MCP result envelope (`ok`, `content`). |
+**Visible states:** the surface itself is stateless; visible states come
+from the aggregate's `SkillsResult.ok` flag and message, exposed as the
+MCP result envelope — `ok: true` means the verb executed cleanly with
+`content` carrying the verb's textual output; `ok: false` means the verb
+reported an issue with `content` carrying the `SkillsResult` message.
 
 ## Design Requirements
 
@@ -58,17 +60,6 @@ Consumers are MCP agents, not humans. `execute_tool` returns a stable
 envelope (`ok`, `content` with a single text block) drawn from
 `SkillsResult`; state is conveyed by the textual payload, never by
 spatial layout or color.
-
-## Visible States
-
-The surface itself is stateless; visible states come from the
-aggregate's `SkillsResult.ok` flag and message, exposed as the MCP
-result envelope:
-
-| State | Meaning |
-|-------|---------|
-| `ok: true` | The verb executed cleanly; `content` carries the verb's textual output. |
-| `ok: false` | The verb reported an issue; `content` carries the `SkillsResult` message. |
 
 ## Reference
 
