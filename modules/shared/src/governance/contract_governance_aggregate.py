@@ -8,13 +8,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from shared.src.design.taxonomy_design_request import SkillsRequest
-from shared.src.design.taxonomy_design_response import SkillsResult
 from shared.src.governance.contract_governance_protocol import (
     ISkillsLockerProtocol,
     ISkillsMoverProtocol,
     ISkillsPinerProtocol,
 )
+from shared.src.governance.taxonomy_governance_request import GovernanceRequest
+from shared.src.governance.taxonomy_governance_response import GovernanceResponse
 
 __all__ = [
     "ISkillsGovernanceAggregate",
@@ -28,6 +28,6 @@ class ISkillsGovernanceAggregate(ABC):
     """Single entry point over governance-side ops; the agent dispatches internally."""
 
     @abstractmethod
-    def execute(self, request: SkillsRequest) -> SkillsResult:
+    def execute(self, request: GovernanceRequest) -> GovernanceResponse:
         """Run the request the surface/root/CLI asked for; return the response."""
         ...

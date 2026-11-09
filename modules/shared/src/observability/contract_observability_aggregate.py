@@ -8,11 +8,15 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from shared.src.design.taxonomy_design_request import SkillsRequest
-from shared.src.design.taxonomy_design_response import SkillsResult
 from shared.src.observability.contract_observability_protocol import (
     ISkillsLedgerProtocol,
     ISkillsTelemetryProtocol,
+)
+from shared.src.observability.taxonomy_observability_request import (
+    ObservabilityRequest,
+)
+from shared.src.observability.taxonomy_observability_response import (
+    ObservabilityResult,
 )
 
 __all__ = [
@@ -26,6 +30,6 @@ class ISkillsObservabilityAggregate(ABC):
     """Single entry point over observability-side ops; the agent dispatches internally."""
 
     @abstractmethod
-    def execute(self, request: SkillsRequest) -> SkillsResult:
+    def execute(self, request: ObservabilityRequest) -> ObservabilityResult:
         """Run the request the surface/root/CLI asked for; return the response."""
         ...
