@@ -33,8 +33,7 @@ from governance.src.capabilities_skills_piner import SkillsPiner
 from maintenance.src.agent_maintenance_orchestrator import SkillsMaintenanceAgent
 from maintenance.src.capabilities_skills_prune import SkillsPrune
 from maintenance.src.capabilities_skills_purge import SkillsPurge
-from observability.src.agent_observability_orchestrator import SkillsObservabilityAgent
-from observability.src.agent_skills_phrase_orchestrator import SkillsPhraseAgent
+from observability.src.agent_observability_orchestrator import ObservabilityAgent
 from observability.src.capabilities_skills_ledger import SkillsLedger
 from observability.src.capabilities_skills_phrase_scan import SkillsPhraseScan
 from observability.src.capabilities_skills_telemetry import SkillsTelemetry
@@ -77,11 +76,6 @@ from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceVerb,
 )
 from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
-from shared.src.observability.taxonomy_observability_request import (
-    ObservabilityOp,
-    ObservabilityRequest,
-)
-from shared.src.observability.taxonomy_observability_response import ObservabilityResult
 from shared.src.storage.contract_storage_protocol import ISkillsArchiverProtocol
 from shared.src.storage.taxonomy_storage_request import (
     StorageRequest,
@@ -149,9 +143,10 @@ def default_aggregate(
         purge=SkillsPurge(),
         default_root=root,
     )
-    observability = SkillsObservabilityAgent(
+    observability = ObservabilityAgent(
         ledger=SkillsLedger(),
         telemetry=SkillsTelemetry(),
+        scan=SkillsPhraseScan(),
         default_root=root,
     )
     storage = SkillsStorageAgent(
@@ -159,10 +154,6 @@ def default_aggregate(
         backup=backup or SkillsBackup(),
         restore=restore,
         rollback=rollback or SkillsRollback(backup or SkillsBackup()),
-        default_root=root,
-    )
-    traces = SkillsPhraseAgent(
-        scan=SkillsPhraseScan(),
         default_root=root,
     )
 
@@ -173,7 +164,6 @@ def default_aggregate(
         maintenance=maintenance,
         observability=observability,
         storage=storage,
-        traces=traces,
     )
 
 
@@ -186,7 +176,6 @@ class _ComposedAggregate(ISkillsAggregate):
         maintenance,
         observability,
         storage,
-        traces,
     ) -> None:
         self._design = design
         self._discovery = discovery
@@ -194,7 +183,6 @@ class _ComposedAggregate(ISkillsAggregate):
         self._maintenance = maintenance
         self._observability = observability
         self._storage = storage
-        self._traces = traces
 
     def execute(self, request: SkillsRequest) -> SkillsResult:
         op = request.op
@@ -228,14 +216,7 @@ class _ComposedAggregate(ISkillsAggregate):
             mresp = self._maintenance.execute(mreq)
             result = _maintenance_response_to_result(mresp, op)
         elif op in _OBSERVABILITY_OPS:
-            oreq = ObservabilityRequest(
-                op=ObservabilityOp(op.value),
-                query=request.query,
-                root=request.root,
-                flags=request.flags,
-            )
-            oresp = self._observability.execute(oreq)
-            result = _observability_response_to_result(oresp, op)
+            result = self._observability.execute(request)
         elif op in _STORAGE_OPS:
             sreq = StorageRequest(
                 verb=StorageVerb(op.value),
@@ -245,8 +226,6 @@ class _ComposedAggregate(ISkillsAggregate):
             )
             sresp = self._storage.execute(sreq)
             result = _storage_response_to_result(sresp, op)
-        elif op in _TRACES_OPS:
-            result = self._traces.execute(request)
         else:
             return SkillsResult(
                 ok=False,
@@ -305,19 +284,6 @@ def _maintenance_response_to_result(
     )
 
 
-def _observability_response_to_result(
-    oresp: ObservabilityResult, op: SkillsOp
-) -> SkillsResult:
-    return SkillsResult(
-        ok=oresp.ok,
-        op=op,
-        exit_code=oresp.exit_code,
-        message=oresp.message,
-        root=oresp.root,
-        records=oresp.records,
-    )
-
-
 def _storage_response_to_result(
     sresp: StorageResponse, op: SkillsOp
 ) -> SkillsResult:
@@ -364,11 +330,10 @@ _GOVERNANCE_OPS = frozenset(
     }
 )
 _MAINTENANCE_OPS = frozenset({SkillsOp.PRUNE, SkillsOp.PURGE})
-_OBSERVABILITY_OPS = frozenset({SkillsOp.LEDGER, SkillsOp.USAGE})
+_OBSERVABILITY_OPS = frozenset({SkillsOp.LEDGER, SkillsOp.USAGE, SkillsOp.TRACES})
 _STORAGE_OPS = frozenset(
     {SkillsOp.ARCHIVE, SkillsOp.BACKUP, SkillsOp.RESTORE, SkillsOp.ROLLBACK}
 )
-_TRACES_OPS = frozenset({SkillsOp.TRACES})
 
 
 class SkillsFacade:
