@@ -20,7 +20,7 @@ from shared.src.common.taxonomy_common_vo import (
     SkillName,
     SkillRecord,
 )
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_design_vo import (
     MutationOutcome,
     MutationPlan,
 )

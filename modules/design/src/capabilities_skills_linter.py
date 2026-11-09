@@ -32,17 +32,17 @@ from shared.src.common.taxonomy_common_entity import (
     CategorySummary,
     SkillEntry,
 )
-from shared.src.design.contract_skills_protocol import ISkillsLinterProtocol
-from shared.src.design.taxonomy_skills_constant import (
+from shared.src.design.contract_design_protocol import ISkillsLinterProtocol
+from shared.src.design.taxonomy_design_constant import (
     ASSETS_MARKER_FILENAME,
     MAX_DESCRIPTION_LEN,
     PACK_MARKER_FILENAME,
 )
-from shared.src.design.taxonomy_skills_entity import (
+from shared.src.design.taxonomy_design_entity import (
     Issue,
 )
-from shared.src.design.taxonomy_skills_request import SkillsRoot
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_design_request import SkillsRoot
+from shared.src.design.taxonomy_design_vo import (
     IssueType,
     LintReport,
     ValidationReport,

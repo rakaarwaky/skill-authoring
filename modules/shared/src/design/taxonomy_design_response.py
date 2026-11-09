@@ -21,7 +21,7 @@ from enum import IntEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from shared.src.design.taxonomy_skills_request import SkillsOp
+from shared.src.design.taxonomy_design_request import SkillsOp
 
 if TYPE_CHECKING:
     # Discovery payloads carry common-layer VO types at type-check time.
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
         SkillContent,
         SkillRecord,
     )
-    from shared.src.design.taxonomy_skills_vo import (
+    from shared.src.design.taxonomy_design_vo import (
         LintReport,
         MutationOutcome,
         MutationPlan,

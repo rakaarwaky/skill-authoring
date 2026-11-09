@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import SkillName
-from shared.src.design.taxonomy_skills_vo import MutationOutcome, MutationPlan
+from shared.src.design.taxonomy_design_vo import MutationOutcome, MutationPlan
 from shared.src.governance.taxonomy_governance_response import GovernanceResponse
 
 

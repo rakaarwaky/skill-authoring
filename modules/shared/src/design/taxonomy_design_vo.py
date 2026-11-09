@@ -32,7 +32,7 @@ from shared.src.common.taxonomy_common_constant import (
     NAME_MIN,
     NAME_RE,
 )
-from shared.src.design.taxonomy_skills_constant import (
+from shared.src.design.taxonomy_design_constant import (
     CITATIONS,
     SUMMARIES,
 )
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     # ``Issue`` lives in the entity module, which imports ``IssueType``
     # from here. The annotation is a string (PEP 563), so the runtime
     # import stays one-directional: entity -> vo.
-    from shared.src.design.taxonomy_skills_entity import Issue
+    from shared.src.design.taxonomy_design_entity import Issue
 
 logger = logging.getLogger(__name__)
 

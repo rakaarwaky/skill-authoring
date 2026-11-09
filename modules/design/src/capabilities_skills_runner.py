@@ -10,12 +10,12 @@ from dataclasses import asdict, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from shared.src.design.contract_skills_protocol import (
+from shared.src.design.contract_design_protocol import (
     ISkillsRunnerProtocol,
 )
-from shared.src.design.taxonomy_skills_constant import LIFECYCLE_STATES
-from shared.src.design.taxonomy_skills_request import SkillsRoot
-from shared.src.design.taxonomy_skills_vo import load_lifecycle_config
+from shared.src.design.taxonomy_design_constant import LIFECYCLE_STATES
+from shared.src.design.taxonomy_design_request import SkillsRoot
+from shared.src.design.taxonomy_design_vo import load_lifecycle_config
 from shared.src.maintenance.utility_lifecycle_support import (
     ACTIVE,
     ARCHIVED,

@@ -6,7 +6,7 @@ typed request and let the agent route it to a live capability.
 """
 from __future__ import annotations
 
-from shared.src.design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_design_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,

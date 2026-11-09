@@ -26,8 +26,8 @@ from shared.src.common.taxonomy_common_vo import (
     CategoryName,
     SkillName,
 )
-from shared.src.design.taxonomy_skills_request import SkillsRoot
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_design_request import SkillsRoot
+from shared.src.design.taxonomy_design_vo import (
     MutationOutcome,
     MutationPlan,
 )

@@ -38,7 +38,7 @@ def bench_agent_construction():
 def bench_agent_execute_dispatch():
     """Benchmark: execute() dispatch overhead for a governance op."""
     from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
-    from shared.src.design.taxonomy_skills_request import (
+    from shared.src.design.taxonomy_design_request import (
         SkillQuery,
         SkillsOp,
         SkillsRequest,

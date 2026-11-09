@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.design.taxonomy_design_request import SkillsRoot
 from shared.src.maintenance.utility_lifecycle_support import (
     DEFAULT_STATE,
     _baseline_record,

@@ -5,7 +5,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_design_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,

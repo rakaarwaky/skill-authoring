@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.contract_skills_protocol import (
+from shared.src.design.contract_design_protocol import (
     ISkillsAdopterProtocol,
 )
-from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.design.taxonomy_design_request import SkillsRoot
 from shared.src.maintenance.utility_lifecycle_support import (
     find_skill_dir,
     set_field,

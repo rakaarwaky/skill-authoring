@@ -6,8 +6,8 @@ Verifies the agent's op-handler dispatch and error propagation.
 from __future__ import annotations
 
 from design.src.agent_design_orchestrator import SkillsDesignAgent
-from shared.src.design.taxonomy_skills_request import SkillsOp, SkillsRequest
-from shared.src.design.taxonomy_skills_response import SkillsExitCode
+from shared.src.design.taxonomy_design_request import SkillsOp, SkillsRequest
+from shared.src.design.taxonomy_design_response import SkillsExitCode
 
 
 def test_unknown_op_returns_usage_error() -> None:

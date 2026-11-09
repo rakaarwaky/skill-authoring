@@ -29,30 +29,30 @@ from shared.src.common.taxonomy_common_vo import (
     SkillRecord,
     SkillsJsonPayload,
 )
-from shared.src.design.contract_skills_aggregate import ISkillsAggregate
-from shared.src.design.contract_skills_protocol import (
+from shared.src.design.contract_design_aggregate import ISkillsAggregate
+from shared.src.design.contract_design_protocol import (
     ISkillsAdopterProtocol,
     ISkillsCreatorProtocol,
     ISkillsLinterProtocol,
     ISkillsRunnerProtocol,
 )
-from shared.src.design.taxonomy_skills_constant import (
+from shared.src.design.taxonomy_design_constant import (
     ARCHIVE_DIRNAME,
 )
-from shared.src.design.taxonomy_skills_entity import (
+from shared.src.design.taxonomy_design_entity import (
     Issue,
 )
-from shared.src.design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_design_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
 )
-from shared.src.design.taxonomy_skills_response import (
+from shared.src.design.taxonomy_design_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_design_vo import (
     LintReport,
     MutationOutcome,
     MutationPlan,

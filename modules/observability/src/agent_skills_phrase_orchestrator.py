@@ -13,7 +13,7 @@ from collections.abc import Callable
 from typing import cast
 
 from shared.src.common.taxonomy_common_error import SkillsError
-from shared.src.design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_design_request import (
     SkillsOp,
     SkillsRequest,
     SkillsRoot,

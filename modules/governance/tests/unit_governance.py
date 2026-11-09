@@ -3,12 +3,12 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from shared.src.design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_design_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
 )
-from shared.src.design.taxonomy_skills_response import SkillsExitCode
+from shared.src.design.taxonomy_design_response import SkillsExitCode
 
 
 def _agent():

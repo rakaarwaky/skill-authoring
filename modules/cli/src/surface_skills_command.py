@@ -40,13 +40,13 @@ import argparse
 import sys
 
 from shared.src.common.taxonomy_common_error import SkillsUsageError
-from shared.src.design.contract_skills_aggregate import ISkillsAggregate
-from shared.src.design.taxonomy_skills_request import (
+from shared.src.design.contract_design_aggregate import ISkillsAggregate
+from shared.src.design.taxonomy_design_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
 )
-from shared.src.design.taxonomy_skills_response import (
+from shared.src.design.taxonomy_design_response import (
     SkillsExitCode,
     SkillsResult,
 )

@@ -17,7 +17,7 @@ Last Updated: 2026-11-04
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `SkillContent`, `SkillDescription`, `ErrorMessage`, `DiffLines`, `SkillsJsonPayload`, `SkillRecord` defined in `taxonomy_skills_vo.py`; verified by shared tests at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| Done         | `SkillContent`, `SkillDescription`, `ErrorMessage`, `DiffLines`, `SkillsJsonPayload`, `SkillRecord` defined in `taxonomy_design_vo.py`; verified by shared tests at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-04                                                   |
@@ -27,7 +27,7 @@ Last Updated: 2026-11-04
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `GrokHome`, `TraceRunDir`, `TraceRunName`, `TraceStateStatus`, `TraceSessionRecord`, `SkillUsageItem`, `PhraseRow`, `TraceDecision`, `ScanResult`, `TraceStateDispatchResult` defined in `taxonomy_skills_vo.py`; verified by shared tests. |
+| Done         | `GrokHome`, `TraceRunDir`, `TraceRunName`, `TraceStateStatus`, `TraceSessionRecord`, `SkillUsageItem`, `PhraseRow`, `TraceDecision`, `ScanResult`, `TraceStateDispatchResult` defined in `taxonomy_design_vo.py`; verified by shared tests. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-04                                                   |
@@ -37,7 +37,7 @@ Last Updated: 2026-11-04
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `SkillQuery`, `SkillsRoot`, `SkillsOp`, `SkillsRequest`, `SkillsExitCode`, `SkillsResult` defined in `taxonomy_skills_request.py` and `taxonomy_skills_response.py`; verified by shared tests. |
+| Done         | `SkillQuery`, `SkillsRoot`, `SkillsOp`, `SkillsRequest`, `SkillsExitCode`, `SkillsResult` defined in `taxonomy_design_request.py` and `taxonomy_design_response.py`; verified by shared tests. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-04                                                   |
@@ -47,7 +47,7 @@ Last Updated: 2026-11-04
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `NAME_RE`, `MAX_DESCRIPTION_LEN`, `IGNORED_CATEGORY_DIRS`, `ARCHIVE_DIRNAME`, `CATALOG_FILENAME` defined in `taxonomy_skills_constant.py`; verified by shared tests. |
+| Done         | `NAME_RE`, `MAX_DESCRIPTION_LEN`, `IGNORED_CATEGORY_DIRS`, `ARCHIVE_DIRNAME`, `CATALOG_FILENAME` defined in `taxonomy_design_constant.py`; verified by shared tests. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-04                                                   |
@@ -57,7 +57,7 @@ Last Updated: 2026-11-04
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `TRACE_COLLECT_SINCE_LAST`, `TRACE_COLLECT_MIN_TURNS`, `TRACE_COLLECT_LIMIT_UNLIMITED`, `TRACE_COLLECT_WRITE_JSON_ALWAYS`, `TRACE_COLLECT_RUN_DIR_PATTERN` defined in `taxonomy_skills_constant.py`; verified by shared tests. |
+| Done         | `TRACE_COLLECT_SINCE_LAST`, `TRACE_COLLECT_MIN_TURNS`, `TRACE_COLLECT_LIMIT_UNLIMITED`, `TRACE_COLLECT_WRITE_JSON_ALWAYS`, `TRACE_COLLECT_RUN_DIR_PATTERN` defined in `taxonomy_design_constant.py`; verified by shared tests. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-04                                                   |

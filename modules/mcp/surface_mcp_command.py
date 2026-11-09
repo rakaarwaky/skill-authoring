@@ -9,13 +9,13 @@ The public entry point is ``SkillsMcpAdapter``.
 """
 from __future__ import annotations
 
-from shared.src.design.contract_skills_aggregate import ISkillsAggregate
-from shared.src.design.taxonomy_skills_request import (
+from shared.src.design.contract_design_aggregate import ISkillsAggregate
+from shared.src.design.taxonomy_design_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
 )
-from shared.src.design.taxonomy_skills_response import SkillsResult
+from shared.src.design.taxonomy_design_response import SkillsResult
 
 __all__ = ["SkillsMcpAdapter"]
 

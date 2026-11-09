@@ -13,12 +13,12 @@ from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_design_request import (
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
 )
-from shared.src.design.taxonomy_skills_response import (
+from shared.src.design.taxonomy_design_response import (
     SkillsExitCode,
     SkillsResult,
 )

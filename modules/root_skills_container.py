@@ -40,17 +40,17 @@ from observability.src.capabilities_skills_telemetry import SkillsTelemetry
 from shared.src.common.taxonomy_common_vo import (
     SkillRecord,
 )
-from shared.src.design.contract_skills_aggregate import ISkillsAggregate
-from shared.src.design.contract_skills_protocol import (
+from shared.src.design.contract_design_aggregate import ISkillsAggregate
+from shared.src.design.contract_design_protocol import (
     ISkillsCreatorProtocol,
     ISkillsLinterProtocol,
 )
-from shared.src.design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_design_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
 )
-from shared.src.design.taxonomy_skills_response import SkillsResult
+from shared.src.design.taxonomy_design_response import SkillsResult
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
@@ -310,7 +310,7 @@ class SkillsFacade:
     # ─── Read wrappers ───────────────────────────────────────
     def list_skills(self) -> Sequence[SkillRecord]:
         """Return one record per skill in the pack, sorted by name."""
-        from shared.src.design.taxonomy_skills_request import SkillsRequest as _SR
+        from shared.src.design.taxonomy_design_request import SkillsRequest as _SR
 
         result = self._aggregate.execute(
             _SR(op=SkillsOp.LIST, query=SkillQuery(""), root=None)

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from shared.src.design.taxonomy_skills_vo import IssueType
+from shared.src.design.taxonomy_design_vo import IssueType
 
 __all__ = [
     "Issue",

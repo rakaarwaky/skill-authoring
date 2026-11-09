@@ -6,7 +6,7 @@ Performance regression benchmark for the design agent's op dispatch path.
 from __future__ import annotations
 
 from design.src.agent_design_orchestrator import SkillsDesignAgent
-from shared.src.design.taxonomy_skills_request import SkillsOp, SkillsRequest
+from shared.src.design.taxonomy_design_request import SkillsOp, SkillsRequest
 
 
 def bench_design_dispatch() -> None:

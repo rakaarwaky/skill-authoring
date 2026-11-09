@@ -32,7 +32,7 @@ SkillsRoot = NewType("SkillsRoot", Path)
 #:
 #: The enum is the union of every op the aggregate dispatches; it is
 #: deliberately broader than the protocol surface. Most ops map to a
-#: method on an ``ISkills*Protocol`` in ``contract_skills_protocol``;
+#: method on an ``ISkills*Protocol`` in ``contract_design_protocol``;
 #: a few lifecycle verbs (RUN, PAUSE, RESUME, USAGE, STATUS) dispatch
 #: through ``ISkillsRunnerProtocol``/``ISkillsTelemetryProtocol``, and
 #: some (LEDGER, ROLLBACK, BACKUP, PRUNE, PURGE, ADOPT) have no

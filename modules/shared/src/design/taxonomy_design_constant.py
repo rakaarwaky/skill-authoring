@@ -48,7 +48,7 @@ PACK_MARKER_FILENAME: Final = "pack.toml"
 
 #: One-line summaries for the skill-rules reference doc headings.
 #: Short imperatives; the full constraint text is the verbatim
-#: ``ISSUE_MESSAGES`` template in ``taxonomy_skills_vo.py``.
+#: ``ISSUE_MESSAGES`` template in ``taxonomy_design_vo.py``.
 SUMMARIES: Final = {
     "name-mismatch": "Frontmatter `name:` equals the skill directory name",
     "name-format": "Skill names are lowercase letters, digits, and hyphens",

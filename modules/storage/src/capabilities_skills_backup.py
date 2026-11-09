@@ -13,7 +13,7 @@ import tarfile
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_error import SkillsRootError
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_design_vo import (
     load_lifecycle_config,
 )
 from shared.src.maintenance.utility_lifecycle_support import (
