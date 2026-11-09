@@ -34,10 +34,11 @@ from shared.src.common.taxonomy_common_error import (
     SkillsRootError,
     SkillsUsageError,
 )
-from shared.src.common.taxonomy_common_utility import (
+from shared.src.common.utility_common_skills import (
     assert_within_root,
     default_pack_root,
     find_skill_dir,
+    iter_skill_mds,
     relpath,
     resolve_skill_dir,
     set_field,
@@ -103,6 +104,7 @@ __all__ = [
     "assert_within_root",
     "default_pack_root",
     "find_skill_dir",
+    "iter_skill_mds",
     "map_to_legacy_score",
     "relpath",
     "resolve_skill_dir",

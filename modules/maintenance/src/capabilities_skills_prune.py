@@ -22,7 +22,7 @@ from shared.src.maintenance.utility_lifecycle_support import (
     archive_skill,
     read_record,
 )
-from shared.src.common.taxonomy_common_utility import default_pack_root, iter_skill_mds
+from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
 
 __all__ = ["SkillsPrune"]
 

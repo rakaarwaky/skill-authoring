@@ -14,7 +14,7 @@ from shared.src.storage.contract_storage_protocol import ISkillsBootstrapProtoco
 from shared.src.storage.taxonomy_storage_constant import CATEGORY_DIRS
 from shared.src.storage.taxonomy_storage_request import SkillsRoot, StorageVerb
 from shared.src.storage.taxonomy_storage_response import StorageResponse
-from shared.src.common.taxonomy_common_utility import default_pack_root
+from shared.src.common.utility_common_skills import default_pack_root
 
 __all__ = ["SkillsBootstrap"]
 

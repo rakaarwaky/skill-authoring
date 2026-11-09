@@ -82,7 +82,7 @@ from shared.src.storage.taxonomy_storage_request import (
     StorageVerb,
 )
 from shared.src.storage.taxonomy_storage_response import StorageResponse
-from shared.src.common.taxonomy_common_utility import default_pack_root
+from shared.src.common.utility_common_skills import default_pack_root
 from storage.src.agent_storage_orchestrator import SkillsStorageAgent
 from storage.src.capabilities_skills_backup import SkillsBackup
 from storage.src.capabilities_skills_restore import SkillsRestore

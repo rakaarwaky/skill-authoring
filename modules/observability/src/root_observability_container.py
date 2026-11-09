@@ -18,7 +18,7 @@ from capabilities_skills_telemetry import SkillsTelemetry
 from shared.src.observability.contract_observability_aggregate import (
     IObservabilityAggregate,
 )
-from shared.src.common.taxonomy_common_utility import default_pack_root
+from shared.src.common.utility_common_skills import default_pack_root
 
 __all__ = [
     "ObservabilityContainer",

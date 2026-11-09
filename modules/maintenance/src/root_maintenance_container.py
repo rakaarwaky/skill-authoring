@@ -18,7 +18,7 @@ from capabilities_skills_purge import SkillsPurge
 from shared.src.maintenance.contract_maintenance_aggregate import (
     ISkillsMaintenanceAggregate,
 )
-from shared.src.common.taxonomy_common_utility import default_pack_root
+from shared.src.common.utility_common_skills import default_pack_root
 
 __all__ = [
     "MaintenanceContainer",

@@ -29,7 +29,7 @@ from shared.src.common.taxonomy_common_vo import (
     SkillName,
     SkillsRoot,
 )
-from shared.src.common.taxonomy_common_utility import (
+from shared.src.common.utility_common_skills import (
     assert_within_root,
     relpath,
     resolve_skill_dir,

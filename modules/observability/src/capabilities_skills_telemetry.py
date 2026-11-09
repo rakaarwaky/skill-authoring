@@ -24,7 +24,7 @@ from shared.src.maintenance.utility_skills_mutation import atomic_write_json
 from shared.src.observability.contract_observability_protocol import (
     ISkillsTelemetryProtocol,
 )
-from shared.src.common.taxonomy_common_utility import iter_skill_mds
+from shared.src.common.utility_common_skills import iter_skill_mds
 
 __all__ = ["SkillsTelemetry"]
 

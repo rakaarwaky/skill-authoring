@@ -38,7 +38,7 @@ from shared.src.common.taxonomy_common_error import (
     SkillNotFoundError,
     SkillsUsageError,
 )
-from shared.src.common.taxonomy_common_utility import (
+from shared.src.common.utility_common_skills import (
     assert_within_root,
     find_skill_dir,
     set_field,

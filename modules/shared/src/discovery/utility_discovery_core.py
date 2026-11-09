@@ -25,7 +25,7 @@ from shared.src.common.taxonomy_common_entity import (
     SkillEntry,
 )
 from shared.src.common.taxonomy_common_error import SkillsRootError
-from shared.src.common.taxonomy_common_utility import relpath
+from shared.src.common.utility_common_skills import relpath
 
 _yaml_mod: ModuleType | None
 try:
