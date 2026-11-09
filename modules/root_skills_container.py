@@ -76,7 +76,6 @@ from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceVerb,
 )
 from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
-from shared.src.observability.contract_observability_protocol import ISkillsLedgerProtocol
 from shared.src.observability.taxonomy_observability_request import (
     ObservabilityOp,
     ObservabilityRequest,
@@ -256,6 +255,23 @@ class _ComposedAggregate(ISkillsAggregate):
             if skill_name:
                 self._observability.record_view(skill_name)
         return result
+
+
+def _discovery_response_to_result(
+    dresp: DiscoveryResponse, op: SkillsOp
+) -> SkillsResult:
+    return SkillsResult(
+        ok=dresp.ok,
+        op=op,
+        exit_code=dresp.exit_code,
+        message=dresp.message,
+        records=dresp.records,
+        content=dresp.content,
+        catalog=dresp.catalog_report,
+        check=dresp.catalog_check,
+        warning=dresp.warning,
+        root=dresp.root,
+    )
 
 
 def _governance_response_to_result(
