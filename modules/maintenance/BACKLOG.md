@@ -45,6 +45,16 @@ prune, purge. Each verb is owned by a capability that implements its protocol;
 | Risk         | None                                                         |
 | Updated      | 2026-11-09                                                   |
 
+### FR-maintenance-004: Maintenance archive/restore contract
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `ISkillsArchiverProtocol` and `ISkillsRestorerProtocol` in `shared/src/maintenance/`; aggregate declares archive/restore |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-09                                                   |
+
 ## Reference
 
 | Artifact     | Purpose                                    | Link |
