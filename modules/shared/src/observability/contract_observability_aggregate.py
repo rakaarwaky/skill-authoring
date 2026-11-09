@@ -23,6 +23,16 @@ from shared.src.observability.contract_observability_protocol import (
     ISkillsTelemetryProtocol,
     ISkillsTracesProtocol,
 )
+from shared.src.observability.taxonomy_observability_constant import (
+    GROK_HOME_ENV,
+    MIN_SESSIONS_DEFAULT,
+    MIN_TURNS_DEFAULT,
+)
+from shared.src.observability.taxonomy_observability_error import (
+    GrokHomeMissingError,
+    NoSessionsError,
+    ObservabilityError,
+)
 from shared.src.observability.taxonomy_observability_request import ObservabilityOp
 from shared.src.observability.taxonomy_observability_response import ObservabilityExitCode
 
@@ -35,14 +45,26 @@ OBSERVABILITY_EXIT_CODES = (
     ObservabilityExitCode.USAGE_ERROR,
     ObservabilityExitCode.CATALOG_DRIFT,
 )
+#: Env var naming the Grok home where session traces live (re-exported).
+OBSERVABILITY_GROK_HOME_ENV = GROK_HOME_ENV
+#: Minimum sessions for phrase reporting (re-exported).
+OBSERVABILITY_MIN_SESSIONS_DEFAULT = MIN_SESSIONS_DEFAULT
+#: Minimum turns per session for scan inclusion (re-exported).
+OBSERVABILITY_MIN_TURNS_DEFAULT = MIN_TURNS_DEFAULT
+#: Base observability error (re-exported for discovery).
+OBSERVABILITY_ERROR_BASE = ObservabilityError
 
 __all__ = [
     "ISkillsLedgerProtocol",
     "IObservabilityAggregate",
     "ISkillsTelemetryProtocol",
     "ISkillsTracesProtocol",
-    "OBSERVABILITY_OPS",
+    "OBSERVABILITY_ERROR_BASE",
     "OBSERVABILITY_EXIT_CODES",
+    "OBSERVABILITY_GROK_HOME_ENV",
+    "OBSERVABILITY_MIN_SESSIONS_DEFAULT",
+    "OBSERVABILITY_MIN_TURNS_DEFAULT",
+    "OBSERVABILITY_OPS",
 ]
 
 

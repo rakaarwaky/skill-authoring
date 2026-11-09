@@ -20,6 +20,8 @@ from shared.src.governance.taxonomy_governance_constant import (
     PIN_STATE_PINNED,
     PIN_STATE_UNPINNED,
 )
+from shared.src.governance.taxonomy_governance_entity import LockState, PinState
+from shared.src.governance.taxonomy_governance_error import GovernanceError
 from shared.src.governance.taxonomy_governance_request import GovernanceRequest
 from shared.src.governance.taxonomy_governance_response import GovernanceResponse
 
@@ -29,8 +31,14 @@ GOVERNANCE_LOCK_STATES = (LOCK_STATE_ACTIVE, LOCK_STATE_LOCKED)
 GOVERNANCE_PIN_STATES = (PIN_STATE_UNPINNED, PIN_STATE_PINNED)
 #: Sidecar file holding lock/pin state per skill (re-exported for discovery).
 GOVERNANCE_LOCK_STATE_FILE = LOCK_STATE_FILENAME
+#: Entity types the governance aggregate produces (re-exported for discovery).
+GOVERNANCE_ENTITIES = (LockState, PinState)
+#: Base error the governance aggregate may raise (re-exported for discovery).
+GOVERNANCE_ERROR_BASE = GovernanceError
 
 __all__ = [
+    "GOVERNANCE_ERROR_BASE",
+    "GOVERNANCE_ENTITIES",
     "ISkillsGovernanceAggregate",
     "ISkillsLockerProtocol",
     "ISkillsMoverProtocol",
