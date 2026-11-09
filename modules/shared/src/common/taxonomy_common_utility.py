@@ -27,6 +27,7 @@ __all__ = [
     "assert_within_root",
     "default_pack_root",
     "find_skill_dir",
+    "iter_skill_mds",
     "relpath",
     "resolve_skill_dir",
     "set_field",
@@ -107,6 +108,22 @@ def validate_category_name(name: str) -> None:
 
 def default_pack_root() -> Path:
     return Path(__file__).resolve().parents[7]
+
+
+def iter_skill_mds(pack_root: Path) -> list[Path]:
+    """Return each ``SKILL.md`` in the pack as a sorted list, by path."""
+    if not pack_root.is_dir():
+        return []
+    found: list[Path] = []
+    for category in sorted(pack_root.iterdir()):
+        if not category.is_dir() or category.is_symlink():
+            continue
+        if category.name.startswith("."):
+            continue
+        if category.name in IGNORED_CATEGORY_DIRS:
+            continue
+        found.extend(sorted(category.glob("*/SKILL.md")))
+    return sorted(found)
 
 
 # ── Private helpers (local to this utility module) ──

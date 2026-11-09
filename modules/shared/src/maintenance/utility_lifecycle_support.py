@@ -21,7 +21,7 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
-from typing import Any
+from typing import Any, NewType
 
 try:
     import fcntl as _fcntl
@@ -39,6 +39,7 @@ from shared.src.common.taxonomy_common_error import (
     SkillsUsageError,
 )
 from shared.src.common.taxonomy_common_utility import (
+    assert_within_root,
     find_skill_dir,
     set_field,
 )
@@ -396,8 +397,6 @@ def read_record(skill_dir: Path) -> dict:
 
 
 def write_record(skill_dir: Path, record: dict) -> None:
-    from shared.src.common.taxonomy_common_utility import atomic_write_json
-
     atomic_write_json(_usage_path(skill_dir), record)
 
 
@@ -418,8 +417,6 @@ def archive_skill(skill: str, pack_root: Path) -> dict:
 
     category = skill_dir.parent.name
     destination = archive_root(pack_root) / category / skill
-    from shared.src.common.taxonomy_common_utility import assert_within_root
-
     assert_within_root(destination, pack_root)
     record = read_record(skill_dir)
     prior_state = record.get("state", "active")
@@ -451,8 +448,6 @@ def restore_skill(skill: str, pack_root: Path, reanchor=None) -> dict:
 
     category = archived_dir.parent.name
     destination = pack_root / category / skill
-    from shared.src.common.taxonomy_common_utility import assert_within_root
-
     assert_within_root(destination, pack_root)
     record = read_record(archived_dir)
     prior_state = record.get("state", "archived")

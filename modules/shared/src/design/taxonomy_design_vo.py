@@ -32,6 +32,13 @@ from shared.src.common.taxonomy_common_vo import (
     MutationPlan,
     MutationStep,
 )
+from shared.src.design.taxonomy_design_constant import (
+    CITATIONS,
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
+    SUMMARIES,
+)
 
 if TYPE_CHECKING:
     # ``Issue`` lives in the entity module, which imports ``IssueType``
