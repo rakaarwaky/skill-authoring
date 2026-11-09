@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from shared.src.governance.taxonomy_governance_entity import LockState, PinState
 
 if TYPE_CHECKING:
-    from shared.src.design.taxonomy_design_vo import MutationOutcome, MutationPlan
+    from shared.src.common.taxonomy_common_vo import MutationOutcome, MutationPlan
 
 
 @dataclass(frozen=True)

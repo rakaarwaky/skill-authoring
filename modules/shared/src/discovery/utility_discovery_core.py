@@ -25,6 +25,7 @@ from shared.src.common.taxonomy_common_entity import (
     SkillEntry,
 )
 from shared.src.common.taxonomy_common_error import SkillsRootError
+from shared.src.common.taxonomy_common_utility import relpath
 
 _yaml_mod: ModuleType | None
 try:
@@ -69,14 +70,6 @@ def cross_process_lock(handle: object) -> None:
 def clean_one_line(value: object) -> str:
     """Collapse whitespace to single spaces and strip the edges."""
     return " ".join(str(value).split()).strip()
-
-
-def relpath(path: Path, skills_root: Path) -> str:
-    """A skills-root-relative path when possible, else the absolute one."""
-    try:
-        return str(path.relative_to(skills_root))
-    except ValueError:
-        return str(path)
 
 
 def category_dirs(skills_root: Path) -> Iterator[Path]:

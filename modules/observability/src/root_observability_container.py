@@ -1,10 +1,8 @@
 """Observability composition root (AES root layer).
 
-Wires the observability-side agents and capabilities into a single
-composed aggregate, mirroring the per-member container pattern used by
-discovery. This is the wiring point that satisfies AES505 (agent
-orchestrators must be wired in a `_container`) and AES503 (capabilities
-must be wired in a `_container`).
+Wires the merged observability agent (ledger / telemetry / traces) into a single
+composed aggregate. Satisfies AES505 (agent orchestrators must be wired in a
+`_container`) and AES503 (capabilities must be wired in a `_container`).
 
 Wiring only: no business logic, no orchestration policy.
 """
@@ -13,15 +11,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from agent_observability_orchestrator import SkillsObservabilityAgent
-from agent_skills_phrase_orchestrator import SkillsPhraseAgent
+from agent_observability_orchestrator import ObservabilityAgent
 from capabilities_skills_ledger import SkillsLedger
 from capabilities_skills_phrase_scan import SkillsPhraseScan
 from capabilities_skills_telemetry import SkillsTelemetry
 from shared.src.observability.contract_observability_aggregate import (
-    ISkillsObservabilityAggregate,
+    IObservabilityAggregate,
 )
-from shared.src.storage.utility_skill_pack import default_pack_root
+from shared.src.common.taxonomy_common_utility import default_pack_root
 
 __all__ = [
     "ObservabilityContainer",
@@ -30,7 +27,7 @@ __all__ = [
 
 
 class ObservabilityContainer:
-    """Construct the observability agents and expose the aggregate contract."""
+    """Construct the merged observability agent and expose the aggregate contract."""
 
     def __init__(
         self,
@@ -40,25 +37,17 @@ class ObservabilityContainer:
         default_root: Path | None = None,
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
-        self._observability = SkillsObservabilityAgent(
+        self._observability = ObservabilityAgent(
             ledger=ledger or SkillsLedger(),
             telemetry=telemetry or SkillsTelemetry(),
-            default_root=root,
-        )
-        self._traces = SkillsPhraseAgent(
             scan=scan or SkillsPhraseScan(),
             default_root=root,
         )
 
     @property
-    def aggregate(self) -> ISkillsObservabilityAggregate:
+    def aggregate(self) -> IObservabilityAggregate:
         """Expose the observability aggregate contract, never a concrete agent."""
         return self._observability
-
-    @property
-    def traces(self) -> SkillsPhraseAgent:
-        """Expose the traces agent aggregate contract."""
-        return self._traces
 
 
 def create_observability_feature(
@@ -67,7 +56,7 @@ def create_observability_feature(
     ledger: SkillsLedger | None = None,
     telemetry: SkillsTelemetry | None = None,
     scan: SkillsPhraseScan | None = None,
-) -> ISkillsObservabilityAggregate:
+) -> IObservabilityAggregate:
     """Fully-wired observability feature aggregate (factory for entry / DI)."""
     return ObservabilityContainer(
         ledger=ledger,

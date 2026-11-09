@@ -27,7 +27,7 @@ from shared.src.common.taxonomy_common_vo import (
 from shared.src.design.contract_design_protocol import (
     ISkillsCreatorProtocol,
 )
-from shared.src.design.taxonomy_design_request import SkillsRoot
+from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.design.taxonomy_design_vo import (
     NewCategoryPlan,
     SkillCreatePlan,

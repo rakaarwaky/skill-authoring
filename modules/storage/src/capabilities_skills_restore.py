@@ -9,7 +9,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.taxonomy_design_request import SkillsRoot
+from shared.src.common.taxonomy_common_vo import SkillsRoot
+from shared.src.common.taxonomy_common_utility import default_pack_root
 from shared.src.maintenance.utility_lifecycle_support import (
     archive_skill,
     restore_skill,
@@ -17,7 +18,6 @@ from shared.src.maintenance.utility_lifecycle_support import (
 from shared.src.storage.contract_storage_protocol import (
     ISkillsRestoreProtocol,
 )
-from shared.src.storage.utility_skill_pack import default_pack_root
 
 __all__ = ["SkillsRestore"]
 

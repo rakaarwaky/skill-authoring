@@ -16,10 +16,10 @@ from agent_governance_orchestrator import SkillsGovernanceAgent
 from capabilities_skills_locker import SkillsLocker
 from capabilities_skills_mover import SkillsMover
 from capabilities_skills_piner import SkillsPiner
+from shared.src.common.taxonomy_common_utility import default_pack_root
 from shared.src.governance.contract_governance_aggregate import (
     ISkillsGovernanceAggregate,
 )
-from shared.src.storage.utility_skill_pack import default_pack_root
 
 __all__ = [
     "GovernanceContainer",

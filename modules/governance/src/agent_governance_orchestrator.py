@@ -14,6 +14,7 @@ from shared.src.common.taxonomy_common_error import (
     SkillsRootError,
     SkillsUsageError,
 )
+from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.governance.contract_governance_aggregate import (
     ISkillsGovernanceAggregate,
 )
@@ -29,7 +30,6 @@ from shared.src.governance.taxonomy_governance_constant import (
 from shared.src.governance.taxonomy_governance_request import (
     GovernanceRequest,
     GovernanceVerb,
-    SkillsRoot,
 )
 from shared.src.governance.taxonomy_governance_response import GovernanceResponse
 

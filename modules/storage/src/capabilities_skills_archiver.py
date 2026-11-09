@@ -22,13 +22,11 @@ from shared.src.common.taxonomy_common_error import (
     SkillsUsageError,
 )
 from shared.src.common.taxonomy_common_vo import (
-    SkillName,
-)
-from shared.src.design.taxonomy_design_request import SkillsRoot
-from shared.src.design.taxonomy_design_vo import (
     MutationOutcome,
     MutationPlan,
+    SkillName,
 )
+from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.maintenance.utility_lifecycle_support import archive_skill
 from shared.src.maintenance.utility_skills_mutation import (
     archive_root,

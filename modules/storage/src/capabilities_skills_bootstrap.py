@@ -11,13 +11,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from shared.src.storage.contract_storage_protocol import ISkillsBootstrapProtocol
+from shared.src.storage.taxonomy_storage_constant import CATEGORY_DIRS
 from shared.src.storage.taxonomy_storage_request import SkillsRoot, StorageVerb
 from shared.src.storage.taxonomy_storage_response import StorageResponse
-from shared.src.storage.utility_skill_pack import default_pack_root
+from shared.src.common.taxonomy_common_utility import default_pack_root
 
 __all__ = ["SkillsBootstrap"]
-
-_CATEGORY_DIRS = ("archive", "design", "discovery", "governance", "maintenance", "observability", "storage")
 
 
 class SkillsBootstrap(ISkillsBootstrapProtocol):
@@ -33,7 +32,7 @@ class SkillsBootstrap(ISkillsBootstrapProtocol):
         skills_root.mkdir(parents=True, exist_ok=True)
 
         created: list[str] = []
-        for category in _CATEGORY_DIRS:
+        for category in CATEGORY_DIRS:
             category_dir = skills_root / category
             if not category_dir.exists():
                 category_dir.mkdir(parents=True, exist_ok=True)

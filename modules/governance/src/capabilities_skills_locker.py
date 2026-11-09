@@ -7,15 +7,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.taxonomy_design_request import SkillsRoot
-from shared.src.governance.contract_governance_protocol import (
-    ISkillsLockerProtocol,
-)
-from shared.src.maintenance.utility_lifecycle_support import (
+from shared.src.common.taxonomy_common_vo import SkillsRoot
+from shared.src.common.taxonomy_common_utility import (
+    default_pack_root,
     find_skill_dir,
     set_field,
 )
-from shared.src.storage.utility_skill_pack import default_pack_root
+from shared.src.governance.contract_governance_protocol import (
+    ISkillsLockerProtocol,
+)
 
 __all__ = ["SkillsLocker"]
 

@@ -11,10 +11,8 @@ Last Updated: 2026-11-09
 The observability feature owns the audit-ledger and per-skill telemetry side:
 `SkillsLedger` (append/read/compact/rollback), `SkillsTelemetry` (seed,
 reanchor, curated report, views bump), and `SkillsPhraseScan`
-(session scan + phrase mining). `SkillsObservabilityAgent` dispatches
-`ledger`/`usage` behind `ISkillsObservabilityAggregate`, and
-`SkillsPhraseAgent` dispatches `traces`/`phrases` behind
-`ISkillsTracesAggregate`. Every requirement in [FRD.md](FRD.md) is
+(session scan + phrase mining). `ObservabilityAgent` dispatches
+`ledger`/`usage`/`traces` behind `IObservabilityAggregate`. Every requirement in [FRD.md](FRD.md) is
 implemented and wired into `modules/root_skills_container.py` and
 `modules/observability/src/root_observability_container.py`; nothing is in progress.
 
@@ -25,7 +23,7 @@ implemented and wired into `modules/root_skills_container.py` and
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `SkillsLedger.ledger_append` appends one content-addressed entry to the audit ledger; `ledger_read` returns up to `limit` most recent entries. The agent routes `ObservabilityOp.LEDGER` to it via `_execute_ledger`. |
+| Done         | `SkillsLedger.ledger_append` appends one content-addressed entry to the audit ledger; `ledger_read` returns up to `limit` most recent entries. The agent routes `SkillsOp.LEDGER` to it via `_execute_ledger`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-09                                                   |
@@ -35,7 +33,7 @@ implemented and wired into `modules/root_skills_container.py` and
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `SkillsTelemetry.seed_record_if_missing`, `reanchor_clock`, `curated_report`, and `view` manage the per-skill `.usage.json` sidecar. The agent routes `ObservabilityOp.USAGE` to it via `_execute_usage`. |
+| Done         | `SkillsTelemetry.seed_record_if_missing`, `reanchor_clock`, `curated_report`, and `view` manage the per-skill `.usage.json` sidecar. The agent routes `SkillsOp.USAGE` to it via `_execute_usage`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-09                                                   |
@@ -45,7 +43,7 @@ implemented and wired into `modules/root_skills_container.py` and
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `SkillsPhraseScan.scan_sessions` walks `$GROK_HOME/sessions` and `build_phrases` mines repeated exact prompts, stems, and instruction lines. The agent routes `traces`/`phrases` to it via `_execute_phrases`. |
+| Done         | `SkillsPhraseScan.scan_sessions` walks `$GROK_HOME/sessions` and `build_phrases` mines repeated exact prompts, stems, and instruction lines. The agent routes `SkillsOp.TRACES` to it via `_execute_phrases`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-09                                                   |

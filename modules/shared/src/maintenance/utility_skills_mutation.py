@@ -7,8 +7,9 @@ retired ``capabilities_skills_mutator`` so each mutation capability can
 depend on the shared kernel without a sibling import.
 
 The skill-tree walkers and parsers this file needs are inlined here
-(AES201: utility files never import one another). All domain types come
-from ``shared.src.common`` — no sibling domain imports.
+(AES201: utility files never import one another). Cross-feature symbols
+(relpath, assert_within_root, resolve_skill_dir, validate_category_name,
+default_pack_root) are imported from ``shared.src.common``.
 """
 from __future__ import annotations
 
@@ -35,7 +36,17 @@ from shared.src.common.taxonomy_common_error import (
     SkillsRootError,
     SkillsUsageError,
 )
-from shared.src.common.taxonomy_common_vo import MutationPlan, MutationStep
+from shared.src.common.taxonomy_common_utility import (
+    assert_within_root,
+    default_pack_root,
+    relpath,
+    resolve_skill_dir,
+    validate_category_name,
+)
+from shared.src.common.taxonomy_common_vo import (
+    MutationPlan,
+    MutationStep,
+)
 
 __all__ = [
     "archive_root",
@@ -85,14 +96,6 @@ def clean_one_line(value: object) -> str:
     return " ".join(str(value).split()).strip()
 
 
-def relpath(path: Path, skills_root: Path) -> str:
-    """A skills-root-relative path when possible, else the absolute one."""
-    try:
-        return str(path.relative_to(skills_root))
-    except ValueError:
-        return str(path)
-
-
 def category_dirs(skills_root: Path) -> Iterator[Path]:
     """Yield category directories, skipping hidden/ignored names."""
     if not skills_root.is_dir():
@@ -109,11 +112,7 @@ def category_dirs(skills_root: Path) -> Iterator[Path]:
 
 
 def parse_frontmatter(path: Path) -> dict[str, object]:
-    """Parse YAML frontmatter from ``path``; returns {} when absent/broken.
-
-    Optional PyYAML pass, then a minimal single-line ``key: value``
-    fallback.
-    """
+    """Parse YAML frontmatter from ``path``; returns {} when absent/broken."""
     try:
         text = path.read_text(encoding="utf-8-sig", errors="replace")
     except OSError:
@@ -210,14 +209,6 @@ def category_summaries(
     return summaries
 
 
-# ─── Tree walker readers (local; utility files stay independent, AES201) ──
-
-
-def default_pack_root() -> Path:
-    """Return the repo's ``skills/`` pack (the SSOT for all skills)."""
-    return Path(__file__).resolve().parents[7]
-
-
 def iter_skill_mds(pack_root: Path) -> list[Path]:
     """Return each ``SKILL.md`` in the pack as a sorted list, by path."""
     if not pack_root.is_dir():
@@ -286,16 +277,6 @@ def archive_root(skills_root: Path) -> Path:
     return skills_root / ARCHIVE_DIRNAME
 
 
-def assert_within_root(path: Path, root: Path) -> None:
-    """Fail closed when a computed destination escapes the skills root."""
-    try:
-        contained = path.resolve().is_relative_to(root.resolve())
-    except OSError:
-        contained = False
-    if not contained:
-        raise SkillsUsageError(f"Refusing to write outside the skills root: {path}")
-
-
 def write_category_description(
     category: Path, description: str, force: bool = False
 ) -> bool:
@@ -336,50 +317,6 @@ def missing_category_descriptions(skills_root: Path) -> list[Path]:
         if not (category / CATEGORY_DESCRIPTION_FILENAME).exists()
         and category.name not in assets
     ]
-
-
-def validate_category_name(name: str) -> None:
-    """The category-shape gate, verbatim from the original ``librarian.py``."""
-    if not NAME_RE.match(name) or "--" in name or not (NAME_MIN <= len(name) <= NAME_MAX):
-        raise CategoryNameError(
-            "Category name must be lowercase a-z, 0-9, hyphens, 2-64 chars, "
-            "no leading/trailing hyphen or double hyphen."
-        )
-
-
-def resolve_skill_dir(skill_ref: str, skills_root: Path) -> Path:
-    """Resolve a ``category/skill`` or bare ``skill`` reference to its folder.
-
-    Verbatim resolution order from the original ``librarian.py``:
-    absolute paths; then ``category/skill`` under the root; then a bare
-    name searched across every category; then the cwd-relative path;
-    then the root-relative path. The first candidate that is a directory
-    containing ``SKILL.md`` wins.
-    """
-    p = Path(skill_ref)
-    candidates: list[Path] = []
-
-    if p.is_absolute():
-        candidates.append(p)
-    else:
-        if len(p.parts) == 2:
-            candidates.append(skills_root / p)
-
-        if len(p.parts) == 1:
-            for category in category_dirs(skills_root):
-                candidates.append(category / p)
-
-        candidates.append(Path.cwd() / p)
-        candidates.append(skills_root / p)
-
-    for candidate in candidates:
-        candidate = Path(candidate).resolve()
-        if candidate.is_dir() and (candidate / "SKILL.md").exists():
-            return candidate
-
-    raise SkillNotFoundError(
-        f"Could not find skill directory with SKILL.md: {skill_ref}"
-    )
 
 
 def plan_weed(root: Path) -> MutationPlan:
@@ -474,8 +411,7 @@ def atomic_write_json(path: Path, payload: object) -> None:
     Cross-process lock on POSIX via ``fcntl.flock`` and on Windows via
     ``msvcrt.locking`` so concurrent writers never interleave or tear
     the file. Fails closed: I/O or lock failures raise ``OSError``
-    (the same error type neighboring mutation helpers raise) rather than
-    silently corrupting a sidecar.
+    rather than silently corrupting a sidecar.
     """
     if path.parent.is_dir():
         tmp = path.with_name(path.name + ".tmp")

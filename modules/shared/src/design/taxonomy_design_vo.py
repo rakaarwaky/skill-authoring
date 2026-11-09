@@ -27,12 +27,10 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 
-from shared.src.design.taxonomy_design_constant import (
-    CITATIONS,
-    NAME_MAX,
-    NAME_MIN,
-    NAME_RE,
-    SUMMARIES,
+from shared.src.common.taxonomy_common_vo import (
+    MutationOutcome,
+    MutationPlan,
+    MutationStep,
 )
 
 if TYPE_CHECKING:
@@ -255,44 +253,6 @@ class LintReport:
 
 
 @dataclass(frozen=True)
-class MutationStep:
-    """One planned file operation.
-
-    ``description`` is the legacy report line for the step; ``action``
-    names the operation the mutator executes (``rewrite-name``,
-    ``create-description``); ``value`` carries the expected name or the
-    description text the step would write.
-    """
-
-    action: str
-    description: str
-    source: Path | None = None
-    destination: Path | None = None
-    value: str = ""
-
-
-@dataclass(frozen=True)
-class MutationPlan:
-    """A pure, pre-apply description of a mutation (never writes)."""
-
-    kind: str
-    source: Path | None = None
-    destination: Path | None = None
-    steps: tuple[MutationStep, ...] = ()
-    lines: tuple[str, ...] = ()
-    already_in_category: bool = False
-    root: Path | None = None
-
-
-@dataclass(frozen=True)
-class MutationOutcome:
-    """The post-apply result: the step lines the mutation performed."""
-
-    applied: tuple[str, ...] = ()
-    message: str = ""
-
-
-@dataclass(frozen=True)
 class NewCategoryPlan:
     """A planned category creation.
 
@@ -402,9 +362,6 @@ __all__ = [
     "Level",
     "LifecycleConfig",
     "LintReport",
-    "MutationOutcome",
-    "MutationPlan",
-    "MutationStep",
     "NewCategoryPlan",
     "Rule",
     "SkillCreatePlan",

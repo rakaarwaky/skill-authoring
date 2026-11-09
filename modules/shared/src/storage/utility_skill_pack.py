@@ -16,6 +16,7 @@ from shared.src.common.taxonomy_common_constant import (
     NAME_MIN,
     NAME_RE,
 )
+from shared.src.common.taxonomy_common_utility import default_pack_root
 
 __all__ = [
     "default_pack_root",
@@ -25,11 +26,6 @@ __all__ = [
     "read_skill_md",
     "sanitize_skill_name",
 ]
-
-
-def default_pack_root() -> Path:
-    """Return the repo's ``skills/`` pack (the SSOT for all skills)."""
-    return Path(__file__).resolve().parents[7]
 
 
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:

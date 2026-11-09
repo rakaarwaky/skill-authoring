@@ -27,12 +27,6 @@ from shared.src.maintenance.taxonomy_maintenance_request import (
     SkillsRoot,
 )
 from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
-from shared.src.maintenance.utility_maintenance_core import (
-    default_prune_ttl_days,
-    default_purge_ttl_days,
-    maintenance_lock_path,
-    maintenance_sidecar_path,
-)
 
 __all__ = [
     "ISkillsMaintenanceAggregate",

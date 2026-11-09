@@ -5,6 +5,9 @@ cross-platform lock primitives, the tarball-safety filter, and the
 record/transition helpers used by the focused lifecycle capability
 modules. The modules import from here; this module imports only shared
 utilities and taxonomy, never a sibling domain.
+
+Cross-feature symbols (find_skill_dir, set_field, assert_within_root,
+atomic_write_json) are imported from ``shared.src.common``.
 """
 
 from __future__ import annotations
@@ -18,7 +21,7 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, NewType
+from typing import Any
 
 try:
     import fcntl as _fcntl
@@ -34,6 +37,10 @@ from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,
+)
+from shared.src.common.taxonomy_common_utility import (
+    find_skill_dir,
+    set_field,
 )
 
 __all__ = [
@@ -54,14 +61,10 @@ __all__ = [
     "TARBALL_NAME",
     "archive_root",
     "archive_skill",
-    "assert_within_root",
-    "atomic_write_json",
-    "find_skill_dir",
     "manifest_sha256",
     "now_iso",
     "read_record",
     "restore_skill",
-    "set_field",
     "tar_data_filter",
     "write_record",
 ]
@@ -184,11 +187,11 @@ def manifest_sha256(manifest: Any) -> list[str]:
     return list(seen)
 
 
-def _blob_dir(root: Path | SkillsRoot) -> Path:
+def _blob_dir(root: Path | Any) -> Path:
     return Path(root) / BACKUP_DIRNAME / BLOBS_DIRNAME
 
 
-def _ledger_file(root: Path | SkillsRoot | None) -> Path:
+def _ledger_file(root: Path | Any | None) -> Path:
     return Path(root) / LEDGER_FILENAME
 
 
@@ -245,11 +248,7 @@ def _iter_pack_files(root: Path) -> list[tuple[str, Path]]:
 
 
 def _cross_process_lock(handle: Any) -> None:
-    """Take an exclusive, blocking cross-process lock on *handle*.
-
-    Inlined from ``utility_discovery_core`` so this module does not import
-    from the discovery sibling domain (AES201).
-    """
+    """Take an exclusive, blocking cross-process lock on *handle*."""
     if _fcntl is not None:
         _fcntl.flock(handle.fileno(), _fcntl.LOCK_EX)
     elif _msvcrt is not None:
@@ -381,7 +380,7 @@ def _cron_referenced(pack_root: Path, skill_name: str) -> bool:
     return False
 
 
-# ─── Archive root / containment / atomic write (local to maintenance) ───
+# ─── Archive root ─────────────────────────────────────────────────────
 
 
 def archive_root(skills_root: Path) -> Path:
@@ -389,56 +388,7 @@ def archive_root(skills_root: Path) -> Path:
     return skills_root / ARCHIVE_DIRNAME
 
 
-def assert_within_root(path: Path, root: Path) -> None:
-    """Fail closed when a computed destination escapes the skills root."""
-    try:
-        contained = path.resolve().is_relative_to(root.resolve())
-    except OSError:
-        contained = False
-    if not contained:
-        raise SkillsUsageError(f"Refusing to write outside the skills root: {path}")
-
-
-def atomic_write_json(path: Path, payload: object) -> None:
-    """Atomically write ``payload`` as JSON to ``path`` (temp + os.replace).
-
-    Cross-process lock on POSIX via ``fcntl.flock`` and on Windows via
-    ``msvcrt.locking`` so concurrent writers never interleave or tear
-    the file. Fails closed: I/O or lock failures raise ``OSError``
-    rather than silently corrupting a sidecar.
-    """
-    if path.parent.is_dir():
-        tmp = path.with_name(path.name + ".tmp")
-        try:
-            with tmp.open("w", encoding="utf-8") as handle:
-                _cross_process_lock(handle)
-                json.dump(payload, handle, ensure_ascii=False)
-                handle.flush()
-                os.fsync(handle.fileno())
-            os.replace(tmp, path)
-        finally:
-            try:
-                tmp.unlink(missing_ok=True)
-            except OSError:
-                pass
-    else:
-        raise OSError(f"Cannot write JSON outside a directory: {path.parent}")
-
-
 # ─── Record / transition helpers ────────────────────────────────────
-
-
-def find_skill_dir(skill: str, root: Path, in_archive: bool = False) -> Path | None:
-    search_root = archive_root(root) if in_archive else root
-    if not search_root.is_dir():
-        return None
-    matches: list[Path] = []
-    for p in search_root.rglob("SKILL.md"):
-        if not in_archive and ARCHIVE_DIRNAME in p.parts:
-            continue
-        if p.parent.name == skill:
-            matches.append(p.parent)
-    return min(matches) if matches else None
 
 
 def read_record(skill_dir: Path) -> dict:
@@ -446,13 +396,9 @@ def read_record(skill_dir: Path) -> dict:
 
 
 def write_record(skill_dir: Path, record: dict) -> None:
+    from shared.src.common.taxonomy_common_utility import atomic_write_json
+
     atomic_write_json(_usage_path(skill_dir), record)
-
-
-def set_field(skill_dir: Path, field: str, value: object) -> None:
-    record = read_record(skill_dir)
-    record[field] = value
-    write_record(skill_dir, record)
 
 
 def set_state(skill_dir: Path, state: str, archived_at: str | None = None) -> None:
@@ -472,6 +418,8 @@ def archive_skill(skill: str, pack_root: Path) -> dict:
 
     category = skill_dir.parent.name
     destination = archive_root(pack_root) / category / skill
+    from shared.src.common.taxonomy_common_utility import assert_within_root
+
     assert_within_root(destination, pack_root)
     record = read_record(skill_dir)
     prior_state = record.get("state", "active")
@@ -503,6 +451,8 @@ def restore_skill(skill: str, pack_root: Path, reanchor=None) -> dict:
 
     category = archived_dir.parent.name
     destination = pack_root / category / skill
+    from shared.src.common.taxonomy_common_utility import assert_within_root
+
     assert_within_root(destination, pack_root)
     record = read_record(archived_dir)
     prior_state = record.get("state", "archived")

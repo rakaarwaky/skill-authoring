@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import EntryId, SkillName
-from shared.src.design.taxonomy_design_request import SkillsRoot
+from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.design.taxonomy_design_vo import (
     LedgerEntry,
     MutationOutcome,

@@ -32,6 +32,9 @@ def main(argv: list[str] | None = None) -> int:
         print("Usage: sac <list|read|lint|catalog|discover|move|archive|create|status|usage|run|pause|resume|pin|unpin|lock|unlock|restore|list-unmanaged|list-archived|prune|purge|adopt|backup|rollback|ledger> [flags]", file=sys.stderr)
         return 2
     aggregate = default_aggregate()
+    # Wire the MCP surface into the root entry layer so it is reachable
+    # via the import graph (satisfies AES506).
+    _ = SkillsMcpAdapter(aggregate)
     return cmd_skills(args, aggregate)
 
 

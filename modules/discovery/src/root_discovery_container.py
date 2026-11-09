@@ -32,7 +32,7 @@ from shared.src.discovery.contract_discovery_protocol import (
     ISkillsReaderProtocol,
 )
 from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
-from shared.src.storage.utility_skill_pack import default_pack_root
+from shared.src.common.taxonomy_common_utility import default_pack_root
 
 __all__ = [
     "DiscoveryContainer",

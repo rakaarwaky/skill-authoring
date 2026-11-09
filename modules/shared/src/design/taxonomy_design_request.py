@@ -13,8 +13,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
-from pathlib import Path
 from typing import NewType
+
+from shared.src.common.taxonomy_common_vo import SkillsRoot
 
 # These two primitive aliases are the canonical home for the
 # request/response envelope modules: ``vo`` re-exports them back from
@@ -23,9 +24,6 @@ from typing import NewType
 # in either import order).
 SkillQuery = NewType("SkillQuery", str)
 """A skill name / identifier to look up in the pack."""
-
-SkillsRoot = NewType("SkillsRoot", Path)
-"""An explicit skills root; ``None`` on a request means 'use the default'."""
 
 #: Operations the skills aggregate understands.
 #: Unified skill operations: read-only, authoring mutations, and lifecycle.

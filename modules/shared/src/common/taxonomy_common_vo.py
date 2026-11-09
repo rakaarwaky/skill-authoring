@@ -50,6 +50,9 @@ class SkillRecord:
     path: Path
 
 
+#: A skills root path (the pack root); ``None`` means 'use the default'.
+SkillsRoot = NewType("SkillsRoot", Path)
+
 # ─── Skill reference value objects ─────────────────────────────────────
 
 #: A skill directory name (the folder name under a category).
@@ -163,6 +166,12 @@ class DiscoveryResult:
     warning: str = ""
     warning_detail: str = ""
 
+
+# ─── Cross-feature root type ───────────────────────────────────────────
+
+
+SkillsRoot = NewType("SkillsRoot", Path)
+"""An explicit skills root; ``None`` on a request means 'use the default'."""
 
 # ─── Mutation value objects ───────────────────────────────────────────
 

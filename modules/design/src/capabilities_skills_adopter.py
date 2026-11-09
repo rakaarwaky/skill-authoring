@@ -10,12 +10,12 @@ from pathlib import Path
 from shared.src.design.contract_design_protocol import (
     ISkillsAdopterProtocol,
 )
-from shared.src.design.taxonomy_design_request import SkillsRoot
+from shared.src.common.taxonomy_common_vo import SkillsRoot
+from shared.src.common.taxonomy_common_utility import default_pack_root
 from shared.src.maintenance.utility_lifecycle_support import (
     find_skill_dir,
     set_field,
 )
-from shared.src.storage.utility_skill_pack import default_pack_root
 
 __all__ = ["SkillsAdopter"]
 

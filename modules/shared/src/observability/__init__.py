@@ -5,7 +5,7 @@ trace-domain contract, taxonomy, and value objects for the skills feature.
 """
 
 from shared.src.observability.contract_observability_aggregate import (
-    ISkillsObservabilityAggregate,
+    IObservabilityAggregate,
 )
 from shared.src.observability.contract_observability_protocol import (
     ISkillsTracesProtocol,
@@ -62,7 +62,7 @@ __all__ = [
     "RESET",
     "GrokHome",
     "GrokHomeMissingError",
-    "ISkillsObservabilityAggregate",
+    "IObservabilityAggregate",
     "ISkillsTracesProtocol",
     "NoSessionsError",
     "ObservabilityError",

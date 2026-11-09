@@ -24,21 +24,19 @@ from shared.src.common.taxonomy_common_error import (
 )
 from shared.src.common.taxonomy_common_vo import (
     CategoryName,
-    SkillName,
-)
-from shared.src.design.taxonomy_design_request import SkillsRoot
-from shared.src.design.taxonomy_design_vo import (
     MutationOutcome,
     MutationPlan,
+    SkillName,
+    SkillsRoot,
 )
-from shared.src.discovery.utility_discovery_core import relpath
-from shared.src.governance.contract_governance_protocol import (
-    ISkillsMoverProtocol,
-)
-from shared.src.maintenance.utility_skills_mutation import (
+from shared.src.common.taxonomy_common_utility import (
     assert_within_root,
+    relpath,
     resolve_skill_dir,
     validate_category_name,
+)
+from shared.src.governance.contract_governance_protocol import (
+    ISkillsMoverProtocol,
 )
 
 __all__ = ["SkillsMover"]

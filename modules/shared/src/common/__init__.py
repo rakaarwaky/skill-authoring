@@ -34,6 +34,15 @@ from shared.src.common.taxonomy_common_error import (
     SkillsRootError,
     SkillsUsageError,
 )
+from shared.src.common.taxonomy_common_utility import (
+    assert_within_root,
+    default_pack_root,
+    find_skill_dir,
+    relpath,
+    resolve_skill_dir,
+    set_field,
+    validate_category_name,
+)
 from shared.src.common.taxonomy_common_vo import (
     BM25FHit,
     CatalogCheckResult,
@@ -50,6 +59,7 @@ from shared.src.common.taxonomy_common_vo import (
     SkillName,
     SkillRecord,
     SkillsJsonPayload,
+    SkillsRoot,
     map_to_legacy_score,
     sanitize_skill_name,
 )
@@ -87,10 +97,18 @@ __all__ = [
     "SkillRecord",
     "SkillsError",
     "SkillsJsonPayload",
+    "SkillsRoot",
     "SkillsRootError",
     "SkillsUsageError",
+    "assert_within_root",
+    "default_pack_root",
+    "find_skill_dir",
     "map_to_legacy_score",
+    "relpath",
+    "resolve_skill_dir",
     "sanitize_skill_name",
+    "set_field",
+    "validate_category_name",
 ]
 
 _layer_symbols = {
@@ -126,8 +144,16 @@ _layer_symbols = {
     "SkillRecord": SkillRecord,
     "SkillsError": SkillsError,
     "SkillsJsonPayload": SkillsJsonPayload,
+    "SkillsRoot": SkillsRoot,
     "SkillsRootError": SkillsRootError,
     "SkillsUsageError": SkillsUsageError,
+    "assert_within_root": assert_within_root,
+    "default_pack_root": default_pack_root,
+    "find_skill_dir": find_skill_dir,
     "map_to_legacy_score": map_to_legacy_score,
+    "relpath": relpath,
+    "resolve_skill_dir": resolve_skill_dir,
     "sanitize_skill_name": sanitize_skill_name,
+    "set_field": set_field,
+    "validate_category_name": validate_category_name,
 }

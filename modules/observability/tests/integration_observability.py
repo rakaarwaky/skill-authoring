@@ -5,14 +5,16 @@ Verifies observability capability wiring end to end.
 
 from __future__ import annotations
 
-from observability.src.agent_observability_orchestrator import SkillsObservabilityAgent
+from observability.src.agent_observability_orchestrator import ObservabilityAgent
 from observability.src.capabilities_skills_ledger import SkillsLedger
 from observability.src.capabilities_skills_telemetry import SkillsTelemetry
+from observability.src.capabilities_skills_phrase_scan import SkillsPhraseScan
 
 
 def test_observability_agent_coordinates_capabilities() -> None:
-    agent = SkillsObservabilityAgent(
+    agent = ObservabilityAgent(
         ledger=SkillsLedger(),
         telemetry=SkillsTelemetry(),
+        scan=SkillsPhraseScan(),
     )
     assert agent is not None

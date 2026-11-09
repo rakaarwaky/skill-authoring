@@ -10,20 +10,19 @@ Last Updated: 2026-11-09
 
 The observability feature sits in the agent layer and answers the audit and
 telemetry questions about the skill pack: who changed what, how often each
-skill is viewed, and which phrases repeat across sessions. It owns four
+skill is viewed, and which phrases repeat across sessions. It owns three
 capabilities — `SkillsLedger` (append/read/compact/rollback),
 `SkillsTelemetry` (seed/reanchor/curated-report/views), and
-`SkillsPhraseScan` (session scan + phrase mining) — plus two agents:
-`SkillsObservabilityAgent` dispatches `ledger`/`usage` behind
-`ISkillsObservabilityAggregate`, and `SkillsPhraseAgent` dispatches
-`traces`/`phrases` behind `ISkillsTracesAggregate`. The agents perform no
-filesystem I/O themselves; all I/O is delegated to the capabilities.
+`SkillsPhraseScan` (session scan + phrase mining) — and one merged agent:
+`ObservabilityAgent` dispatches `ledger`/`usage`/`traces` behind
+`IObservabilityAggregate`. The agent performs no
+filesystem I/O itself; all I/O is delegated to the capabilities.
 
 ## Functional Requirements
 
 ### FR-observability-001: Append and read the audit ledger
 
-**Description:** `SkillsObservabilityAgent.execute(request)` with `op=LEDGER`
+**Description:** `ObservabilityAgent.execute(request)` with `op=LEDGER`
 shall route to `SkillsLedger.ledger_append` to append one content-addressed
 entry to the append-only JSONL audit ledger, and to `ledger_read` to return
 up to `limit` most recent entries.
@@ -45,8 +44,8 @@ up to `limit` most recent entries.
 
 | Aspect       | Detail                              |
 | ------------ | ----------------------------------- |
-| **Input**    | `ObservabilityRequest(op=LEDGER, flags, root?)`.  |
-| **Output**   | `ObservabilityResult(ok, op, exit_code, message, root?)`. |
+| **Input**    | `SkillsRequest(op=LEDGER, flags, root?)`.  |
+| **Output**   | `SkillsResult(ok, op, exit_code, message, root?)`. |
 | **Protocol** | `ISkillsLedgerProtocol`                                 |
 | **Method**   | `ledger_append` / `ledger_read`   |
 | **Event**    | none                                  |
@@ -70,7 +69,7 @@ up to `limit` most recent entries.
 
 ### FR-observability-002: Bump and report per-skill telemetry
 
-**Description:** `SkillsObservabilityAgent.execute(request)` with `op=USAGE`
+**Description:** `ObservabilityAgent.execute(request)` with `op=USAGE`
 shall route to `SkillsTelemetry` to seed a baseline record if missing,
 reanchor the clock, emit the curated per-skill report, and bump the views
 counter.
@@ -92,8 +91,8 @@ counter.
 
 | Aspect       | Detail                                                        |
 | ------------ | ------------------------------------------------------------- |
-| **Input**    | `ObservabilityRequest(op=USAGE, flags, root?)`. Source: surface/CLI. |
-| **Output**   | `ObservabilityResult(ok, op, exit_code, message, records?)`. Destination: surface/CLI. |
+| **Input**    | `SkillsRequest(op=USAGE, flags, root?)`. Source: surface/CLI. |
+| **Output**   | `SkillsResult(ok, op, exit_code, message, records?)`. Destination: surface/CLI. |
 | **Protocol** | `ISkillsTelemetryProtocol`                                    |
 | **Method**   | `seed_record_if_missing` / `reanchor_clock` / `curated_report` / `view` |
 | **Event**    | none                                                          |
@@ -117,7 +116,7 @@ counter.
 
 ### FR-observability-003: Scan sessions and mine repeated phrases
 
-**Description:** `SkillsPhraseAgent.execute(request)` with `op=TRACES`
+**Description:** `ObservabilityAgent.execute(request)` with `op=TRACES`
 and `flags['traces_action']='phrases'` shall route to `SkillsPhraseScan`
 to scan `$GROK_HOME/sessions`, build session records, and mine repeated
 exact prompts, stems, and instruction lines.
@@ -164,11 +163,11 @@ exact prompts, stems, and instruction lines.
 
 | Aspect     | Detail                             |
 | ---------- | ---------------------------------- |
-| Agent      | `SkillsObservabilityAgent`, `SkillsPhraseAgent` |
-| Aggregate  | `ISkillsObservabilityAggregate`, `ISkillsTracesAggregate` |
+| Agent      | `ObservabilityAgent` |
+| Aggregate  | `IObservabilityAggregate` |
 | Method     | `execute`                          |
-| Request    | `ObservabilityRequest` / `SkillsRequest` |
-| Response   | `ObservabilityResult` / `SkillsResult` |
+| Request    | `SkillsRequest` |
+| Response   | `SkillsResult` |
 
 ## Reference
 
