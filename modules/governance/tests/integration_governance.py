@@ -5,10 +5,10 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.design.taxonomy_design_request import (
+from shared.src.governance.taxonomy_governance_request import (
     SkillQuery,
-    SkillsOp,
-    SkillsRequest,
+    GovernanceVerb,
+    GovernanceRequest,
 )
 
 
@@ -28,7 +28,9 @@ def test_agent_with_locker_capability_end_to_end():
         pack = Path(d)
         _make_pack(pack, "cats", "my-skill")
         agent = SkillsGovernanceAgent(locker=SkillsLocker(), default_root=str(pack))
-        agent.execute(SkillsRequest(op=SkillsOp.LOCK, query=SkillQuery("my-skill")))
+        agent.execute(
+            GovernanceRequest(verb=GovernanceVerb.LOCK, query=SkillQuery("my-skill"))
+        )
         record = json.loads((pack / "cats" / "my-skill" / ".usage.json").read_text())
         assert record.get("locked") is True, "locker must have set the locked flag"
 
@@ -42,7 +44,9 @@ def test_agent_with_piner_capability_end_to_end():
         pack = Path(d)
         _make_pack(pack, "cats", "my-skill")
         agent = SkillsGovernanceAgent(piner=SkillsPiner(), default_root=str(pack))
-        agent.execute(SkillsRequest(op=SkillsOp.PIN, query=SkillQuery("my-skill")))
+        agent.execute(
+            GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("my-skill"))
+        )
         record = json.loads((pack / "cats" / "my-skill" / ".usage.json").read_text())
         assert record.get("pinned") is True, "piner must have set the pinned flag"
 

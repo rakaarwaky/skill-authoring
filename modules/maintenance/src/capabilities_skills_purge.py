@@ -9,7 +9,7 @@ import shutil
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from shared.src.design.taxonomy_design_request import SkillsRoot
+from shared.src.maintenance.taxonomy_maintenance_request import SkillsRoot
 from shared.src.design.taxonomy_design_vo import (
     load_lifecycle_config,
 )

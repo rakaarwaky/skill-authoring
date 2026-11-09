@@ -13,15 +13,7 @@ from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.design.taxonomy_design_request import (
-    SkillsOp,
-    SkillsRequest,
-    SkillsRoot,
-)
-from shared.src.design.taxonomy_design_response import (
-    SkillsExitCode,
-    SkillsResult,
-)
+from shared.src.common.taxonomy_common_vo import SkillName
 from shared.src.maintenance.contract_maintenance_aggregate import (
     ISkillsMaintenanceAggregate,
 )
@@ -29,6 +21,12 @@ from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsPrunerProtocol,
     ISkillsPurgerProtocol,
 )
+from shared.src.maintenance.taxonomy_maintenance_request import (
+    MaintenanceRequest,
+    MaintenanceVerb,
+    SkillsRoot,
+)
+from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
 
 __all__ = [
     "ISkillsMaintenanceAggregate",
@@ -55,55 +53,55 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
             raise SkillsRootError(f"maintenance capability not wired: {name}")
         return capability
 
-    def _root(self, request: SkillsRequest) -> SkillsRoot | None:
+    def _root(self, request: MaintenanceRequest) -> SkillsRoot | None:
         if request.root:
             return request.root
         return self._default_root
 
     # ─── Block 2: Module Contract ────────────────
-    def execute(self, request: SkillsRequest) -> SkillsResult:
+    def execute(self, request: MaintenanceRequest) -> MaintenanceResponse:
         """Route *request* to the matching maintenance capability."""
         try:
-            op = SkillsOp(request.op)
+            op = MaintenanceVerb(request.verb)
         except ValueError:
-            return SkillsResult(
+            return MaintenanceResponse(
                 ok=False,
-                op=SkillsOp.LIST,
-                exit_code=SkillsExitCode.USAGE_ERROR,
-                message=f"Unknown skills op: {request.op}",
+                verb=MaintenanceVerb.PRUNE.value,
+                exit_code=2,
+                message=f"Unknown maintenance op: {request.verb}",
             )
 
         try:
             handler = self._handler_for(op)
         except KeyError:
-            return SkillsResult(
+            return MaintenanceResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.USAGE_ERROR,
-                message=f"Unknown skills op: {op}",
+                verb=op.value,
+                exit_code=2,
+                message=f"Unknown maintenance op: {op}",
             )
 
         try:
             return handler(request, op)
         except SkillsError as failure:
-            return SkillsResult(
+            return MaintenanceResponse(
                 ok=False,
-                op=op,
+                verb=op.value,
                 exit_code=failure.exit_code,
                 message=str(failure),
             )
 
     def _handler_for(
-        self, op: SkillsOp
-    ) -> Callable[[SkillsRequest, SkillsOp], SkillsResult]:
-        name = f"_execute_{op.value.replace('-', '_')}"
+        self, op: MaintenanceVerb
+    ) -> Callable[[MaintenanceRequest, MaintenanceVerb], MaintenanceResponse]:
+        name = f"_execute_{op.value}"
         handler = getattr(self, name, None)
         if not callable(handler):
             raise KeyError(name)
-        return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
+        return cast(Callable[[MaintenanceRequest, MaintenanceVerb], MaintenanceResponse], handler)
 
     # ─── Block 3: Module Helpers ────────────────────────────────
-    def _execute_prune(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+    def _execute_prune(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
         """PRUNE: bulk-archive idle skills past a days threshold."""
         prune = self._require(self._prune, "prune")
         root = self._root(request)
@@ -114,19 +112,24 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
         try:
             report = prune.prune(root=root, days=days, dry_run=dry_run)
         except (OSError, ValueError) as failure:
-            return SkillsResult(
+            return MaintenanceResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
+                verb=op.value,
+                exit_code=1,
                 message=str(failure),
             )
-        return SkillsResult(ok=True, op=op, records=report.get("pruned", ()), message=str(report))
+        return MaintenanceResponse(
+            ok=True,
+            verb=op.value,
+            records=tuple(SkillName(p["skill"]) for p in report.get("pruned", ())),
+            message=str(report),
+        )
 
-    def _execute_purge(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+    def _execute_purge(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
         """PURGE: delete archived skills past TTL or a named skill."""
         purge = self._require(self._purge, "purge")
         root = self._root(request)
-        query = str(request.query).strip() if request.query else ""
+        query = str(request.skill or "").strip()
         skill_name = query if query and query != "None" else None
         dry_run = bool(
             request.flags.get("dry_run", False) or request.flags.get("dry-run", False)
@@ -134,19 +137,10 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
         try:
             result = purge.purge(skill=skill_name, root=root, dry_run=dry_run)
         except (OSError, ValueError) as failure:
-            return SkillsResult(
+            return MaintenanceResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
+                verb=op.value,
+                exit_code=1,
                 message=str(failure),
             )
-        return SkillsResult(ok=True, op=op, message=str(result))
-
-    def show_skill(self, name: str, root: SkillsRoot | None = None):
-        """Maintenance agent does not expose show_skill."""
-        return SkillsResult(
-            ok=False,
-            op=SkillsOp.READ,
-            exit_code=SkillsExitCode.USAGE_ERROR,
-            message=f"maintenance agent does not expose show_skill for {name}",
-        )
+        return MaintenanceResponse(ok=True, verb=op.value, message=str(result))

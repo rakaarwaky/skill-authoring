@@ -29,6 +29,7 @@ class GovernanceVerb(Enum):
     UNLOCK = "unlock"
     PIN = "pin"
     UNPIN = "unpin"
+    MOVE = "move"
 
 
 @dataclass(frozen=True)

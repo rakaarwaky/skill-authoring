@@ -8,12 +8,11 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.design.taxonomy_design_request import (
+from shared.src.governance.taxonomy_governance_request import (
     SkillQuery,
-    SkillsOp,
-    SkillsRequest,
+    GovernanceVerb,
+    GovernanceRequest,
 )
-from shared.src.design.taxonomy_design_response import SkillsExitCode
 
 
 def _make_agent(pack: Path):
@@ -40,11 +39,15 @@ def test_fr_governance_001_lock_unlock_toggles_the_sidecar_flag():
         (skill_dir / "SKILL.md").write_text("---\nname: my-skill\n---\n")
 
         agent = _make_agent(pack)
-        agent.execute(SkillsRequest(op=SkillsOp.LOCK, query=SkillQuery("my-skill")))
+        agent.execute(
+            GovernanceRequest(verb=GovernanceVerb.LOCK, query=SkillQuery("my-skill"))
+        )
         record = json.loads((skill_dir / ".usage.json").read_text())
         assert record.get("locked") is True
 
-        agent.execute(SkillsRequest(op=SkillsOp.UNLOCK, query=SkillQuery("my-skill")))
+        agent.execute(
+            GovernanceRequest(verb=GovernanceVerb.UNLOCK, query=SkillQuery("my-skill"))
+        )
         record = json.loads((skill_dir / ".usage.json").read_text())
         assert record.get("locked") is False
 
@@ -59,11 +62,15 @@ def test_fr_governance_002_pin_unpin_toggles_the_sidecar_flag():
         (skill_dir / "SKILL.md").write_text("---\nname: my-skill\n---\n")
 
         agent = _make_agent(pack)
-        agent.execute(SkillsRequest(op=SkillsOp.PIN, query=SkillQuery("my-skill")))
+        agent.execute(
+            GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("my-skill"))
+        )
         record = json.loads((skill_dir / ".usage.json").read_text())
         assert record.get("pinned") is True
 
-        agent.execute(SkillsRequest(op=SkillsOp.UNPIN, query=SkillQuery("my-skill")))
+        agent.execute(
+            GovernanceRequest(verb=GovernanceVerb.UNPIN, query=SkillQuery("my-skill"))
+        )
         record = json.loads((skill_dir / ".usage.json").read_text())
         assert record.get("pinned") is False
 
@@ -80,11 +87,10 @@ def test_fr_governance_003_move_rehomes_the_skill_inside_the_pack_root():
 
         agent = _make_agent(pack)
         result = agent.execute(
-            SkillsRequest(
-                op=SkillsOp.MOVE,
+            GovernanceRequest(
+                verb=GovernanceVerb.MOVE,
                 query=SkillQuery("my-skill"),
-                flags={"target": "dogs"},
-                apply=True,
+                flags={"target": "dogs", "apply": "1"},
             )
         )
         assert result.ok is True
@@ -102,7 +108,7 @@ def test_fr_governance_003_missing_target_flag_is_a_usage_error():
 
         agent = _make_agent(pack)
         result = agent.execute(
-            SkillsRequest(op=SkillsOp.MOVE, query=SkillQuery("my-skill"))
+            GovernanceRequest(verb=GovernanceVerb.MOVE, query=SkillQuery("my-skill"))
         )
         assert result.ok is False
-        assert result.exit_code == SkillsExitCode.USAGE_ERROR
+        assert result.exit_code == 2

@@ -14,15 +14,6 @@ from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.design.taxonomy_design_request import (
-    SkillsOp,
-    SkillsRequest,
-    SkillsRoot,
-)
-from shared.src.design.taxonomy_design_response import (
-    SkillsExitCode,
-    SkillsResult,
-)
 from shared.src.storage.contract_storage_aggregate import ISkillsStorageAggregate
 from shared.src.storage.contract_storage_protocol import (
     ISkillsArchiverProtocol,
@@ -30,11 +21,20 @@ from shared.src.storage.contract_storage_protocol import (
     ISkillsRestoreProtocol,
     ISkillsRollbackProtocol,
 )
+from shared.src.storage.taxonomy_storage_request import (
+    StorageRequest,
+    StorageVerb,
+    SkillsRoot,
+)
+from shared.src.storage.taxonomy_storage_response import StorageResponse
 
 __all__ = [
     "ISkillsStorageAggregate",
     "SkillsStorageAgent",
 ]
+
+EXIT_USAGE = 2
+EXIT_ISSUES_FOUND = 1
 
 
 class SkillsStorageAgent(ISkillsStorageAggregate):
@@ -60,116 +60,116 @@ class SkillsStorageAgent(ISkillsStorageAggregate):
             raise SkillsRootError(f"storage capability not wired: {name}")
         return capability
 
-    def _root(self, request: SkillsRequest) -> SkillsRoot | None:
+    def _root(self, request: StorageRequest) -> SkillsRoot | None:
         if request.root:
             return request.root
         return self._default_root
 
     # ─── Block 2: Module Contract ────────────────
-    def execute(self, request: SkillsRequest) -> SkillsResult:
+    def execute(self, request: StorageRequest) -> StorageResponse:
         """Route *request* to the matching storage capability."""
         try:
-            op = SkillsOp(request.op)
+            op = StorageVerb(request.verb)
         except ValueError:
-            return SkillsResult(
+            return StorageResponse(
                 ok=False,
-                op=SkillsOp.LIST,
-                exit_code=SkillsExitCode.USAGE_ERROR,
-                message=f"Unknown skills op: {request.op}",
+                verb=StorageVerb.BOOTSTRAP.value,
+                exit_code=EXIT_USAGE,
+                message=f"Unknown storage op: {request.verb}",
             )
 
         try:
             handler = self._handler_for(op)
         except KeyError:
-            return SkillsResult(
+            return StorageResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.USAGE_ERROR,
-                message=f"Unknown skills op: {op}",
+                verb=op.value,
+                exit_code=EXIT_USAGE,
+                message=f"Unknown storage op: {op}",
             )
 
         try:
             return handler(request, op)
         except SkillsError as failure:
-            return SkillsResult(
+            return StorageResponse(
                 ok=False,
-                op=op,
+                verb=op.value,
                 exit_code=failure.exit_code,
                 message=str(failure),
             )
 
     def _handler_for(
-        self, op: SkillsOp
-    ) -> Callable[[SkillsRequest, SkillsOp], SkillsResult]:
-        name = f"_execute_{op.value.replace('-', '_')}"
+        self, op: StorageVerb
+    ) -> Callable[[StorageRequest, StorageVerb], StorageResponse]:
+        name = f"_execute_{op.value}"
         handler = getattr(self, name, None)
         if not callable(handler):
             raise KeyError(name)
-        return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
+        return cast(Callable[[StorageRequest, StorageVerb], StorageResponse], handler)
 
     # ─── Block 3: Module Helpers ────────────────────────────────
-    def _execute_archive(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+    def _execute_archive(self, request: StorageRequest, op: StorageVerb) -> StorageResponse:
         """ARCHIVE: move a live skill into _archive/."""
         archiver = self._require(self._archiver, "archiver")
         root = self._root(request)
         if not request.query or str(request.query).strip() in ("", "None"):
-            return SkillsResult(
+            return StorageResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
+                verb=op.value,
+                exit_code=EXIT_ISSUES_FOUND,
                 message="Skill name required",
             )
         skill_name = str(request.query).strip()
         try:
             result = archiver.archive(skill_name, root)
         except (OSError, SkillsError) as failure:
-            return SkillsResult(
+            return StorageResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
+                verb=op.value,
+                exit_code=EXIT_ISSUES_FOUND,
                 message=str(failure),
             )
-        return SkillsResult(ok=True, op=op, message=str(result))
+        return StorageResponse(ok=True, verb=op.value, message=str(result))
 
-    def _execute_restore(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+    def _execute_restore(self, request: StorageRequest, op: StorageVerb) -> StorageResponse:
         """RESTORE: restore an archived skill back to the live pack."""
         restore = self._require(self._restore, "restore")
         root = self._root(request)
         if not request.query or str(request.query).strip() in ("", "None"):
-            return SkillsResult(
+            return StorageResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
+                verb=op.value,
+                exit_code=EXIT_ISSUES_FOUND,
                 message="Skill name required",
             )
         skill_name = str(request.query).strip()
         try:
             result = restore.restore(skill_name, root)
         except (OSError, SkillsError) as failure:
-            return SkillsResult(
+            return StorageResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
+                verb=op.value,
+                exit_code=EXIT_ISSUES_FOUND,
                 message=str(failure),
             )
-        return SkillsResult(ok=True, op=op, message=str(result))
+        return StorageResponse(ok=True, verb=op.value, message=str(result))
 
-    def _execute_backup(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+    def _execute_backup(self, request: StorageRequest, op: StorageVerb) -> StorageResponse:
         """BACKUP: create a content-addressed snapshot of the pack."""
         backup = self._require(self._backup, "backup")
         root = self._root(request)
         try:
             path = backup.create_snapshot(root)
         except OSError as failure:
-            return SkillsResult(
+            return StorageResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
+                verb=op.value,
+                exit_code=EXIT_ISSUES_FOUND,
                 message=str(failure),
             )
-        return SkillsResult(ok=True, op=op, message=str(path))
+        return StorageResponse(ok=True, verb=op.value, message=str(path), root=root)
 
-    def _execute_rollback(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+    def _execute_rollback(self, request: StorageRequest, op: StorageVerb) -> StorageResponse:
         """ROLLBACK: restore the pack tree from a stored snapshot."""
         rollback = self._require(self._rollback, "rollback")
         root = self._root(request)
@@ -177,19 +177,10 @@ class SkillsStorageAgent(ISkillsStorageAggregate):
         try:
             result = rollback.rollback(root, snapshot_id)
         except OSError as failure:
-            return SkillsResult(
+            return StorageResponse(
                 ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
+                verb=op.value,
+                exit_code=EXIT_ISSUES_FOUND,
                 message=str(failure),
             )
-        return SkillsResult(ok=True, op=op, message=str(result))
-
-    def show_skill(self, name: str, root: SkillsRoot | None = None):
-        """Storage agent does not expose show_skill."""
-        return SkillsResult(
-            ok=False,
-            op=SkillsOp.READ,
-            exit_code=SkillsExitCode.USAGE_ERROR,
-            message=f"storage agent does not expose show_skill for {name}",
-        )
+        return StorageResponse(ok=True, verb=op.value, message=str(result))

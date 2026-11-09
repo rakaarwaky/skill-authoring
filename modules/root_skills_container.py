@@ -66,7 +66,28 @@ from shared.src.discovery.taxonomy_discovery_request import (
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
 from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 from shared.src.governance.contract_governance_protocol import ISkillsMoverProtocol
+from shared.src.governance.taxonomy_governance_request import (
+    GovernanceRequest,
+    GovernanceVerb,
+)
+from shared.src.governance.taxonomy_governance_response import GovernanceResponse
+from shared.src.maintenance.taxonomy_maintenance_request import (
+    MaintenanceRequest,
+    MaintenanceVerb,
+)
+from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
+from shared.src.observability.contract_observability_protocol import ISkillsLedgerProtocol
+from shared.src.observability.taxonomy_observability_request import (
+    ObservabilityOp,
+    ObservabilityRequest,
+)
+from shared.src.observability.taxonomy_observability_response import ObservabilityResult
 from shared.src.storage.contract_storage_protocol import ISkillsArchiverProtocol
+from shared.src.storage.taxonomy_storage_request import (
+    StorageRequest,
+    StorageVerb,
+)
+from shared.src.storage.taxonomy_storage_response import StorageResponse
 from shared.src.storage.utility_skill_pack import default_pack_root
 from storage.src.agent_storage_orchestrator import SkillsStorageAgent
 from storage.src.capabilities_skills_backup import SkillsBackup
@@ -186,13 +207,41 @@ class _ComposedAggregate(ISkillsAggregate):
             dresp = self._discovery.execute(dreq)
             result = _discovery_response_to_result(dresp, op)
         elif op in _GOVERNANCE_OPS:
-            result = self._governance.execute(request)
+            greq = GovernanceRequest(
+                verb=GovernanceVerb(op.value),
+                query=SkillQuery(request.query),
+                root=request.root,
+                flags=request.flags,
+            )
+            gresp = self._governance.execute(greq)
+            result = _governance_response_to_result(gresp, op)
         elif op in _MAINTENANCE_OPS:
-            result = self._maintenance.execute(request)
+            mreq = MaintenanceRequest(
+                verb=MaintenanceVerb(op.value),
+                skill=request.query,
+                root=request.root,
+                flags=request.flags,
+            )
+            mresp = self._maintenance.execute(mreq)
+            result = _maintenance_response_to_result(mresp, op)
         elif op in _OBSERVABILITY_OPS:
-            result = self._observability.execute(request)
+            oreq = ObservabilityRequest(
+                op=ObservabilityOp(op.value),
+                query=request.query,
+                root=request.root,
+                flags=request.flags,
+            )
+            oresp = self._observability.execute(oreq)
+            result = _observability_response_to_result(oresp, op)
         elif op in _STORAGE_OPS:
-            result = self._storage.execute(request)
+            sreq = StorageRequest(
+                verb=StorageVerb(op.value),
+                query=request.query,
+                root=request.root,
+                flags=request.flags,
+            )
+            sresp = self._storage.execute(sreq)
+            result = _storage_response_to_result(sresp, op)
         elif op in _TRACES_OPS:
             result = self._traces.execute(request)
         else:
@@ -209,31 +258,58 @@ class _ComposedAggregate(ISkillsAggregate):
         return result
 
 
-def _discovery_response_to_result(
-    dresp: DiscoveryResponse, op: SkillsOp
+def _governance_response_to_result(
+    gresp: GovernanceResponse, op: SkillsOp
 ) -> SkillsResult:
-    """Translate a discovery response back into a SkillsResult for the surface."""
-    payload: dict[str, object] = {}
-    if dresp.records:
-        payload["records"] = dresp.records
-    if dresp.content is not None:
-        payload["content"] = dresp.content
-    if dresp.catalog_report is not None:
-        payload["catalog"] = dresp.catalog_report
-    if dresp.catalog_check is not None:
-        payload["check"] = dresp.catalog_check
-    if dresp.discovery is not None:
-        payload["matches"] = dresp.discovery.matches
-    if dresp.warning:
-        payload["warning"] = dresp.warning
-
     return SkillsResult(
-        ok=dresp.ok,
+        ok=gresp.ok,
         op=op,
-        exit_code=dresp.exit_code,
-        message=dresp.message,
-        root=dresp.root,
-        **payload,
+        exit_code=gresp.exit_code,
+        message=gresp.message,
+        root=gresp.root,
+        plan=gresp.plan,
+        outcome=gresp.outcome,
+    )
+
+
+def _maintenance_response_to_result(
+    mresp: MaintenanceResponse, op: SkillsOp
+) -> SkillsResult:
+    return SkillsResult(
+        ok=mresp.ok,
+        op=op,
+        exit_code=mresp.exit_code,
+        message=mresp.message,
+        root=mresp.root,
+        records=mresp.records,
+    )
+
+
+def _observability_response_to_result(
+    oresp: ObservabilityResult, op: SkillsOp
+) -> SkillsResult:
+    return SkillsResult(
+        ok=oresp.ok,
+        op=op,
+        exit_code=oresp.exit_code,
+        message=oresp.message,
+        root=oresp.root,
+        records=oresp.records,
+    )
+
+
+def _storage_response_to_result(
+    sresp: StorageResponse, op: SkillsOp
+) -> SkillsResult:
+    return SkillsResult(
+        ok=sresp.ok,
+        op=op,
+        exit_code=sresp.exit_code,
+        message=sresp.message,
+        root=sresp.root,
+        records=sresp.records,
+        manifest=sresp.manifest,
+        content=sresp.content,
     )
 
 

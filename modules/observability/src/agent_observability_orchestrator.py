@@ -13,22 +13,21 @@ from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.design.taxonomy_design_request import (
-    SkillQuery,
-    SkillsOp,
-    SkillsRequest,
-    SkillsRoot,
-)
-from shared.src.design.taxonomy_design_response import (
-    SkillsExitCode,
-    SkillsResult,
-)
 from shared.src.observability.contract_observability_aggregate import (
     ISkillsObservabilityAggregate,
 )
 from shared.src.observability.contract_observability_protocol import (
     ISkillsLedgerProtocol,
     ISkillsTelemetryProtocol,
+)
+from shared.src.observability.taxonomy_observability_request import (
+    ObservabilityRequest,
+    ObservabilityOp,
+    SkillsRoot,
+)
+from shared.src.observability.taxonomy_observability_response import (
+    ObservabilityExitCode,
+    ObservabilityResult,
 )
 
 __all__ = [
@@ -56,38 +55,38 @@ class SkillsObservabilityAgent(ISkillsObservabilityAggregate):
             raise SkillsRootError(f"observability capability not wired: {name}")
         return capability
 
-    def _root(self, request: SkillsRequest) -> SkillsRoot | None:
+    def _root(self, request: ObservabilityRequest) -> SkillsRoot | None:
         if request.root:
             return request.root
         return self._default_root
 
     # ─── Block 2: Module Contract ────────────────
-    def execute(self, request: SkillsRequest) -> SkillsResult:
+    def execute(self, request: ObservabilityRequest) -> ObservabilityResult:
         """Route *request* to the matching observability capability."""
         try:
-            op = SkillsOp(request.op)
+            op = ObservabilityOp(request.op)
         except ValueError:
-            return SkillsResult(
+            return ObservabilityResult(
                 ok=False,
-                op=SkillsOp.LIST,
-                exit_code=SkillsExitCode.USAGE_ERROR,
-                message=f"Unknown skills op: {request.op}",
+                op=ObservabilityOp.PHRASES,
+                exit_code=ObservabilityExitCode.USAGE_ERROR,
+                message=f"Unknown observability op: {request.op}",
             )
 
         try:
             handler = self._handler_for(op)
         except KeyError:
-            return SkillsResult(
+            return ObservabilityResult(
                 ok=False,
                 op=op,
-                exit_code=SkillsExitCode.USAGE_ERROR,
-                message=f"Unknown skills op: {op}",
+                exit_code=ObservabilityExitCode.USAGE_ERROR,
+                message=f"Unknown observability op: {op}",
             )
 
         try:
             return handler(request, op)
         except SkillsError as failure:
-            return SkillsResult(
+            return ObservabilityResult(
                 ok=False,
                 op=op,
                 exit_code=failure.exit_code,
@@ -95,16 +94,16 @@ class SkillsObservabilityAgent(ISkillsObservabilityAggregate):
             )
 
     def _handler_for(
-        self, op: SkillsOp
-    ) -> Callable[[SkillsRequest, SkillsOp], SkillsResult]:
-        name = f"_execute_{op.value.replace('-', '_')}"
+        self, op: ObservabilityOp
+    ) -> Callable[[ObservabilityRequest, ObservabilityOp], ObservabilityResult]:
+        name = f"_execute_{op.value}"
         handler = getattr(self, name, None)
         if not callable(handler):
             raise KeyError(name)
-        return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
+        return cast(Callable[[ObservabilityRequest, ObservabilityOp], ObservabilityResult], handler)
 
     # ─── Block 3: Module Helpers ────────────────────────────────
-    def _execute_ledger(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+    def _execute_ledger(self, request: ObservabilityRequest, op: ObservabilityOp) -> ObservabilityResult:
         """LEDGER: append an entry to the audit ledger."""
         ledger = self._require(self._ledger, "ledger")
         root = self._root(request)
@@ -118,15 +117,15 @@ class SkillsObservabilityAgent(ISkillsObservabilityAggregate):
         try:
             result = ledger.ledger_append(root, entry)
         except OSError as failure:
-            return SkillsResult(
+            return ObservabilityResult(
                 ok=False,
                 op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
+                exit_code=ObservabilityExitCode.ISSUES_FOUND,
                 message=str(failure),
             )
-        return SkillsResult(ok=True, op=op, message=str(result))
+        return ObservabilityResult(ok=True, op=op, message=str(result))
 
-    def _execute_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+    def _execute_usage(self, request: ObservabilityRequest, op: ObservabilityOp) -> ObservabilityResult:
         """USAGE: bump/report per-skill telemetry sidecar."""
         telemetry = self._require(self._telemetry, "telemetry")
         root = self._root(request)
@@ -134,26 +133,17 @@ class SkillsObservabilityAgent(ISkillsObservabilityAggregate):
         skill = str(request.query or "")
         if verb == "seed":
             telemetry.seed_record_if_missing(skill, root)
-            return SkillsResult(ok=True, op=op, message=f"seeded {skill}")
+            return ObservabilityResult(ok=True, op=op, message=f"seeded {skill}")
         if verb == "reanchor":
             telemetry.reanchor_clock(skill, root)
-            return SkillsResult(ok=True, op=op, message=f"reanchored {skill}")
-        report = telemetry.report(root)
-        return SkillsResult(ok=True, op=op, records=report, root=root)
+            return ObservabilityResult(ok=True, op=op, message=f"reanchored {skill}")
+        report = telemetry.curated_report(root)
+        return ObservabilityResult(ok=True, op=op, records=report, root=root)
 
     def record_view(self, skill: str, root: SkillsRoot | None = None) -> None:
         """Public seam: bump the ``views`` counter for *skill* in ``.usage.json``."""
         telemetry = self._require(self._telemetry, "telemetry")
         target_root = root if root is not None else self._root(
-            SkillsRequest(op=SkillsOp.USAGE, query=SkillQuery(skill or ""))
+            ObservabilityRequest(op=ObservabilityOp.USAGE, query=skill)
         )
         telemetry.view(skill, target_root)
-
-    def show_skill(self, name: str, root: SkillsRoot | None = None):
-        """Observability agent does not expose show_skill."""
-        return SkillsResult(
-            ok=False,
-            op=SkillsOp.READ,
-            exit_code=SkillsExitCode.USAGE_ERROR,
-            message=f"observability agent does not expose show_skill for {name}",
-        )

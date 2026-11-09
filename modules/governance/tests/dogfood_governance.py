@@ -6,10 +6,10 @@ typed request and let the agent route it to a live capability.
 """
 from __future__ import annotations
 
-from shared.src.design.taxonomy_design_request import (
+from shared.src.governance.taxonomy_governance_request import (
     SkillQuery,
-    SkillsOp,
-    SkillsRequest,
+    GovernanceVerb,
+    GovernanceRequest,
 )
 
 
@@ -29,6 +29,6 @@ def test_dogfood_agent_builds_requests_the_surface_way():
     # typed failure result rather than raising, which is the surface
     # contract the CLI relies on.
     result = agent.execute(
-        SkillsRequest(op=SkillsOp.PIN, query=SkillQuery("no-such-skill"))
+        GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("no-such-skill"))
     )
     assert result.ok is False

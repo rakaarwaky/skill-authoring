@@ -10,12 +10,11 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.design.taxonomy_design_request import (
+from shared.src.governance.taxonomy_governance_request import (
     SkillQuery,
-    SkillsOp,
-    SkillsRequest,
+    GovernanceVerb,
+    GovernanceRequest,
 )
-from shared.src.design.taxonomy_design_response import SkillsExitCode
 
 
 def _make_agent(pack: Path):
@@ -42,14 +41,14 @@ def test_e2e_lock_unlock_round_trip():
 
         agent = _make_agent(pack)
         result = agent.execute(
-            SkillsRequest(op=SkillsOp.LOCK, query=SkillQuery("my-skill"))
+            GovernanceRequest(verb=GovernanceVerb.LOCK, query=SkillQuery("my-skill"))
         )
         assert result.ok, "lock should succeed"
         record = json.loads((skill_dir / ".usage.json").read_text())
         assert record.get("locked") is True
 
         result = agent.execute(
-            SkillsRequest(op=SkillsOp.UNLOCK, query=SkillQuery("my-skill"))
+            GovernanceRequest(verb=GovernanceVerb.UNLOCK, query=SkillQuery("my-skill"))
         )
         assert result.ok, "unlock should succeed"
         record = json.loads((skill_dir / ".usage.json").read_text())
@@ -67,11 +66,10 @@ def test_e2e_move_to_existing_category():
 
         agent = _make_agent(pack)
         result = agent.execute(
-            SkillsRequest(
-                op=SkillsOp.MOVE,
+            GovernanceRequest(
+                verb=GovernanceVerb.MOVE,
                 query=SkillQuery("my-skill"),
-                flags={"target": "dogs"},
-                apply=True,
+                flags={"target": "dogs", "apply": "1"},
             )
         )
         assert result.ok, "move should succeed"
@@ -85,7 +83,7 @@ def test_e2e_unknown_skill_returns_issues_found():
         pack = Path(d)
         agent = _make_agent(pack)
         result = agent.execute(
-            SkillsRequest(op=SkillsOp.LOCK, query=SkillQuery("no-such-skill"))
+            GovernanceRequest(verb=GovernanceVerb.LOCK, query=SkillQuery("no-such-skill"))
         )
         assert result.ok is False
-        assert result.exit_code == SkillsExitCode.ISSUES_FOUND
+        assert result.exit_code == 1
