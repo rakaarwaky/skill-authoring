@@ -14,12 +14,6 @@ from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.design.contract_skills_protocol import (
-    ISkillsArchiverProtocol,
-    ISkillsBackupProtocol,
-    ISkillsRestoreProtocol,
-    ISkillsRollbackProtocol,
-)
 from shared.src.design.taxonomy_skills_request import (
     SkillsOp,
     SkillsRequest,
@@ -29,8 +23,13 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-
 from shared.src.storage.contract_storage_aggregate import ISkillsStorageAggregate
+from shared.src.storage.contract_storage_protocol import (
+    ISkillsArchiverProtocol,
+    ISkillsBackupProtocol,
+    ISkillsRestoreProtocol,
+    ISkillsRollbackProtocol,
+)
 
 __all__ = [
     "ISkillsStorageAggregate",

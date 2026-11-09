@@ -13,9 +13,6 @@ import tarfile
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_error import SkillsRootError
-from shared.src.design.contract_skills_protocol import (
-    ISkillsBackupProtocol,
-)
 from shared.src.design.taxonomy_skills_vo import (
     load_lifecycle_config,
 )
@@ -28,6 +25,9 @@ from shared.src.maintenance.utility_lifecycle_support import (
     _new_snapshot_name,
     _sha256_of,
     _utc_iso_stamp,
+)
+from shared.src.storage.contract_storage_protocol import (
+    ISkillsBackupProtocol,
 )
 
 logger = logging.getLogger(__name__)

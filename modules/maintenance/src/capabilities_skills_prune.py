@@ -8,12 +8,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from shared.src.design.contract_skills_protocol import (
-    ISkillsPruneProtocol,
-)
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (
     load_lifecycle_config,
+)
+from shared.src.maintenance.contract_maintenance_protocol import (
+    ISkillsPrunerProtocol,
 )
 from shared.src.maintenance.utility_lifecycle_support import (
     ACTIVE,
@@ -28,7 +28,7 @@ __all__ = ["SkillsPrune"]
 
 
 # ─── Block 1: Module Declaration ──────────────
-class SkillsPrune(ISkillsPruneProtocol):
+class SkillsPrune(ISkillsPrunerProtocol):
     """Prune capability: idle-skill archiving."""
 
 # ─── Block 2: Module Contract ─────────────

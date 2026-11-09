@@ -13,10 +13,6 @@ from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.design.contract_skills_protocol import (
-    ISkillsPruneProtocol,
-    ISkillsPurgeProtocol,
-)
 from shared.src.design.taxonomy_skills_request import (
     SkillsOp,
     SkillsRequest,
@@ -26,8 +22,13 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-
-from shared.src.maintenance.contract_maintenance_aggregate import ISkillsMaintenanceAggregate
+from shared.src.maintenance.contract_maintenance_aggregate import (
+    ISkillsMaintenanceAggregate,
+)
+from shared.src.maintenance.contract_maintenance_protocol import (
+    ISkillsPrunerProtocol,
+    ISkillsPurgerProtocol,
+)
 
 __all__ = [
     "ISkillsMaintenanceAggregate",
@@ -40,8 +41,8 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
 
     def __init__(
         self,
-        prune: ISkillsPruneProtocol | None = None,
-        purge: ISkillsPurgeProtocol | None = None,
+        prune: ISkillsPrunerProtocol | None = None,
+        purge: ISkillsPurgerProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._prune = prune

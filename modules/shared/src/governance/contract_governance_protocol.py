@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import SkillName
-from shared.src.governance.taxonomy_governance_request import GovernanceRequest
+from shared.src.design.taxonomy_skills_vo import MutationOutcome, MutationPlan
 from shared.src.governance.taxonomy_governance_response import GovernanceResponse
 
 
@@ -46,33 +46,25 @@ class ISkillsMoverProtocol(ABC):
     """Mover capability: move a skill between categories."""
 
     @abstractmethod
-    def move(
-        self,
-        skill: SkillName,
-        target_category: SkillName,
-        root: Path | None = None,
-    ) -> GovernanceResponse:
+    def plan_move(
+        self, skill: SkillName, target: str, root: Path | None = None
+    ) -> MutationPlan:
+        """Resolve a move to another category (pure; no writes)."""
         ...
 
-
-class ISkillsGovernanceAggregate(ABC):
-    """Single entry point over governance-side ops; the agent dispatches internally."""
-
     @abstractmethod
-    def execute(self, request: GovernanceRequest) -> GovernanceResponse:
-        """Run the request the surface/root/CLI asked for; return the response."""
+    def apply_move(self, plan: MutationPlan) -> MutationOutcome:
+        """Execute a move plan; re-checks containment first."""
         ...
 
 
 __all__ = [
-    "ISkillsGovernanceAggregate",
     "ISkillsLockerProtocol",
     "ISkillsMoverProtocol",
     "ISkillsPinerProtocol",
 ]
 
 _layer_symbols = {
-    "ISkillsGovernanceAggregate": ISkillsGovernanceAggregate,
     "ISkillsLockerProtocol": ISkillsLockerProtocol,
     "ISkillsMoverProtocol": ISkillsMoverProtocol,
     "ISkillsPinerProtocol": ISkillsPinerProtocol,

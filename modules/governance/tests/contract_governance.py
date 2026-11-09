@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def test_protocol_classes_exist():
     """CP-GOVERNANCE-001: the three governance protocol classes exist and are ABCs."""
-    from shared.src.design.contract_skills_protocol import (
+    from shared.src.governance.contract_governance_protocol import (
         ISkillsLockerProtocol,
         ISkillsMoverProtocol,
         ISkillsPinerProtocol,
@@ -45,7 +45,7 @@ def test_agent_implements_aggregate_contract():
 
 def test_capabilities_implement_their_protocols():
     """CP-GOVERNANCE-004: each governance capability subclasses its protocol."""
-    from shared.src.design.contract_skills_protocol import (
+    from shared.src.governance.contract_governance_protocol import (
         ISkillsLockerProtocol,
         ISkillsMoverProtocol,
         ISkillsPinerProtocol,

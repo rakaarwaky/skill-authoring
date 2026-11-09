@@ -24,9 +24,6 @@ from shared.src.common.taxonomy_common_error import (
 from shared.src.common.taxonomy_common_vo import (
     SkillName,
 )
-from shared.src.design.contract_skills_protocol import (
-    ISkillsArchiverProtocol,
-)
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (
     MutationOutcome,
@@ -37,6 +34,9 @@ from shared.src.maintenance.utility_skills_mutation import (
     archive_root,
     assert_within_root,
     resolve_skill_dir,
+)
+from shared.src.storage.contract_storage_protocol import (
+    ISkillsArchiverProtocol,
 )
 
 __all__ = ["SkillsArchiver"]

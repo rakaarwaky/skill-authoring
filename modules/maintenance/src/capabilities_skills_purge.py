@@ -9,12 +9,12 @@ import shutil
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from shared.src.design.contract_skills_protocol import (
-    ISkillsPurgeProtocol,
-)
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (
     load_lifecycle_config,
+)
+from shared.src.maintenance.contract_maintenance_protocol import (
+    ISkillsPurgerProtocol,
 )
 from shared.src.maintenance.utility_lifecycle_support import (
     _parse_iso,
@@ -28,7 +28,7 @@ __all__ = ["SkillsPurge"]
 
 
 # ─── Block 1: Module Declaration ──────────────
-class SkillsPurge(ISkillsPurgeProtocol):
+class SkillsPurge(ISkillsPurgerProtocol):
     """Purge capability: archive-TTL cleanup."""
 
 # ─── Block 2: Module Contract ─────────────

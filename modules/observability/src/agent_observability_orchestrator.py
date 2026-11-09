@@ -13,10 +13,6 @@ from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.design.contract_skills_protocol import (
-    ISkillsLedgerProtocol,
-    ISkillsTelemetryProtocol,
-)
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
@@ -27,8 +23,13 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-
-from shared.src.observability.contract_observability_aggregate import ISkillsObservabilityAggregate
+from shared.src.observability.contract_observability_aggregate import (
+    ISkillsObservabilityAggregate,
+)
+from shared.src.observability.contract_observability_protocol import (
+    ISkillsLedgerProtocol,
+    ISkillsTelemetryProtocol,
+)
 
 __all__ = [
     "ISkillsObservabilityAggregate",

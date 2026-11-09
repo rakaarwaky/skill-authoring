@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from design.src.agent_design_orchestrator import SkillsDesignAgent
 from shared.src.design.taxonomy_skills_request import SkillsOp, SkillsRequest
-from shared.src.design.taxonomy_skills_response import SkillsResult
 
 
 def bench_design_dispatch() -> None:

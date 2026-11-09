@@ -18,15 +18,15 @@ from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-from shared.src.design.contract_skills_protocol import (
-    ISkillsRollbackProtocol,
-)
 from shared.src.maintenance.utility_lifecycle_support import (
     BACKUP_DIRNAME,
     MANIFEST_NAME,
     TARBALL_NAME,
     _assert_member_safe,
     tar_data_filter,
+)
+from shared.src.storage.contract_storage_protocol import (
+    ISkillsRollbackProtocol,
 )
 
 logger = logging.getLogger(__name__)

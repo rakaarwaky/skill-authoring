@@ -18,7 +18,6 @@ from shared.src.common.taxonomy_common_error import (
 from shared.src.design.contract_design_aggregate import ISkillsDesignAggregate
 from shared.src.design.contract_skills_protocol import (
     ISkillsAdopterProtocol,
-    ISkillsCatalogProtocol,
     ISkillsCreatorProtocol,
     ISkillsLinterProtocol,
     ISkillsRunnerProtocol,
@@ -32,6 +31,7 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
+from shared.src.discovery.contract_discovery_protocol import ISkillsCatalogProtocol
 
 __all__ = [
     "ISkillsDesignAggregate",

@@ -26,15 +26,15 @@ from shared.src.common.taxonomy_common_vo import (
     CategoryName,
     SkillName,
 )
-from shared.src.design.contract_skills_protocol import (
-    ISkillsMoverProtocol,
-)
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (
     MutationOutcome,
     MutationPlan,
 )
 from shared.src.discovery.utility_discovery_core import relpath
+from shared.src.governance.contract_governance_protocol import (
+    ISkillsMoverProtocol,
+)
 from shared.src.maintenance.utility_skills_mutation import (
     assert_within_root,
     resolve_skill_dir,

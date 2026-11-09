@@ -4,8 +4,10 @@ Logging setup, colors, banners, and structured log helpers plus the
 trace-domain contract, taxonomy, and value objects for the skills feature.
 """
 
-from shared.src.observability.contract_observability_protocol import (
+from shared.src.observability.contract_observability_aggregate import (
     ISkillsObservabilityAggregate,
+)
+from shared.src.observability.contract_observability_protocol import (
     ISkillsTracesProtocol,
 )
 from shared.src.observability.taxonomy_observability_constant import (

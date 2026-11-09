@@ -9,13 +9,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.contract_skills_protocol import (
-    ISkillsRestoreProtocol,
-)
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.maintenance.utility_lifecycle_support import (
     archive_skill,
     restore_skill,
+)
+from shared.src.storage.contract_storage_protocol import (
+    ISkillsRestoreProtocol,
 )
 from shared.src.storage.utility_skill_pack import default_pack_root
 

@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from shared.src.design.contract_skills_protocol import (
+from shared.src.design.taxonomy_skills_request import SkillsRequest
+from shared.src.design.taxonomy_skills_response import SkillsResult
+from shared.src.storage.contract_storage_protocol import (
     ISkillsArchiverProtocol,
     ISkillsBackupProtocol,
     ISkillsRestoreProtocol,
     ISkillsRollbackProtocol,
 )
-from shared.src.design.taxonomy_skills_request import SkillsRequest
-from shared.src.design.taxonomy_skills_response import SkillsResult
 
 __all__ = [
     "ISkillsArchiverProtocol",

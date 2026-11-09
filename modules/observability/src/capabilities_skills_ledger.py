@@ -15,9 +15,6 @@ from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-from shared.src.design.contract_skills_protocol import (
-    ISkillsLedgerProtocol,
-)
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (
     load_lifecycle_config,
@@ -32,6 +29,9 @@ from shared.src.maintenance.utility_lifecycle_support import (
     _ledger_file,
     manifest_sha256,
     now_iso,
+)
+from shared.src.observability.contract_observability_protocol import (
+    ISkillsLedgerProtocol,
 )
 
 logger = logging.getLogger(__name__)

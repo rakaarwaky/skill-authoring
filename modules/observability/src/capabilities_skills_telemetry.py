@@ -9,9 +9,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.contract_skills_protocol import (
-    ISkillsTelemetryProtocol,
-)
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.maintenance.utility_lifecycle_support import (
     DEFAULT_STATE,
@@ -24,6 +21,9 @@ from shared.src.maintenance.utility_lifecycle_support import (
     find_skill_dir,
 )
 from shared.src.maintenance.utility_skills_mutation import atomic_write_json
+from shared.src.observability.contract_observability_protocol import (
+    ISkillsTelemetryProtocol,
+)
 from shared.src.storage.utility_skill_pack import iter_skill_mds
 
 __all__ = ["SkillsTelemetry"]

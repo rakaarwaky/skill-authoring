@@ -23,6 +23,10 @@ from design.src.agent_design_orchestrator import SkillsDesignAgent
 from design.src.capabilities_skills_adopter import SkillsAdopter
 from design.src.capabilities_skills_runner import SkillsRunner
 from discovery.agent_discovery_orchestrator import SkillsDiscoveryAgent
+from discovery.src.capabilities_discovery_catalog import SkillsCatalog
+from discovery.src.capabilities_discovery_finder import SkillsDiscover
+from discovery.src.capabilities_discovery_lister import SkillsLister
+from discovery.src.capabilities_discovery_reader import SkillsPackReader
 from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
 from governance.src.capabilities_skills_locker import SkillsLocker
 from governance.src.capabilities_skills_piner import SkillsPiner
@@ -30,22 +34,16 @@ from maintenance.src.agent_maintenance_orchestrator import SkillsMaintenanceAgen
 from maintenance.src.capabilities_skills_prune import SkillsPrune
 from maintenance.src.capabilities_skills_purge import SkillsPurge
 from observability.src.agent_observability_orchestrator import SkillsObservabilityAgent
+from observability.src.agent_skills_phrase_orchestrator import SkillsPhraseAgent
 from observability.src.capabilities_skills_ledger import SkillsLedger
 from observability.src.capabilities_skills_telemetry import SkillsTelemetry
-from observability.src.agent_skills_phrase_orchestrator import SkillsPhraseAgent
 from shared.src.common.taxonomy_common_vo import (
     SkillRecord,
 )
 from shared.src.design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.design.contract_skills_protocol import (
-    ISkillsArchiverProtocol,
-    ISkillsCatalogProtocol,
     ISkillsCreatorProtocol,
-    ISkillsDiscoverProtocol,
     ISkillsLinterProtocol,
-    ISkillsListerProtocol,
-    ISkillsMoverProtocol,
-    ISkillsReaderProtocol,
 )
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
@@ -53,6 +51,12 @@ from shared.src.design.taxonomy_skills_request import (
     SkillsRequest,
 )
 from shared.src.design.taxonomy_skills_response import SkillsResult
+from shared.src.discovery.contract_discovery_protocol import (
+    ISkillsCatalogProtocol,
+    ISkillsDiscoverProtocol,
+    ISkillsListerProtocol,
+    ISkillsReaderProtocol,
+)
 from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryQuery,
     DiscoveryRequest,
@@ -60,6 +64,9 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
+from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
+from shared.src.governance.contract_governance_protocol import ISkillsMoverProtocol
+from shared.src.storage.contract_storage_protocol import ISkillsArchiverProtocol
 from shared.src.storage.utility_skill_pack import default_pack_root
 from storage.src.agent_storage_orchestrator import SkillsStorageAgent
 from storage.src.capabilities_skills_backup import SkillsBackup
