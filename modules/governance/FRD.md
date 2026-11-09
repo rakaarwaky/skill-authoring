@@ -21,7 +21,7 @@ facade that the CLI surface receives.
 
 ## Functional Requirements
 
-### FR-GOVERNANCE-001: Lock and unlock a skill
+### FR-GOVERNANCE-001: Locker
 
 **Description:** Toggle the `locked` flag on a skill's sidecar record.
 A locked skill is exempt from prune and archive sweeps; an unlocked
@@ -45,7 +45,7 @@ skill is fair game again.
 | Aspect | Detail |
 |--------|--------|
 | **Input** | skill name; optional pack-root override |
-| **Output** | `SkillsResult` with the sidecar write message |
+| **Output** | `GovernanceResponse` with ok=True, verb=lock/unlock, message carrying the sidecar write result |
 | **Protocol** | `ISkillsLockerProtocol` |
 | **Method** | `lock(skill, root)` / `unlock(skill, root)` |
 | **Event** | — |
@@ -65,48 +65,7 @@ skill is fair game again.
 |---------------|-------|
 | Flag fidelity | a lock/unlock pair returns the sidecar to its original state |
 
-### FR-GOVERNANCE-002: Pin and unpin a skill
-
-**Description:** Toggle the `pinned` flag on a skill's sidecar record.
-A pinned skill is exempt from automatic lifecycle transitions
-(archive-on-idle); an unpinned skill is subject to them.
-
-#### Business Logic
-
-- Pin sets `pinned=True`; unpin sets `pinned=False`.
-- The pin flag is read by the telemetry auto-transition pass; it does
-  not affect lock, move, or archive on its own.
-
-#### Edge Cases
-
-- Skill directory not found → typed error naming the skill.
-- Capability unwired → typed error before any work begins.
-
-#### Technical Specification
-
-| Aspect | Detail |
-|--------|--------|
-| **Input** | skill name; optional pack-root override |
-| **Output** | `SkillsResult` with the sidecar write message |
-| **Protocol** | `ISkillsPinerProtocol` |
-| **Method** | `pin(skill, root)` / `unpin(skill, root)` |
-| **Event** | — |
-| **Error** | missing skill, unwired capability → typed error |
-
-#### Test
-
-| Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
-| Existing skill | `sac skills pin <skill>` | sidecar `pinned=True`, exit 0 |
-| Existing pinned skill | `sac skills unpin <skill>` | sidecar `pinned=False`, exit 0 |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Flag fidelity | a pin/unpin pair returns the sidecar to its original state |
-
-### FR-GOVERNANCE-003: Move a skill to another category
+### FR-GOVERNANCE-002: Mover
 
 **Description:** Plan or apply a move of a skill directory to another
 category under the same pack root. The move is dry-run by default;
@@ -135,7 +94,7 @@ category under the same pack root. The move is dry-run by default;
 | Aspect | Detail |
 |--------|--------|
 | **Input** | skill name, target category, pack root, `--apply` flag |
-| **Output** | `SkillsResult` with the `MutationPlan` (dry-run) or `MutationOutcome` (apply) |
+| **Output** | `GovernanceResponse` with `MutationPlan` (dry-run) or `MutationOutcome` (apply) |
 | **Protocol** | `ISkillsMoverProtocol` |
 | **Method** | `plan_move(skill, target, root)` / `apply_move(plan)` |
 | **Event** | — |
@@ -155,46 +114,46 @@ category under the same pack root. The move is dry-run by default;
 |---------------|-------|
 | Containment invariant | no apply writes outside the pack root |
 
-### FR-GOVERNANCE-004: Execute a governance operation through the aggregate contract
+### FR-GOVERNANCE-003: Pinner
 
-**Description:** Route a governance `SkillsOp` (lock, unlock, pin, unpin, move) through the `ISkillsGovernanceAggregate` entry point, which dispatches to the owning capability protocol seam.
+**Description:** Toggle the `pinned` flag on a skill's sidecar record.
+A pinned skill is exempt from automatic lifecycle transitions
+(archive-on-idle); an unpinned skill is subject to them.
 
 #### Business Logic
 
-- `execute(request)` parses the request verb into a `GovernanceVerb` and routes to the matching `_execute_*` handler.
-- Each handler requires its capability (locker, piner, or mover) to be wired; an unwired capability raises a typed error before any work begins.
-- The agent performs no I/O, domain data, or computation — it only orchestrates the capability seams.
+- Pin sets `pinned=True`; unpin sets `pinned=False`.
+- The pin flag is read by the telemetry auto-transition pass; it does
+  not affect lock, move, or archive on its own.
 
 #### Edge Cases
 
-- Unknown verb → usage error naming the op.
-- Unwired capability → typed error before any work begins.
-- Missing skill name → usage error naming the skill.
+- Skill directory not found → typed error naming the skill.
+- Capability unwired → typed error before any work begins.
 
 #### Technical Specification
 
 | Aspect | Detail |
 |--------|--------|
-| **Input** | `GovernanceRequest` (verb, query, root, flags) |
-| **Output** | `GovernanceResponse` (ok, verb, exit_code, message, root, plan, outcome) |
-| **Protocol** | `ISkillsGovernanceAggregate` |
-| **Method** | `execute(request)` |
+| **Input** | skill name; optional pack-root override |
+| **Output** | `GovernanceResponse` with ok=True, verb=pin/unpin, message carrying the sidecar write result |
+| **Protocol** | `ISkillsPinerProtocol` |
+| **Method** | `pin(skill, root)` / `unpin(skill, root)` |
 | **Event** | — |
-| **Error** | unknown verb, missing skill, unwired capability → typed error |
+| **Error** | missing skill, unwired capability → typed error |
 
 #### Test
 
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
-| Valid lock op | `sac skills lock <skill>` | routes to `ISkillsLockerProtocol.lock`, exit 0 |
-| Unknown op | `sac skills bogus <skill>` | exit 2 naming the op |
-| Unwired capability | agent without locker | typed error before work |
+| Existing skill | `sac skills pin <skill>` | sidecar `pinned=True`, exit 0 |
+| Existing pinned skill | `sac skills unpin <skill>` | sidecar `pinned=False`, exit 0 |
 
 #### Metric
 
 | Target Metric | Value |
 |---------------|-------|
-| Routing fidelity | every `GovernanceVerb` maps to exactly one capability handler |
+| Flag fidelity | a pin/unpin pair returns the sidecar to its original state |
 
 ## Public Interface
 

@@ -57,6 +57,7 @@ __all__ = [
     "TARBALL_NAME",
     "archive_root",
     "archive_skill",
+    "find_skill_dir",
     "manifest_sha256",
     "now_iso",
     "read_record",
@@ -121,7 +122,7 @@ _CACHE_MARKERS: frozenset[str] = frozenset({"__pycache__"})
 SkillsRoot = NewType("SkillsRoot", Path)
 
 
-def _find_skill_dir(skill: str, root: Path, in_archive: bool = False) -> Path | None:
+def find_skill_dir(skill: str, root: Path, in_archive: bool = False) -> Path | None:
     """Find a skill directory by name under root (optionally inside archive)."""
     search_root = root / ARCHIVE_DIRNAME if in_archive else root
     if not search_root.is_dir():
@@ -442,9 +443,9 @@ def set_state(skill_dir: Path, state: str, archived_at: str | None = None) -> No
 
 
 def archive_skill(skill: str, pack_root: Path) -> dict:
-    skill_dir = _find_skill_dir(skill, pack_root, in_archive=False)
+    skill_dir = find_skill_dir(skill, pack_root, in_archive=False)
     if skill_dir is None:
-        if _find_skill_dir(skill, pack_root, in_archive=True) is not None:
+        if find_skill_dir(skill, pack_root, in_archive=True) is not None:
             return {"skill": skill, "archived": False, "reason": "already-archived"}
         raise SkillNotFoundError(f"No skill directory found for: {skill}")
 
@@ -473,9 +474,9 @@ def archive_skill(skill: str, pack_root: Path) -> dict:
 
 
 def restore_skill(skill: str, pack_root: Path, reanchor=None) -> dict:
-    archived_dir = _find_skill_dir(skill, pack_root, in_archive=True)
+    archived_dir = find_skill_dir(skill, pack_root, in_archive=True)
     if archived_dir is None:
-        if _find_skill_dir(skill, pack_root, in_archive=False) is None:
+        if find_skill_dir(skill, pack_root, in_archive=False) is None:
             raise SkillNotFoundError(f"No skill directory found for: {skill}")
         return {"skill": skill, "restored": False, "reason": "not-archived"}
 

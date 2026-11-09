@@ -2,189 +2,204 @@
 
 ## Feature Overview
 
-The storage feature sits in the agent layer and is called by the surface and root CLI through the storage aggregate contract. It orchestrates four capabilities — archiver, backup, restore, rollback — and routes each of the four storage ops (`ARCHIVE`, `RESTORE`, `BACKUP`, `ROLLBACK`) to the matching capability. The agent performs no filesystem I/O; all I/O is delegated to the capabilities.
+The storage feature sits in the agent layer and is called by the surface and root CLI through the storage aggregate contract. It orchestrates five capabilities — archiver, backup, bootstrap, restore, rollback — and routes each storage op to the matching capability. The agent performs no filesystem I/O; all I/O is delegated to the capabilities.
 
 ## Functional Requirements
 
-### FR-storage-001: Orchestrate archive and restore operations
+### FR-storage-001: Archive a live skill
 
-**Description:** `SkillsStorageAgent.execute(request)` shall route each storage op (`ARCHIVE`, `RESTORE`) to the matching capability and return a typed `StorageResponse` to the caller. The agent coordinates the capability protocols and shared kernel utilities; it performs no filesystem I/O itself.
+**Description:**
+The feature shall move a live skill from its category directory into the archive directory under `_archive/`, resolving the skill's source directory and placing it at `_archive/<category>/<skill>/`. No filesystem state is held by the agent; the archiver capability performs the move.
 
 #### Business Logic
-
-- The agent shall delegate all filesystem I/O to the capabilities it coordinates; the agent itself holds no filesystem state.
-- If a required capability was not injected at construction, the agent shall raise a root-level error at call time, not at construction.
-- An op string that is not one of the four storage ops shall produce a `StorageResponse` with `USAGE_ERROR` exit code and a message naming the unknown op.
-- A `SkillsError` raised by a capability shall be caught by the agent and mapped to a `StorageResponse` carrying the error's exit code and message.
-- On `ARCHIVE` or `RESTORE`, an empty or absent skill name shall produce a `StorageResponse` with `ISSUES_FOUND` exit code and the message "Skill name required".
+- The archiver shall resolve the skill's source directory under the pack root.
+- The archive destination shall be `_archive/<category>/<skill>/`.
+- The archiver shall reject an archive whose destination already exists.
+- Every computed destination shall be asserted to remain inside the pack root before any write, and re-checked at apply time.
 
 #### Edge Cases
-
-- A missing required capability shall raise a root-level error at call time, not at agent construction.
-- An unknown op string shall produce a `StorageResponse` with `USAGE_ERROR` exit code and a message naming the unknown op.
-- A `SkillsError` raised by any capability shall be caught and mapped to a `StorageResponse` with the error's exit code and message.
-- On `ARCHIVE` or `RESTORE`, an `OSError` from the capability shall be caught and returned as a `StorageResponse` with `ISSUES_FOUND` exit code.
+- An archive destination that already exists shall produce a conflict error and overwrite nothing.
+- A computed destination that escapes the pack root shall fail closed before writing.
 
 #### Technical Specification
-
 | Aspect | Detail |
 |--------|--------|
-| **Input** | `StorageRequest` (verb, query, root, flags). Source: surface / root CLI. |
-| **Output** | `StorageResponse` (ok, verb, exit_code, message, root). Destination: surface / root CLI. |
-| **Protocol** | `ISkillsStorageAggregate` |
-| **Method** | `execute` |
+| **Input** | `skill` (skill name), `root` (pack root). Source: agent / caller. |
+| **Output** | Archive destination path. Destination: `_archive/` under the pack root. |
+| **Protocol** | `ISkillsArchiverProtocol` |
+| **Method** | `plan_archive`, `apply_archive` |
 | **Event** | None |
-| **Error** | `CLEAN` 0, `ISSUES_FOUND` 1, `USAGE_ERROR` 2 |
+| **Error** | `MutationConflictError`, `SkillsUsageError` |
 
 #### Test
-
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
-| An `ARCHIVE` request | The surface invokes `execute` with `verb=ARCHIVE` | `StorageResponse` with `ok=True`, exit code `CLEAN` |
-| A `RESTORE` request | The surface invokes `execute` with `verb=RESTORE` | `StorageResponse` with `ok=True`, exit code `CLEAN` |
-| An unknown op string | The surface invokes `execute` with an op string outside the storage set | `StorageResponse` with `ok=False`, exit code `USAGE_ERROR`, message naming the unknown op |
-| An `ARCHIVE` request missing the skill name | The surface invokes `execute` with `verb=ARCHIVE` and empty query | `StorageResponse` with `ok=False`, exit code `ISSUES_FOUND`, message "Skill name required" |
+| A live skill exists | The caller invokes archive | The skill is moved under `_archive/<category>/<skill>/` |
+| An archive destination already exists | The caller invokes archive | A conflict error is raised and nothing is overwritten |
+| A computed destination escapes the pack root | The caller invokes archive | The operation fails closed with a containment error |
 
 #### Metric
-
 | Target Metric | Value |
 |---------------|-------|
-| Dispatch p95 latency | 5 ms |
-| Unknown-op rejection rate | 100 % |
-| Unhandled exception escape rate | 0 % |
+| Archive containment violation rate | 0 % |
 
-### FR-storage-002: Backup snapshot creation and pruning
+### FR-storage-002: Create a backup snapshot
 
-**Description:** `SkillsBackup.create_snapshot(root)` shall create a content-addressed snapshot of the pack under `.lifecycle_backups/` and prune old snapshots beyond the configured keep count.
+**Description:**
+The feature shall create a content-addressed snapshot of the pack under `.lifecycle_backups/<timestamp>/`, containing a gzipped tarball and a manifest file, and prune old snapshots beyond the configured keep count.
 
 #### Business Logic
-
-- The snapshot shall be written to `.lifecycle_backups/<timestamp>/` containing a gzipped tarball and a manifest file.
+- The snapshot shall be written under `.lifecycle_backups/<timestamp>/`.
+- The snapshot shall contain a gzipped tarball and a manifest file.
 - Every file in the pack shall be hashed (sha256) and recorded in the manifest with path, sha256, and size.
-- Pruning shall remove the oldest snapshots beyond `backup_keep`, respecting any excluded snapshot names.
+- Pruning shall remove the oldest snapshots beyond the configured keep count, respecting any excluded snapshot names.
 
 #### Edge Cases
-
 - A missing pack root shall raise `SkillsRootError`.
 - A tarball extraction path that escapes the target directory shall fail closed.
 
 #### Technical Specification
-
 | Aspect | Detail |
 |--------|--------|
-| **Input** | `root` (`Path`). Source: agent. |
-| **Output** | Snapshot directory `Path`. Destination: `.lifecycle_backups/`. |
+| **Input** | `root` (pack root). Source: agent / caller. |
+| **Output** | Snapshot directory path. Destination: `.lifecycle_backups/`. |
 | **Protocol** | `ISkillsBackupProtocol` |
 | **Method** | `create_snapshot`, `prune_old_snapshots` |
 | **Event** | None |
 | **Error** | `OSError`, `SkillsRootError` |
 
 #### Test
-
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
-| A valid root | `create_snapshot(root)` | Snapshot directory created under `.lifecycle_backups/` |
-| A root with more snapshots than `backup_keep` | `prune_old_snapshots(root)` | Oldest snapshots removed, keep count retained |
+| A valid pack root | The caller invokes create_snapshot | A snapshot directory is created under `.lifecycle_backups/` containing a tarball and a manifest |
+| More snapshots exist than the keep count | The caller invokes prune_old_snapshots | The oldest snapshots are removed and the keep count is retained |
+| A missing pack root | The caller invokes create_snapshot | `SkillsRootError` is raised |
 
 #### Metric
-
 | Target Metric | Value |
 |---------------|-------|
 | Snapshot creation failure rate | 0 % |
-| Pruned-snapshot accuracy | 100 % |
 
-### FR-storage-003: Rollback snapshot restoration
+### FR-storage-003: Bootstrap a skill pack root
 
-**Description:** `SkillsRollback.rollback(root, id_)` shall restore the pack tree from a stored snapshot, staging the live tree so the operation is reversible.
+**Description:**
+The feature shall initialize a skill pack root by creating the standard category directories and writing the pack sidecar used by every verb.
 
 #### Business Logic
-
-- The snapshot identified by `id_` (or the latest if `id_` is None) shall be extracted over the live tree.
-- The current live tree shall be moved to a staging directory before extraction so it can be recovered on failure.
-- A snapshot id containing path separators or `..` shall be rejected.
+- Bootstrap shall create the standard category directories under the pack root.
+- Bootstrap shall write the pack sidecar used by every verb.
+- Bootstrap shall not fail when the root already exists.
 
 #### Edge Cases
+- A missing root shall be created if possible.
+- Existing category directories shall be left in place.
+- No root given shall use the default pack root.
 
+#### Technical Specification
+| Aspect | Detail |
+|--------|--------|
+| **Input** | `root` (pack root or None for default). Source: agent / caller. |
+| **Output** | `StorageResponse` whose manifest holds the resolved pack root and the list of created category directories. Destination: caller. |
+| **Protocol** | `ISkillsBootstrapProtocol` |
+| **Method** | `bootstrap` |
+| **Event** | None |
+| **Error** | `OSError` |
+
+#### Test
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| No pack root exists | The caller invokes bootstrap | Standard category directories and the pack sidecar are created |
+| A pack root already exists | The caller invokes bootstrap | Existing directories are left in place; the response reports no new creations |
+| No root is given | The caller invokes bootstrap | The default pack root is used |
+
+#### Metric
+| Target Metric | Value |
+|---------------|-------|
+| Bootstrap idempotency rate | 100 % |
+
+### FR-storage-004: Restore an archived skill
+
+**Description:**
+The feature shall move an archived skill from `_archive/<category>/<skill>/` back to its live category directory, re-anchoring the skill after the move.
+
+#### Business Logic
+- Restore shall move an archived skill from `_archive/<category>/<skill>/` back to its live category directory.
+- Restore shall re-anchor the skill after moving it.
+
+#### Edge Cases
+- A skill that is not archived shall produce a not-found error.
+- A restore destination that already exists shall produce a conflict error and overwrite nothing.
+
+#### Technical Specification
+| Aspect | Detail |
+|--------|--------|
+| **Input** | `skill` (skill name), `root` (pack root or None). Source: agent / caller. |
+| **Output** | Restore result. Destination: live pack under the category directory. |
+| **Protocol** | `ISkillsRestoreProtocol` |
+| **Method** | `restore` |
+| **Event** | None |
+| **Error** | `SkillNotFoundError`, `MutationConflictError` |
+
+#### Test
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| An archived skill exists | The caller invokes restore | The skill is restored to its live category directory |
+| A skill is not archived | The caller invokes restore | A not-found error is raised |
+| A restore destination already exists | The caller invokes restore | A conflict error is raised and nothing is overwritten |
+
+#### Metric
+| Target Metric | Value |
+|---------------|-------|
+| Restore success rate | 100 % |
+
+### FR-storage-005: Rollback the pack tree
+
+**Description:**
+The feature shall restore the pack tree from a stored snapshot, staging the live tree before extraction so the operation is reversible.
+
+#### Business Logic
+- Rollback shall extract the snapshot identified by id (or the latest if id is None) over the live tree.
+- Rollback shall move the current live tree to a staging directory before extraction so it can be recovered on failure.
+- Rollback shall reject a snapshot id containing path separators or `..`.
+
+#### Edge Cases
 - No snapshots available shall raise `SkillsUsageError`.
 - An invalid or escaping snapshot id shall raise `SkillsUsageError`.
 - A failed extraction shall restore the staged tree and raise `MutationConflictError`.
 
 #### Technical Specification
-
 | Aspect | Detail |
 |--------|--------|
-| **Input** | `root` (`Path`), `id_` (str or None). Source: agent / CLI flags. |
-| **Output** | `dict` with `snapshot`, `staging`, `restored`. |
+| **Input** | `root` (pack root), `id_` (snapshot id or None). Source: agent / caller. |
+| **Output** | dict with `snapshot`, `staging`, `restored`. Destination: live pack tree. |
 | **Protocol** | `ISkillsRollbackProtocol` |
 | **Method** | `rollback` |
 | **Event** | None |
 | **Error** | `OSError`, `SkillsUsageError`, `MutationConflictError` |
 
 #### Test
-
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
-| No snapshots exist | `rollback(root)` | `SkillsUsageError` raised |
-| A valid snapshot id | `rollback(root, id_)` | Pack tree restored; `restored=True` returned |
-| An escaping snapshot id | `rollback(root, "../evil")` | `SkillsUsageError` raised |
+| No snapshots exist | The caller invokes rollback | `SkillsUsageError` is raised |
+| A valid snapshot id | The caller invokes rollback(id_) | The pack tree is restored and `restored=True` is returned |
+| An escaping snapshot id | The caller invokes rollback("../evil") | `SkillsUsageError` is raised |
+| A failed extraction | The caller invokes rollback | The staged tree is restored and `MutationConflictError` is raised |
 
 #### Metric
-
 | Target Metric | Value |
 |---------------|-------|
 | Rollback success rate | 100 % |
 | Failed-rollback tree recovery rate | 100 % |
 
-### FR-storage-004: Storage agent wiring and contract
-
-**Description:** The storage aggregate contract shall define a single `execute(StorageRequest) → StorageResponse` entry point that the agent implements. The root composition root shall wire the agent into the composed facade so that the surface and CLI can call the storage ops through one stable interface.
-
-#### Business Logic
-
-- The aggregate contract shall be an abstract base class with one abstract method: `execute`.
-- The agent shall implement the aggregate contract; the root composition root shall instantiate the agent and register it in the composed facade.
-- The aggregate contract shall live in the shared storage contract module, not in the feature's source tree.
-- The surface and root CLI shall call storage ops exclusively through the aggregate contract; no direct capability calls from outside the agent.
-
-#### Edge Cases
-
-- A composition root that wires the agent without a required capability shall raise a root-level error at the point that op is first called, not at construction.
-- A surface that calls a storage op through the aggregate contract with an invalid op string shall receive a `StorageResponse` with `USAGE_ERROR`.
-
-#### Technical Specification
-
-| Aspect | Detail |
-|--------|--------|
-| **Input** | `StorageRequest`. Source: surface / root CLI. |
-| **Output** | `StorageResponse`. Destination: surface / root CLI. |
-| **Protocol** | `ISkillsStorageAggregate` |
-| **Method** | `execute` |
-| **Event** | None |
-| **Error** | `USAGE_ERROR` 2, `ISSUES_FOUND` 1 |
-
-#### Test
-
-| Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
-| The agent is constructed and registered in the root composition root | The surface calls a storage op through the facade | The agent's `execute` is invoked; a `StorageResponse` is returned |
-| The agent is constructed without the archiver capability and `ARCHIVE` is called | `execute(StorageRequest(verb=ARCHIVE))` | A root-level error is raised naming the missing capability |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Direct capability call rate from outside the agent | 0 % |
-| Aggregate contract test pass rate | 100 % |
-
 ## Public Interface
 
-| Aspect     | Detail                         |
-|------------|--------------------------------|
-| Agent      | `SkillsStorageAgent`           |
-| Aggregate  | `ISkillsStorageAggregate`      |
-| Method     | `execute`                      |
-| Request    | `StorageRequest` (verb, query, root, flags) |
-| Response   | `StorageResponse` (ok, verb, exit_code, message, root) |
+| Aspect     | Detail            |
+|------------|-------------------|
+| Agent      | `SkillsStorageAgent` |
+| Aggregate  | `ISkillsStorageAggregate` |
+| Method     | `execute` |
+| Request    | `StorageRequest` |
+| Response   | `StorageResponse` |
 
 ## Reference
 

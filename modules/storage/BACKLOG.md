@@ -55,6 +55,16 @@ typed `StorageResponse`.
 | Risk         | None                                                         |
 | Updated      | 2026-11-09                                                   |
 
+### FR-storage-005: Bootstrap a skill pack root
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `SkillsBootstrap` implements bootstrap; standard category directories and pack sidecar are created |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-09                                                   |
+
 ## Reference
 
 | Artifact     | Purpose                                    | Link |

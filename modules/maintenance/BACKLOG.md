@@ -15,45 +15,25 @@ prune, purge. Each verb is owned by a capability that implements its protocol;
 
 ## Backlog Status
 
-### FR-maintenance-001: Orchestrate maintenance-side skill operations
+### FR-maintenance-001: Prune
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `SkillsMaintenanceAgent.execute` routes prune/purge ops via `ISkillsMaintenanceAggregate` |
+| Done         | `SkillsMaintenanceAgent.execute` routes `PRUNE` to the pruner capability via `ISkillsPrunerProtocol` |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Updated      | 2026-11-10                                                   |
 
-### FR-maintenance-002: Capability contract implementation
+### FR-maintenance-002: Purge
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | Two capability files implement their protocols; no sibling imports |
+| Done         | `SkillsMaintenanceAgent.execute` routes `PURGE` to the purger capability via `ISkillsPurgerProtocol` |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
-
-### FR-maintenance-003: Maintenance aggregate contract
-
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `ISkillsMaintenanceAggregate` in `shared/src/maintenance/`; agent registered in root |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
-
-### FR-maintenance-004: Maintenance archive/restore contract
-
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `ISkillsArchiverProtocol` and `ISkillsRestorerProtocol` in `shared/src/maintenance/`; aggregate declares archive/restore |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Updated      | 2026-11-10                                                   |
 
 ## Reference
 

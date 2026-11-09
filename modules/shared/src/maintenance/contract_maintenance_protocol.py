@@ -1,9 +1,9 @@
 """Maintenance-domain capability contracts (AES contract layer, ABC traits).
 
-One seam per maintenance-side capability: prune, purge, archive, restore.
-Capabilities in ``modules/maintenance/src`` implement these; the
-composition root injects them into the agent. No import of sibling
-domain contracts — maintenance keeps its own seams.
+One seam per maintenance-side capability: prune, purge. Capabilities in
+``modules/maintenance/src`` implement these; the composition root injects
+them into the agent. No import of sibling domain contracts — maintenance
+keeps its own seams.
 
 No implementation code here — ABCs only, bodies are ``...``.
 """
@@ -45,34 +45,12 @@ class ISkillsPurgerProtocol(ABC):
         ...
 
 
-class ISkillsArchiverProtocol(ABC):
-    """Archive capability: move a live skill into ``_archive/``."""
-
-    @abstractmethod
-    def archive(self, skill: SkillName, root: SkillsRoot) -> MaintenanceResponse:
-        """Move *skill* into the archive directory."""
-        ...
-
-
-class ISkillsRestorerProtocol(ABC):
-    """Restore capability: bring an archived skill back to the live pack."""
-
-    @abstractmethod
-    def restore(self, skill: SkillName, root: SkillsRoot) -> MaintenanceResponse:
-        """Restore *skill* from ``_archive/`` back to its live category."""
-        ...
-
-
 __all__ = [
-    "ISkillsArchiverProtocol",
     "ISkillsPrunerProtocol",
     "ISkillsPurgerProtocol",
-    "ISkillsRestorerProtocol",
 ]
 
 _layer_symbols = {
-    "ISkillsArchiverProtocol": ISkillsArchiverProtocol,
     "ISkillsPrunerProtocol": ISkillsPrunerProtocol,
     "ISkillsPurgerProtocol": ISkillsPurgerProtocol,
-    "ISkillsRestorerProtocol": ISkillsRestorerProtocol,
 }

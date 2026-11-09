@@ -1,7 +1,7 @@
 """Maintenance-domain aggregate contract (AES contract layer, ABC trait).
 
 Single entry point over the maintenance-side capabilities:
-prune, purge, archive, restore.
+prune, purge.
 """
 
 from __future__ import annotations
@@ -9,10 +9,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from shared.src.maintenance.contract_maintenance_protocol import (
-    ISkillsArchiverProtocol,
     ISkillsPrunerProtocol,
     ISkillsPurgerProtocol,
-    ISkillsRestorerProtocol,
 )
 from shared.src.maintenance.taxonomy_maintenance_entity import (
     MaintenanceRecord,
@@ -27,11 +25,9 @@ from shared.src.maintenance.taxonomy_maintenance_request import MaintenanceReque
 from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
 
 __all__ = [
-    "ISkillsArchiverProtocol",
     "ISkillsMaintenanceAggregate",
     "ISkillsPrunerProtocol",
     "ISkillsPurgerProtocol",
-    "ISkillsRestorerProtocol",
     "MaintenanceError",
     "MaintenanceOpId",
     "MaintenanceRecord",
@@ -49,11 +45,9 @@ class ISkillsMaintenanceAggregate(ABC):
         ...
 
 _layer_symbols = {
-    "ISkillsArchiverProtocol": ISkillsArchiverProtocol,
     "ISkillsMaintenanceAggregate": ISkillsMaintenanceAggregate,
     "ISkillsPurgerProtocol": ISkillsPurgerProtocol,
     "ISkillsPrunerProtocol": ISkillsPrunerProtocol,
-    "ISkillsRestorerProtocol": ISkillsRestorerProtocol,
     "MaintenanceError": MaintenanceError,
     "MaintenanceOpId": MaintenanceOpId,
     "MaintenanceRecord": MaintenanceRecord,

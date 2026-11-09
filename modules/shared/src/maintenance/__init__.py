@@ -5,11 +5,9 @@ containment assertions, atomic writes, lifecycle support, and mutation plan
 generators.
 """
 from shared.src.maintenance.contract_maintenance_aggregate import (
-    ISkillsArchiverProtocol,
     ISkillsMaintenanceAggregate,
     ISkillsPrunerProtocol,
     ISkillsPurgerProtocol,
-    ISkillsRestorerProtocol,
 )
 from shared.src.maintenance.taxonomy_maintenance_constant import (
     MAINTENANCE_LOCK_FILENAME,
@@ -60,11 +58,9 @@ __all__ = [
     "PRUNE_TTL_DEFAULT_DAYS",
     "PURGE_TTL_DEFAULT_DAYS",
     "STALE",
-    "ISkillsArchiverProtocol",
     "ISkillsMaintenanceAggregate",
     "ISkillsPrunerProtocol",
     "ISkillsPurgerProtocol",
-    "ISkillsRestorerProtocol",
     "MaintenanceError",
     "MaintenanceOpId",
     "MaintenanceRecord",
@@ -113,9 +109,7 @@ _layer_symbols = {
     "plan_repair": plan_repair,
     "plan_weed": plan_weed,
     "restore_skill": restore_skill,
-    "ISkillsArchiverProtocol": ISkillsArchiverProtocol,
     "ISkillsMaintenanceAggregate": ISkillsMaintenanceAggregate,
     "ISkillsPurgerProtocol": ISkillsPurgerProtocol,
     "ISkillsPrunerProtocol": ISkillsPrunerProtocol,
-    "ISkillsRestorerProtocol": ISkillsRestorerProtocol,
 }
