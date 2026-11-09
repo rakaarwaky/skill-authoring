@@ -8,22 +8,19 @@ backup, rollback.
 from __future__ import annotations
 
 from collections.abc import Callable
-from pathlib import Path
 from typing import cast
 
-from storage.contract_storage_aggregate import ISkillsStorageAggregate
+from shared.src.common.taxonomy_common_error import (
+    SkillsError,
+    SkillsRootError,
+)
 from shared.src.design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
     ISkillsBackupProtocol,
     ISkillsRestoreProtocol,
     ISkillsRollbackProtocol,
 )
-from shared.src.common.taxonomy_common_error import (
-    SkillsError,
-    SkillsRootError,
-)
 from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
@@ -33,14 +30,11 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsResult,
 )
 
-from storage.capabilities_skills_archiver import SkillsArchiver
-from storage.capabilities_skills_backup import SkillsBackup
-from storage.capabilities_skills_restore import SkillsRestore
-from storage.capabilities_skills_rollback import SkillsRollback
+from storage.contract_storage_aggregate import ISkillsStorageAggregate
 
 __all__ = [
-    "SkillsStorageAgent",
     "ISkillsStorageAggregate",
+    "SkillsStorageAgent",
 ]
 
 
@@ -49,32 +43,28 @@ class SkillsStorageAgent(ISkillsStorageAggregate):
 
     def __init__(
         self,
-        archiver: SkillsArchiver | None = None,
-        backup: SkillsBackup | None = None,
-        restore: SkillsRestore | None = None,
-        rollback: SkillsRollback | None = None,
+        archiver: ISkillsArchiverProtocol | None = None,
+        backup: ISkillsBackupProtocol | None = None,
+        restore: ISkillsRestoreProtocol | None = None,
+        rollback: ISkillsRollbackProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
-        self._archiver = archiver if archiver is not None else SkillsArchiver()
-        self._backup = backup if backup is not None else SkillsBackup()
-        self._restore = restore if restore is not None else SkillsRestore()
-        self._rollback = (
-            rollback if rollback is not None else SkillsRollback(self._backup)
-        )
+        self._archiver = archiver
+        self._backup = backup
+        self._restore = restore
+        self._rollback = rollback
         self._default_root = default_root
 
-    # ─── Block 1: helpers ────────────────────────────────────────
+    # ─── Block 1: Module Declaration ────────────────────────────────────────
     def _require(self, capability: object, name: str) -> object:
         if capability is None:
             raise SkillsRootError(f"storage capability not wired: {name}")
         return capability
 
-    def _root(self, request: SkillsRequest) -> Path:
+    def _root(self, request: SkillsRequest) -> SkillsRoot | None:
         if request.root:
-            return Path(request.root)
-        if self._default_root is not None:
-            return Path(self._default_root)
-        return Path()
+            return request.root
+        return self._default_root
 
     # ─── Block 2: Module Contract ────────────────
     def execute(self, request: SkillsRequest) -> SkillsResult:
@@ -118,7 +108,7 @@ class SkillsStorageAgent(ISkillsStorageAggregate):
             raise KeyError(name)
         return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
 
-    # ─── Block 3: per-op handlers ────────────────────────────────
+    # ─── Block 3: Module Helpers ────────────────────────────────
     def _execute_archive(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """ARCHIVE: move a live skill into _archive/."""
         archiver = self._require(self._archiver, "archiver")
@@ -198,4 +188,9 @@ class SkillsStorageAgent(ISkillsStorageAggregate):
 
     def show_skill(self, name: str, root: SkillsRoot | None = None):
         """Storage agent does not expose show_skill."""
-        raise NotImplementedError("storage agent does not expose show_skill")
+        return SkillsResult(
+            ok=False,
+            op=SkillsOp.READ,
+            exit_code=SkillsExitCode.USAGE_ERROR,
+            message=f"storage agent does not expose show_skill for {name}",
+        )

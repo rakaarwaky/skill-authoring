@@ -21,8 +21,8 @@ def _make_pack(tmp: Path, category: str, skill: str) -> Path:
 
 def test_agent_with_locker_capability_end_to_end():
     """IT-GOVERNANCE-001: agent + real locker toggles the locked sidecar flag."""
-    from governance.agent_governance_orchestrator import SkillsGovernanceAgent
-    from governance.capabilities_skills_locker import SkillsLocker
+    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.capabilities_skills_locker import SkillsLocker
 
     with tempfile.TemporaryDirectory() as d:
         pack = Path(d)
@@ -35,8 +35,8 @@ def test_agent_with_locker_capability_end_to_end():
 
 def test_agent_with_piner_capability_end_to_end():
     """IT-GOVERNANCE-002: agent + real piner toggles the pinned sidecar flag."""
-    from governance.agent_governance_orchestrator import SkillsGovernanceAgent
-    from governance.capabilities_skills_piner import SkillsPiner
+    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.capabilities_skills_piner import SkillsPiner
 
     with tempfile.TemporaryDirectory() as d:
         pack = Path(d)
@@ -49,7 +49,7 @@ def test_agent_with_piner_capability_end_to_end():
 
 def test_mover_plan_move_is_pure_and_apply_move_writes():
     """IT-GOVERNANCE-003: mover.plan_move is pure, apply_move writes the move."""
-    from governance.capabilities_skills_mover import SkillsMover
+    from governance.src.capabilities_skills_mover import SkillsMover
 
     with tempfile.TemporaryDirectory() as d:
         pack = Path(d)
@@ -67,7 +67,7 @@ def test_mover_plan_move_is_pure_and_apply_move_writes():
 
 def test_mover_move_into_same_category_is_a_noop():
     """IT-GOVERNANCE-004: moving a skill into its own category is a no-op plan."""
-    from governance.capabilities_skills_mover import SkillsMover
+    from governance.src.capabilities_skills_mover import SkillsMover
 
     with tempfile.TemporaryDirectory() as d:
         pack = Path(d)

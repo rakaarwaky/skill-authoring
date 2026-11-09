@@ -35,7 +35,7 @@ def test_agent_implements_aggregate_contract():
         ISkillsGovernanceAggregate,
     )
 
-    from governance.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
 
     assert issubclass(SkillsGovernanceAgent, ISkillsGovernanceAggregate)
     assert not SkillsGovernanceAgent.__abstractmethods__, (
@@ -51,9 +51,9 @@ def test_capabilities_implement_their_protocols():
         ISkillsPinerProtocol,
     )
 
-    from governance.capabilities_skills_locker import SkillsLocker
-    from governance.capabilities_skills_mover import SkillsMover
-    from governance.capabilities_skills_piner import SkillsPiner
+    from governance.src.capabilities_skills_locker import SkillsLocker
+    from governance.src.capabilities_skills_mover import SkillsMover
+    from governance.src.capabilities_skills_piner import SkillsPiner
 
     assert issubclass(SkillsLocker, ISkillsLockerProtocol)
     assert issubclass(SkillsMover, ISkillsMoverProtocol)

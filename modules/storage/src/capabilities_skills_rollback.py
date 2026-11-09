@@ -6,10 +6,6 @@ module never imports a sibling capability.
 """
 
 from __future__ import annotations
-from shared.src.design.contract_skills_protocol import (
-    ISkillsRollbackProtocol,
-)
-
 
 import json
 import logging
@@ -21,6 +17,9 @@ from typing import Any
 from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillsUsageError,
+)
+from shared.src.design.contract_skills_protocol import (
+    ISkillsRollbackProtocol,
 )
 from shared.src.maintenance.utility_lifecycle_support import (
     BACKUP_DIRNAME,
@@ -34,7 +33,6 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["SkillsRollback"]
 
-
 # ─── Block 1: Module Declaration ──────────────
 class SkillsRollback(ISkillsRollbackProtocol):
     """Rollback capability: restore the pack tree from a snapshot."""
@@ -42,7 +40,7 @@ class SkillsRollback(ISkillsRollbackProtocol):
     def __init__(self, backup: Any) -> None:
         self._backup = backup
 
-# ─── Block 2: Module Contract ─────────────
+    # ─── Block 2: Module Contract ─────────────
     def rollback(self, root: Path, id_: str | None = None) -> dict:
         skills_root = self._backup.resolve_root(root)
         target = self._resolve_snapshot(skills_root, id_)
@@ -67,7 +65,7 @@ class SkillsRollback(ISkillsRollbackProtocol):
             with tarfile.open(tarball, "r:gz") as tar:
                 for member in tar:
                     _assert_member_safe(member, skills_root)
-                tar.extractall(skills_root, filter=tar_data_filter)
+                tar.extractall(skills_root, filter=tar_data_filter)  # nosec B202 — filtered extraction with path safety
         except Exception:
             logger.exception("snapshot extract failed; restoring staged tree")
             manifest = self._read_manifest(target)
@@ -108,8 +106,7 @@ class SkillsRollback(ISkillsRollbackProtocol):
             "restored": True,
         }
 
-    # ─── internals ─────────────────────────────────────────────
-
+    # ─── Block 3: Module Helpers ─────────
     def _resolve_snapshot(self, skills_root: Path, id_: str | None) -> Path:
         backup_root = self._backup.backup_root(skills_root)
         if id_ is None:
@@ -130,7 +127,6 @@ class SkillsRollback(ISkillsRollbackProtocol):
             raise SkillsUsageError(f"unknown snapshot id: {id_}")
         return snap
 
-# ─── Block 3: Module Helpers ─────────
     def _read_manifest(self, snap_dir: Path) -> dict:
         manifest_file = snap_dir / MANIFEST_NAME
         if not manifest_file.is_file():

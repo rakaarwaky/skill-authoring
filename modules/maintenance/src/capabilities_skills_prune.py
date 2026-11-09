@@ -4,15 +4,13 @@ Bulk-archives idle skills past a configurable days threshold.
 """
 
 from __future__ import annotations
-from shared.src.design.contract_skills_protocol import (
-    ISkillsPruneProtocol,
-)
-
 
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from shared.src.storage.utility_skill_pack import default_pack_root, iter_skill_mds
+from shared.src.design.contract_skills_protocol import (
+    ISkillsPruneProtocol,
+)
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (
     load_lifecycle_config,
@@ -24,6 +22,7 @@ from shared.src.maintenance.utility_lifecycle_support import (
     archive_skill,
     read_record,
 )
+from shared.src.storage.utility_skill_pack import default_pack_root, iter_skill_mds
 
 __all__ = ["SkillsPrune"]
 

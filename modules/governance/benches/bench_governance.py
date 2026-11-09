@@ -22,7 +22,7 @@ if str(_MOD_ROOT) not in sys.path:
 
 def bench_agent_construction():
     """Benchmark: construct the governance agent with mocked capabilities."""
-    from governance.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
 
     iterations = 1000
     start = time.perf_counter()
@@ -37,7 +37,7 @@ def bench_agent_construction():
 
 def bench_agent_execute_dispatch():
     """Benchmark: execute() dispatch overhead for a governance op."""
-    from governance.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
     from shared.src.design.taxonomy_skills_request import (
         SkillQuery,
         SkillsOp,
@@ -58,9 +58,9 @@ def bench_agent_execute_dispatch():
 
 def bench_capability_instantiation():
     """Benchmark: instantiate all governance capabilities."""
-    from governance.capabilities_skills_locker import SkillsLocker
-    from governance.capabilities_skills_mover import SkillsMover
-    from governance.capabilities_skills_piner import SkillsPiner
+    from governance.src.capabilities_skills_locker import SkillsLocker
+    from governance.src.capabilities_skills_mover import SkillsMover
+    from governance.src.capabilities_skills_piner import SkillsPiner
 
     iterations = 1000
     start = time.perf_counter()

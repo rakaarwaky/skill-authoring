@@ -16,8 +16,8 @@ from shared.src.design.taxonomy_skills_request import SkillsRequest
 from shared.src.design.taxonomy_skills_response import SkillsResult
 
 __all__ = [
-    "ISkillsObservabilityAggregate",
     "ISkillsLedgerProtocol",
+    "ISkillsObservabilityAggregate",
     "ISkillsTelemetryProtocol",
 ]
 

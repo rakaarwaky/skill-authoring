@@ -7,17 +7,15 @@ ledger, telemetry. Owns the ops: ledger, usage.
 from __future__ import annotations
 
 from collections.abc import Callable
-from pathlib import Path
 from typing import cast
 
-from observability.contract_observability_aggregate import ISkillsObservabilityAggregate
-from shared.src.design.contract_skills_protocol import (
-    ISkillsLedgerProtocol,
-    ISkillsTelemetryProtocol,
-)
 from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
+)
+from shared.src.design.contract_skills_protocol import (
+    ISkillsLedgerProtocol,
+    ISkillsTelemetryProtocol,
 )
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
@@ -30,12 +28,11 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsResult,
 )
 
-from observability.capabilities_skills_ledger import SkillsLedger
-from observability.capabilities_skills_telemetry import SkillsTelemetry
+from observability.contract_observability_aggregate import ISkillsObservabilityAggregate
 
 __all__ = [
-    "SkillsObservabilityAgent",
     "ISkillsObservabilityAggregate",
+    "SkillsObservabilityAgent",
 ]
 
 
@@ -44,26 +41,24 @@ class SkillsObservabilityAgent(ISkillsObservabilityAggregate):
 
     def __init__(
         self,
-        ledger: SkillsLedger | None = None,
-        telemetry: SkillsTelemetry | None = None,
+        ledger: ISkillsLedgerProtocol | None = None,
+        telemetry: ISkillsTelemetryProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
-        self._ledger = ledger if ledger is not None else SkillsLedger()
-        self._telemetry = telemetry if telemetry is not None else SkillsTelemetry()
+        self._ledger = ledger
+        self._telemetry = telemetry
         self._default_root = default_root
 
-    # ─── Block 1: helpers ────────────────────────────────────────
+    # ─── Block 1: Module Declaration ────────────────────────────────────────
     def _require(self, capability: object, name: str) -> object:
         if capability is None:
             raise SkillsRootError(f"observability capability not wired: {name}")
         return capability
 
-    def _root(self, request: SkillsRequest) -> Path:
+    def _root(self, request: SkillsRequest) -> SkillsRoot | None:
         if request.root:
-            return Path(request.root)
-        if self._default_root is not None:
-            return Path(self._default_root)
-        return Path()
+            return request.root
+        return self._default_root
 
     # ─── Block 2: Module Contract ────────────────
     def execute(self, request: SkillsRequest) -> SkillsResult:
@@ -107,7 +102,7 @@ class SkillsObservabilityAgent(ISkillsObservabilityAggregate):
             raise KeyError(name)
         return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
 
-    # ─── Block 3: per-op handlers ────────────────────────────────
+    # ─── Block 3: Module Helpers ────────────────────────────────
     def _execute_ledger(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """LEDGER: append an entry to the audit ledger."""
         ledger = self._require(self._ledger, "ledger")
@@ -155,4 +150,9 @@ class SkillsObservabilityAgent(ISkillsObservabilityAggregate):
 
     def show_skill(self, name: str, root: SkillsRoot | None = None):
         """Observability agent does not expose show_skill."""
-        raise NotImplementedError("observability agent does not expose show_skill")
+        return SkillsResult(
+            ok=False,
+            op=SkillsOp.READ,
+            exit_code=SkillsExitCode.USAGE_ERROR,
+            message=f"observability agent does not expose show_skill for {name}",
+        )

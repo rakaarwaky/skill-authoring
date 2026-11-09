@@ -17,10 +17,10 @@ from shared.src.design.taxonomy_skills_response import SkillsExitCode
 
 
 def _make_agent(pack: Path):
-    from governance.agent_governance_orchestrator import SkillsGovernanceAgent
-    from governance.capabilities_skills_locker import SkillsLocker
-    from governance.capabilities_skills_mover import SkillsMover
-    from governance.capabilities_skills_piner import SkillsPiner
+    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.capabilities_skills_locker import SkillsLocker
+    from governance.src.capabilities_skills_mover import SkillsMover
+    from governance.src.capabilities_skills_piner import SkillsPiner
 
     return SkillsGovernanceAgent(
         locker=SkillsLocker(),

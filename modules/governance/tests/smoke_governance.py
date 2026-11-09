@@ -10,7 +10,7 @@ def test_import_governance_module():
 
 def test_import_governance_agent():
     """SM-GOVERNANCE-002: the governance agent can be imported."""
-    from governance.agent_governance_orchestrator import (
+    from governance.src.agent_governance_orchestrator import (
         SkillsGovernanceAgent,
     )
     assert SkillsGovernanceAgent is not None
@@ -18,9 +18,9 @@ def test_import_governance_agent():
 
 def test_import_governance_capabilities():
     """SM-GOVERNANCE-003: the three governance capabilities can be imported."""
-    from governance.capabilities_skills_locker import SkillsLocker
-    from governance.capabilities_skills_mover import SkillsMover
-    from governance.capabilities_skills_piner import SkillsPiner
+    from governance.src.capabilities_skills_locker import SkillsLocker
+    from governance.src.capabilities_skills_mover import SkillsMover
+    from governance.src.capabilities_skills_piner import SkillsPiner
 
     for cap in (SkillsLocker(), SkillsMover(), SkillsPiner()):
         assert cap is not None
@@ -28,7 +28,7 @@ def test_import_governance_capabilities():
 
 def test_agent_constructs_with_none_capabilities():
     """SM-GOVERNANCE-004: the agent constructs with an all-None wiring."""
-    from governance.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
 
     agent = SkillsGovernanceAgent(locker=None, piner=None, mover=None)
     assert agent is not None

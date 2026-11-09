@@ -17,28 +17,27 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from shared.src.common.taxonomy_common_error import (
+    MutationConflictError,
+    SkillsUsageError,
+)
+from shared.src.common.taxonomy_common_vo import (
+    SkillName,
+)
+from shared.src.design.contract_skills_protocol import (
+    ISkillsArchiverProtocol,
+)
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.design.taxonomy_skills_vo import (
+    MutationOutcome,
+    MutationPlan,
+)
+from shared.src.maintenance.utility_lifecycle_support import archive_skill
 from shared.src.maintenance.utility_skills_mutation import (
     archive_root,
     assert_within_root,
     resolve_skill_dir,
 )
-from shared.src.design.contract_skills_protocol import (
-    ISkillsArchiverProtocol,
-)
-from shared.src.common.taxonomy_common_error import (
-    MutationConflictError,
-    SkillsUsageError,
-)
-from shared.src.design.taxonomy_skills_request import SkillsRoot
-from shared.src.common.taxonomy_common_vo import (
-    SkillName,
-)
-from shared.src.design.taxonomy_skills_vo import (
-    MutationOutcome,
-    MutationPlan,
-)
-
-from storage.capabilities_skills_restore import SkillsRestore
 
 __all__ = ["SkillsArchiver"]
 
@@ -46,13 +45,12 @@ __all__ = ["SkillsArchiver"]
 class SkillsArchiver(ISkillsArchiverProtocol):
     """Plans and applies an archive of a skill into ``_archive/``.
 
-    The restore capability is the single source of truth for the move,
-    sidecar state, and path containment.  This facade keeps the legacy
-    ``MutationPlan`` surface for ``sac archive`` intact.
+    Archive state and path containment come from the shared kernel, so
+    the archiver never imports a sibling capability.
     """
 
-    def __init__(self, restore: SkillsRestore | None = None) -> None:
-        self._restore = restore if restore is not None else SkillsRestore()
+    def __init__(self) -> None:
+        pass
 
     # ─── Block 2: Module Contract ─────────────
     def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
@@ -77,12 +75,7 @@ class SkillsArchiver(ISkillsArchiverProtocol):
         )
 
     def apply_archive(self, plan: MutationPlan) -> MutationOutcome:
-        """Execute an archive plan; re-checks containment first.
-
-        Delegates to the restore capability so that ``SKILL.md``
-        remains in place and the ``.usage.json`` sidecar is updated to
-        ``state="archived"`` instead of the legacy rename.
-        """
+        """Execute an archive plan; re-checks containment first."""
         root = plan.root
         if plan.source is None or plan.destination is None:
             raise SkillsUsageError("Archive plan is missing its paths")
@@ -91,7 +84,7 @@ class SkillsArchiver(ISkillsArchiverProtocol):
         assert_within_root(plan.destination, root)
 
         skill_name = plan.source.name
-        self._restore.archive(skill_name, root)
+        archive_skill(skill_name, root)
         return MutationOutcome(message="archived")
 
     # ─── Block 3: Module Helpers ─────────

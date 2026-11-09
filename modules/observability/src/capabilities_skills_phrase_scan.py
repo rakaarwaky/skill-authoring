@@ -11,9 +11,8 @@ import datetime as dt
 import json
 import os
 import re
-import urllib.parse
 from collections import Counter, defaultdict
-from pathlib import Path
+from urllib.parse import unquote
 
 from shared.src.traces.contract_traces_protocol import ISkillsTracesProtocol
 from shared.src.traces.taxonomy_traces_vo import (
@@ -27,25 +26,25 @@ from shared.src.traces.taxonomy_traces_vo import (
 
 __all__ = ["SkillsPhraseScan"]
 
-# Reused across the module (constant definitions live in one place).
-_MIN_PHRASE_LEN = 12
-_MIN_LINE_WORDS = 5
-_MIN_LINE_CHARS = 24
-_EXACT_MIN_SESSIONS = 2
-_STEM_MIN_SESSIONS = 3
-_LINE_MIN_SESSIONS = 3
-_TOP = 60
-
-USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
-SLASH_RE = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")
-SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}$")
-DEFAULT_DROP_PATTERNS = [r"^the user invoked `/feedback`"]
-TURN_CAP = 2000
-
-
+# ─── Block 1: Module Declaration ──────────────
 class SkillsPhraseScan(ISkillsTracesProtocol):
     """Scans sessions and mines repeated phrases."""
 
+    _MIN_PHRASE_LEN = 12
+    _MIN_LINE_WORDS = 5
+    _MIN_LINE_CHARS = 24
+    _EXACT_MIN_SESSIONS = 2
+    _STEM_MIN_SESSIONS = 3
+    _LINE_MIN_SESSIONS = 3
+    _TOP = 60
+
+    USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
+    SLASH_RE = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")
+    SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}$")
+    DEFAULT_DROP_PATTERNS = (r"^the user invoked `/feedback`",)
+    TURN_CAP = 2000
+
+    # ─── Block 2: Module Contract ─────────────
     def scan_sessions(
         self,
         grok_home: GrokHome,
@@ -65,7 +64,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         os.makedirs(os.path.join(run_dir, "sessions"), exist_ok=True)
 
         exclude_cwd = _default_exclude_cwd()
-        drop_patterns = [re.compile(p, re.IGNORECASE) for p in DEFAULT_DROP_PATTERNS]
+        drop_patterns = [re.compile(p, re.IGNORECASE) for p in self.DEFAULT_DROP_PATTERNS]
 
         cutoff = None
         if days > 0:
@@ -104,7 +103,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                         dropped["summary_unreadable"] += 1
                         continue
                     info = summary.get("info") or {}
-                    cwd = info.get("cwd") or urllib.parse.unquote(enc_cwd)
+                    cwd = info.get("cwd") or unquote(enc_cwd)
                     if any(_under(cwd, p) for p in exclude_cwd) or any(
                         s in cwd for s in ("grok-e2e",)
                     ):
@@ -192,10 +191,10 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                     continue
                 for t in rec.get("turns") or []:
                     n = _normalize(t)
-                    if len(n) < _MIN_PHRASE_LEN:
+                    if len(n) < self._MIN_PHRASE_LEN:
                         continue
                     stripped = t.strip()
-                    if SLASH_RE.fullmatch(stripped) or SLASH_ONLY.fullmatch(n):
+                    if self.SLASH_RE.fullmatch(stripped) or self.SLASH_ONLY.fullmatch(n):
                         continue
                     exact[n].append(rid)
                     words = n.split(" ")
@@ -204,19 +203,18 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                     for ln in t.splitlines():
                         ln_n = _normalize(ln)
                         if (
-                            len(ln_n.split(" ")) >= _MIN_LINE_WORDS
-                            and len(ln_n) >= _MIN_LINE_CHARS
+                            len(ln_n.split(" ")) >= self._MIN_LINE_WORDS
+                            and len(ln_n) >= self._MIN_LINE_CHARS
                         ):
                             lines[ln_n].add(rid)
 
         return PhrasesReport(
             exact_prompts=self._top(exact, min_sessions, "phrase"),
-            stems=self._top(stems, _STEM_MIN_SESSIONS, "stem"),
-            repeated_instruction_lines=self._top(lines, _LINE_MIN_SESSIONS, "line"),
+            stems=self._top(stems, self._STEM_MIN_SESSIONS, "stem"),
+            repeated_instruction_lines=self._top(lines, self._LINE_MIN_SESSIONS, "line"),
         )
 
-    # ─── Helpers (module-private, no capability coupling) ──────────
-
+    # ─── Block 3: Module Helpers ─────────
     @staticmethod
     def _top(data: dict, min_count: int, key_name: str) -> tuple[PhraseRow, ...]:
         rows: list[PhraseRow] = []
@@ -233,10 +231,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                     )
                 )
         rows.sort(key=lambda x: (-x.sessions, -x.occurrences, x.phrase))
-        return tuple(rows[:_TOP])
-
-
-# ─── Module-level helpers ──────────────────────────────────────────
+        return tuple(rows[: SkillsPhraseScan._TOP])
 
 
 def _read_json(path: str):
@@ -315,7 +310,7 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
                         dropped_turns += 1
                         continue
                     turns.append(q)
-                    for m in SLASH_RE.findall(q):
+                    for m in SkillsPhraseScan.SLASH_RE.findall(q):
                         slash[m] += 1
             elif t == "assistant":
                 for call in r.get("tool_calls") or []:
@@ -329,9 +324,6 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
                         a = {}
                     if not isinstance(a, dict):
                         a = {}
-                    if name == "use_tool":
-                        tn = a.get("tool_name") or ""
-                        mcp_tools_key = tn.split("__", 1)[0] if "__" in tn else tn
                     elif name == "spawn_subagent":
                         subagents += 1
                     elif name == "workflow":
@@ -365,7 +357,10 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
         dirs[key] += n
 
     capped_turns = [
-        (t[:TURN_CAP] + ("…" if len(t) > TURN_CAP else ""))
+        (
+            t[: SkillsPhraseScan.TURN_CAP]
+            + ("…" if len(t) > SkillsPhraseScan.TURN_CAP else "")
+        )
         for t in turns
     ]
 
@@ -407,7 +402,7 @@ def _human_turns(content) -> list[str]:
         txt = "\n".join(parts)
     else:
         txt = ""
-    found = [m.strip() for m in USER_QUERY_RE.findall(txt)]
+    found = [m.strip() for m in SkillsPhraseScan.USER_QUERY_RE.findall(txt)]
     return [t for t in found if t]
 
 

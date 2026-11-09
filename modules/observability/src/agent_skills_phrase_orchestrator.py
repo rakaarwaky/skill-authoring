@@ -8,27 +8,24 @@ allowed to sequence capabilities. No import of ``skill-traces``.
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from pathlib import Path
 import tempfile
+from collections.abc import Callable
+from typing import cast
 
-from shared.src.traces.contract_traces_aggregate import ISkillsTracesAggregate
-from shared.src.traces.contract_traces_protocol import ISkillsTracesProtocol
 from shared.src.common.taxonomy_common_error import SkillsError
 from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
 )
+from shared.src.traces.contract_traces_aggregate import ISkillsTracesAggregate
+from shared.src.traces.contract_traces_protocol import ISkillsTracesProtocol
 from shared.src.traces.taxonomy_traces_response import (
     SkillsExitCode,
     SkillsResult,
 )
 
-from observability.src.capabilities_skills_phrase_scan import SkillsPhraseScan
-
-__all__ = ["SkillsPhraseAgent", "ISkillsTracesAggregate"]
+__all__ = ["ISkillsTracesAggregate", "SkillsPhraseAgent"]
 
 
 class SkillsPhraseAgent(ISkillsTracesAggregate):
@@ -37,18 +34,18 @@ class SkillsPhraseAgent(ISkillsTracesAggregate):
     def __init__(
         self,
         scan: ISkillsTracesProtocol | None = None,
+        telemetry: ISkillsTracesProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
-        self._scan = scan if scan is not None else SkillsPhraseScan()
+        self._scan = scan
+        self._telemetry = telemetry
         self._default_root = default_root
 
-    # ─── Block 1: helpers ────────────────────────────────────────
-    def _root(self, request: SkillsRequest) -> Path:
+    # ─── Block 1: Module Declaration ────────────────────────────────────────
+    def _root(self, request: SkillsRequest) -> SkillsRoot | None:
         if request.root:
-            return Path(request.root)
-        if self._default_root is not None:
-            return Path(self._default_root)
-        return Path()
+            return request.root
+        return self._default_root
 
     # ─── Block 2: Module Contract ────────────────
     def execute(self, request: SkillsRequest) -> SkillsResult:
@@ -90,9 +87,9 @@ class SkillsPhraseAgent(ISkillsTracesAggregate):
         handler = getattr(self, name, None)
         if not callable(handler):
             raise KeyError(name)
-        return handler
+        return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
 
-    # ─── Block 3: per-op handlers ────────────────────────────────
+    # ─── Block 3: Module Helpers ────────────────────────────────
     def _execute_traces(
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
@@ -112,7 +109,7 @@ class SkillsPhraseAgent(ISkillsTracesAggregate):
     ) -> SkillsResult:
         """PHRASES: mine repeated prompts from session traces."""
         scan = self._scan
-        grok_home = request.flags.get("grok_home", "") or str(Path.home() / ".grok")
+        grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "") or ""
         if not run_dir:
             run_dir = tempfile.mkdtemp(prefix="sac-phrases-")

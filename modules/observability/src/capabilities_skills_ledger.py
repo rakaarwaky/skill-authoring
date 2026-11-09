@@ -4,10 +4,6 @@ Append-only JSONL ledger with content-addressed blob storage.
 """
 
 from __future__ import annotations
-from shared.src.design.contract_skills_protocol import (
-    ISkillsLedgerProtocol,
-)
-
 
 import json
 import logging
@@ -18,6 +14,9 @@ from pathlib import Path
 from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillsUsageError,
+)
+from shared.src.design.contract_skills_protocol import (
+    ISkillsLedgerProtocol,
 )
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (

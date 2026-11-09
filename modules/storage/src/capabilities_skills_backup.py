@@ -5,10 +5,6 @@ Creates content-addressed snapshots of the pack under
 """
 
 from __future__ import annotations
-from shared.src.design.contract_skills_protocol import (
-    ISkillsBackupProtocol,
-)
-
 
 import json
 import logging
@@ -17,6 +13,9 @@ import tarfile
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_error import SkillsRootError
+from shared.src.design.contract_skills_protocol import (
+    ISkillsBackupProtocol,
+)
 from shared.src.design.taxonomy_skills_vo import (
     load_lifecycle_config,
 )
@@ -35,12 +34,11 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["SkillsBackup"]
 
-
 # ─── Block 1: Module Declaration ──────────────
 class SkillsBackup(ISkillsBackupProtocol):
     """Backup capability: snapshot create / prune."""
 
-# ─── Block 2: Module Contract ─────────────
+    # ─── Block 2: Module Contract ─────────────
     def create_snapshot(self, root: Path, *, _prune: bool = True) -> Path:
         skills_root = self._require_root(root)
         backup_root = self._backup_root(skills_root)
@@ -91,8 +89,6 @@ class SkillsBackup(ISkillsBackupProtocol):
             removed.append(snap)
         return removed
 
-    # ─── public root accessors (used by SkillsRollback) ────────
-
     def resolve_root(self, root: Path) -> Path:
         """Validate and return the pack root, raising ``SkillsRootError``."""
         return self._require_root(root)
@@ -101,8 +97,7 @@ class SkillsBackup(ISkillsBackupProtocol):
         """Return (creating if needed) the snapshot directory under *skills_root*."""
         return self._backup_root(skills_root)
 
-    # ─── internals ─────────────────────────────────────────────
-
+    # ─── Block 3: Module Helpers ─────────
     def _require_root(self, root: Path) -> Path:
         skills_root = Path(root)
         if not skills_root.is_dir():
@@ -114,7 +109,6 @@ class SkillsBackup(ISkillsBackupProtocol):
         d.mkdir(parents=True, exist_ok=True)
         return d
 
-# ─── Block 3: Module Helpers ─────────
     def _keep_count(self, skills_root: Path) -> int:
         config = load_lifecycle_config(skills_root)
         val = getattr(config, "backup_keep", DEFAULT_KEEP)

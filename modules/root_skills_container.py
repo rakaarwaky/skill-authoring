@@ -23,15 +23,15 @@ from design.src.agent_design_orchestrator import SkillsDesignAgent
 from design.src.capabilities_skills_adopter import SkillsAdopter
 from design.src.capabilities_skills_runner import SkillsRunner
 from discovery.agent_discovery_orchestrator import SkillsDiscoveryAgent
-from governance.agent_governance_orchestrator import SkillsGovernanceAgent
-from governance.capabilities_skills_locker import SkillsLocker
-from governance.capabilities_skills_piner import SkillsPiner
-from maintenance.agent_maintenance_orchestrator import SkillsMaintenanceAgent
-from maintenance.capabilities_skills_prune import SkillsPrune
-from maintenance.capabilities_skills_purge import SkillsPurge
-from observability.agent_observability_orchestrator import SkillsObservabilityAgent
-from observability.capabilities_skills_ledger import SkillsLedger
-from observability.capabilities_skills_telemetry import SkillsTelemetry
+from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+from governance.src.capabilities_skills_locker import SkillsLocker
+from governance.src.capabilities_skills_piner import SkillsPiner
+from maintenance.src.agent_maintenance_orchestrator import SkillsMaintenanceAgent
+from maintenance.src.capabilities_skills_prune import SkillsPrune
+from maintenance.src.capabilities_skills_purge import SkillsPurge
+from observability.src.agent_observability_orchestrator import SkillsObservabilityAgent
+from observability.src.capabilities_skills_ledger import SkillsLedger
+from observability.src.capabilities_skills_telemetry import SkillsTelemetry
 from observability.src.agent_skills_phrase_orchestrator import SkillsPhraseAgent
 from shared.src.common.taxonomy_common_vo import (
     SkillRecord,
@@ -61,10 +61,10 @@ from shared.src.discovery.taxonomy_discovery_request import (
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
 from shared.src.storage.utility_skill_pack import default_pack_root
-from storage.agent_storage_orchestrator import SkillsStorageAgent
-from storage.capabilities_skills_backup import SkillsBackup
-from storage.capabilities_skills_restore import SkillsRestore
-from storage.capabilities_skills_rollback import SkillsRollback
+from storage.src.agent_storage_orchestrator import SkillsStorageAgent
+from storage.src.capabilities_skills_backup import SkillsBackup
+from storage.src.capabilities_skills_restore import SkillsRestore
+from storage.src.capabilities_skills_rollback import SkillsRollback
 
 __all__ = [
     "SkillsFacade",

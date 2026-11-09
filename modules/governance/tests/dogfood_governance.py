@@ -15,10 +15,10 @@ from shared.src.design.taxonomy_skills_request import (
 
 def test_dogfood_agent_builds_requests_the_surface_way():
     """DOG-GOVERNANCE-001: the agent consumes a typed request end to end."""
-    from governance.agent_governance_orchestrator import SkillsGovernanceAgent
-    from governance.capabilities_skills_locker import SkillsLocker
-    from governance.capabilities_skills_mover import SkillsMover
-    from governance.capabilities_skills_piner import SkillsPiner
+    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.capabilities_skills_locker import SkillsLocker
+    from governance.src.capabilities_skills_mover import SkillsMover
+    from governance.src.capabilities_skills_piner import SkillsPiner
 
     agent = SkillsGovernanceAgent(
         locker=SkillsLocker(),
