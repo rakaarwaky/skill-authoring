@@ -137,6 +137,48 @@ The maintenance feature sits in the agent layer and is called by the surface and
 | Direct capability call rate from outside the agent | 0 % |
 | Aggregate contract test pass rate | 100 % |
 
+### FR-maintenance-004: Maintenance archive/restore contract
+**Description:** The maintenance aggregate contract shall expose archive and restore entry points so skills can be moved between the live pack and ``_archive/``. The archiver/restorer capabilities implement the corresponding protocols; cross-capability data shall flow through shared kernel protocols or shared kernel utilities.
+
+#### Business Logic
+
+- The archive capability shall implement the archiver protocol: ``archive``, moving a live skill into ``_archive/``.
+- The restore capability shall implement the restorer protocol: ``restore``, bringing an archived skill back to its live category.
+- The aggregate contract shall declare ``archive`` and ``restore`` as abstract methods alongside ``execute``.
+- No capability module shall import a sibling capability module directly; data crossing capability boundaries shall go through shared kernel protocols or shared kernel utilities.
+
+#### Edge Cases
+
+- Archiving a skill that is already archived shall return a response with ``archived=False`` and reason ``already-archived``, not an exception.
+- Restoring a skill that is not archived shall return a response with ``restored=False`` and reason ``not-archived``.
+- Archiving or restoring a skill with no live directory shall raise ``SkillNotFoundError``.
+- A capability module that imports a sibling capability module shall be flagged by the architecture scanner.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | Skill name and root as defined by each protocol. Source: agent. |
+| **Output** | Archive/restore result dict as defined by each protocol. Destination: agent. |
+| **Protocol** | Archiver protocol, Restorer protocol |
+| **Method** | ``archive``, ``restore`` |
+| **Event** | None |
+| **Error** | ``SkillNotFoundError``, ``MutationConflictError``; agent maps them to response exit codes |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| An archive capability is called with a live skill name | The skill is moved into ``_archive/`` | Result with ``archived=True``; live dir no longer present |
+| A restore capability is called with an archived skill name | The skill is moved back to its live category | Result with ``restored=True``; ``_archive/`` dir no longer present |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Archive/restore round-trip success rate | 100 % |
+| Sibling-capability import count | 0 % |
+
 ## Public Interface
 
 | Aspect     | Detail                         |
