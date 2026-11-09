@@ -33,7 +33,7 @@ from shared.src.maintenance.utility_lifecycle_support import (
     find_skill_dir,
 )
 from shared.src.maintenance.utility_skills_mutation import atomic_write_json
-from shared.src.storage.utility_skill_pack import iter_skill_mds
+from shared.src.common.taxonomy_common_utility import iter_skill_mds
 
 __all__ = ["SkillsRunner"]
 

@@ -21,7 +21,6 @@ from shared.src.common.taxonomy_common_utility import default_pack_root
 __all__ = [
     "default_pack_root",
     "is_valid_skill_name",
-    "iter_skill_mds",
     "parse_skill_frontmatter",
     "read_skill_md",
     "sanitize_skill_name",
@@ -48,28 +47,6 @@ def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:
         if desc:
             description = desc.group(1).strip().strip("\"'")
     return (name, description)
-
-
-def iter_skill_mds(pack_root: Path) -> list[Path]:
-    """Return each ``SKILL.md`` in the pack as a sorted list, by path.
-
-    Category discovery walks the skills root directly: symlinked, hidden,
-    and ignored category directories are skipped, so the read walker and
-    the authoring walker see the same skill pack even though the glob would
-    follow a symlinked category into a submodule.
-    """
-    if not pack_root.is_dir():
-        return []
-    found: list[Path] = []
-    for category in sorted(pack_root.iterdir()):
-        if not category.is_dir() or category.is_symlink():
-            continue
-        if category.name.startswith("."):
-            continue
-        if category.name in IGNORED_CATEGORY_DIRS:
-            continue
-        found.extend(sorted(category.glob("*/SKILL.md")))
-    return sorted(found)
 
 
 def read_skill_md(skill_md: Path) -> str | None:
