@@ -22,27 +22,30 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsRoot,
-)
 from shared.src.common.taxonomy_common_vo import (
     BM25FHit,
     CatalogCheckResult,
     CatalogReport,
     CategoryName,
     DiscoveryResult,
+    EntryId,
     SkillContent,
     SkillName,
     SkillRecord,
     SkillsJsonPayload,
 )
+from shared.src.design.taxonomy_skills_request import (
+    SkillQuery,
+    SkillsRoot,
+)
 from shared.src.design.taxonomy_skills_vo import (
+    LedgerEntry,
     LintReport,
     MutationOutcome,
     MutationPlan,
     NewCategoryPlan,
     SkillCreatePlan,
+    TelemetryRow,
 )
 
 
@@ -234,33 +237,33 @@ class ISkillsPinerProtocol(ABC):
     """Piner capability: pin/unpin verbs."""
 
     @abstractmethod
-    def pin(self, skill: str, root: SkillsRoot | None = None) -> dict:
+    def pin(self, skill: SkillName, root: SkillsRoot | None = None) -> MutationOutcome:
         ...
 
     @abstractmethod
-    def unpin(self, skill: str, root: SkillsRoot | None = None) -> dict:
+    def unpin(self, skill: SkillName, root: SkillsRoot | None = None) -> MutationOutcome:
         ...
 
 class ISkillsLockerProtocol(ABC):
     """Locker capability: lock/unlock verbs."""
 
     @abstractmethod
-    def lock(self, skill: str, root: SkillsRoot | None = None) -> dict:
+    def lock(self, skill: SkillName, root: SkillsRoot | None = None) -> MutationOutcome:
         ...
 
     @abstractmethod
-    def unlock(self, skill: str, root: SkillsRoot | None = None) -> dict:
+    def unlock(self, skill: SkillName, root: SkillsRoot | None = None) -> MutationOutcome:
         ...
 
 class ISkillsRestoreProtocol(ABC):
     """Restore capability: archive / restore verbs."""
 
     @abstractmethod
-    def archive(self, skill: str, root: SkillsRoot | None = None) -> dict:
+    def archive(self, skill: SkillName, root: SkillsRoot | None = None) -> MutationOutcome:
         ...
 
     @abstractmethod
-    def restore(self, skill: str, root: SkillsRoot | None = None) -> dict:
+    def restore(self, skill: SkillName, root: SkillsRoot | None = None) -> MutationOutcome:
         ...
 
 class ISkillsPruneProtocol(ABC):
@@ -272,7 +275,7 @@ class ISkillsPruneProtocol(ABC):
         root: SkillsRoot | None = None,
         days: int | None = None,
         dry_run: bool = False,
-    ) -> dict:
+    ) -> MutationOutcome:
         ...
 
 class ISkillsPurgeProtocol(ABC):
@@ -281,17 +284,17 @@ class ISkillsPurgeProtocol(ABC):
     @abstractmethod
     def purge(
         self,
-        skill: str | None = None,
+        skill: SkillName | None = None,
         root: SkillsRoot | None = None,
         dry_run: bool = False,
-    ) -> dict:
+    ) -> MutationOutcome:
         ...
 
 class ISkillsAdopterProtocol(ABC):
     """Adopter capability: adopt verb."""
 
     @abstractmethod
-    def adopt(self, skill: str, root: SkillsRoot | None = None) -> dict:
+    def adopt(self, skill: SkillName, root: SkillsRoot | None = None) -> MutationOutcome:
         ...
 
 class ISkillsBackupProtocol(ABC):
@@ -321,14 +324,14 @@ class ISkillsRollbackProtocol(ABC):
     """Rollback capability: restore pack from snapshot."""
 
     @abstractmethod
-    def rollback(self, root: SkillsRoot | Path, id_: str | None = None) -> dict:
+    def rollback(self, root: SkillsRoot | Path, id_: EntryId | None = None) -> MutationOutcome:
         ...
 
 class ISkillsLedgerProtocol(ABC):
     """Ledger capability: append / read / compact / rollback."""
 
     @abstractmethod
-    def ledger_append(self, root: SkillsRoot | Path, entry: dict) -> dict:
+    def ledger_append(self, root: SkillsRoot | Path, entry: LedgerEntry) -> LedgerEntry:
         ...
 
     @abstractmethod
@@ -336,7 +339,7 @@ class ISkillsLedgerProtocol(ABC):
         self,
         root: SkillsRoot | Path,
         limit: int | None = None,
-    ) -> tuple[dict, ...]:
+    ) -> tuple[LedgerEntry, ...]:
         ...
 
     @abstractmethod
@@ -345,45 +348,45 @@ class ISkillsLedgerProtocol(ABC):
         root: SkillsRoot | Path,
         older_than_days: int | None = None,
         keep_recent: int = 0,
-    ) -> dict:
+    ) -> LedgerEntry:
         ...
 
     @abstractmethod
-    def rollback_entry(self, root: SkillsRoot | Path, entry_id: str) -> dict:
+    def rollback_entry(self, root: SkillsRoot | Path, entry_id: EntryId) -> MutationOutcome:
         ...
 
 class ISkillsTelemetryProtocol(ABC):
     """Telemetry capability: usage tracking and status reports."""
 
     @abstractmethod
-    def seed_record_if_missing(self, skill: str, root: SkillsRoot) -> None:
+    def seed_record_if_missing(self, skill: SkillName, root: SkillsRoot) -> None:
         ...
 
     @abstractmethod
-    def reanchor_clock(self, skill: str, root: SkillsRoot) -> None:
+    def reanchor_clock(self, skill: SkillName, root: SkillsRoot) -> None:
         ...
 
     @abstractmethod
-    def curated_report(self, root: SkillsRoot) -> list[dict]:
+    def curated_report(self, root: SkillsRoot) -> tuple[TelemetryRow, ...]:
         ...
 
     @abstractmethod
-    def view(self, skill: str, root: SkillsRoot) -> None:
+    def view(self, skill: SkillName, root: SkillsRoot) -> None:
         ...
 
 class ISkillsRunnerProtocol(ABC):
     """Runner capability: run/pause/resume lifecycle verbs."""
 
     @abstractmethod
-    def apply_automatic_transitions(self, root: SkillsRoot | None = None) -> dict:
+    def apply_automatic_transitions(self, root: SkillsRoot | None = None) -> MutationOutcome:
         ...
 
     @abstractmethod
-    def pause(self, root: SkillsRoot) -> dict:
+    def pause(self, root: SkillsRoot) -> MutationOutcome:
         ...
 
     @abstractmethod
-    def resume(self, root: SkillsRoot) -> dict:
+    def resume(self, root: SkillsRoot) -> MutationOutcome:
         ...
 
 __all__ = [

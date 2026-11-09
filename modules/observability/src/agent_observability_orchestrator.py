@@ -28,7 +28,7 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsResult,
 )
 
-from observability.contract_observability_aggregate import ISkillsObservabilityAggregate
+from shared.src.observability.contract_observability_aggregate import ISkillsObservabilityAggregate
 
 __all__ = [
     "ISkillsObservabilityAggregate",

@@ -10,13 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from shared.src.common.taxonomy_common_vo import SkillName  # noqa: F401
-
-
-__all__ = [
-    "CategorySummary",
-    "SkillEntry",
-]
+from shared.src.common.taxonomy_common_vo import SkillName
 
 
 @dataclass(frozen=True)
@@ -28,7 +22,7 @@ class SkillEntry:
     ``category/skill`` identity string used in every report.
     """
 
-    skill: str
+    skill: SkillName
     frontmatter_name: str
     category: str
     description: str
@@ -44,3 +38,9 @@ class CategorySummary:
     description: str
     description_file_exists: bool
     skill_count: int
+
+
+__all__ = [
+    "CategorySummary",
+    "SkillEntry",
+]

@@ -13,9 +13,9 @@ from __future__ import annotations
 import posixpath
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Final, NewType
+from typing import NewType
 
 from shared.src.common.taxonomy_common_constant import BM25F_SCORE_SCALE
 
@@ -29,6 +29,9 @@ SkillDescription = NewType("SkillDescription", str)
 
 ErrorMessage = NewType("ErrorMessage", str)
 """A formatted error message for skill-domain exceptions."""
+
+EntryId = NewType("EntryId", str)
+"""Opaque ledger entry identifier."""
 
 SkillsJsonPayload = NewType("SkillsJsonPayload", Mapping[str, object])
 """The pure-data JSON list of global skills (``SkillsLister.list_skills_json``).
@@ -57,7 +60,6 @@ CategoryName = NewType("CategoryName", str)
 
 
 # ─── Discovery / catalog value objects ─────────────────────────────────
-
 
 def map_to_legacy_score(score: float) -> int:
     """Map a float BM25F score to the legacy int score projection.
@@ -162,6 +164,41 @@ class DiscoveryResult:
     warning_detail: str = ""
 
 
+# ─── Mutation value objects ───────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class MutationStep:
+    """One planned file operation."""
+
+    action: str
+    description: str
+    source: Path | None = None
+    destination: Path | None = None
+    value: str = ""
+
+
+@dataclass(frozen=True)
+class MutationPlan:
+    """A pure, pre-apply description of a mutation (never writes)."""
+
+    kind: str
+    source: Path | None = None
+    destination: Path | None = None
+    steps: tuple[MutationStep, ...] = ()
+    lines: tuple[str, ...] = ()
+    already_in_category: bool = False
+    root: Path | None = None
+
+
+@dataclass(frozen=True)
+class MutationOutcome:
+    """The post-apply result: the step lines the mutation performed."""
+
+    applied: tuple[str, ...] = ()
+    message: str = ""
+
+
 __all__ = [
     "BM25FHit",
     "CatalogCheckResult",
@@ -169,7 +206,11 @@ __all__ = [
     "CategoryName",
     "DiscoveryMatch",
     "DiscoveryResult",
+    "EntryId",
     "ErrorMessage",
+    "MutationOutcome",
+    "MutationPlan",
+    "MutationStep",
     "SkillContent",
     "SkillDescription",
     "SkillName",
@@ -179,3 +220,25 @@ __all__ = [
     "map_to_legacy_score",
     "sanitize_skill_name",
 ]
+
+_layer_symbols = {
+    "BM25FHit": BM25FHit,
+    "CatalogCheckResult": CatalogCheckResult,
+    "CatalogReport": CatalogReport,
+    "CategoryName": CategoryName,
+    "DiscoveryMatch": DiscoveryMatch,
+    "DiscoveryResult": DiscoveryResult,
+    "ErrorMessage": ErrorMessage,
+    "EntryId": EntryId,
+    "MutationOutcome": MutationOutcome,
+    "MutationPlan": MutationPlan,
+    "MutationStep": MutationStep,
+    "SkillContent": SkillContent,
+    "SkillDescription": SkillDescription,
+    "SkillName": SkillName,
+    "SkillRecord": SkillRecord,
+    "SkillsJsonPayload": SkillsJsonPayload,
+    "_Row": _Row,
+    "map_to_legacy_score": map_to_legacy_score,
+    "sanitize_skill_name": sanitize_skill_name,
+}

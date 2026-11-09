@@ -27,7 +27,7 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsResult,
 )
 
-from maintenance.contract_maintenance_aggregate import ISkillsMaintenanceAggregate
+from shared.src.maintenance.contract_maintenance_aggregate import ISkillsMaintenanceAggregate
 
 __all__ = [
     "ISkillsMaintenanceAggregate",

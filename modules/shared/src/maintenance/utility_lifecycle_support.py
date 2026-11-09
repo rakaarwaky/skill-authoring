@@ -4,7 +4,7 @@ Holds the pack-file layout constants, the sidecar record shape, the
 cross-platform lock primitives, the tarball-safety filter, and the
 record/transition helpers used by the focused lifecycle capability
 modules. The modules import from here; this module imports only shared
-utilities and taxonomy, never a capability.
+utilities and taxonomy, never a sibling domain.
 """
 
 from __future__ import annotations
@@ -18,25 +18,23 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
-from typing import Any
+from typing import Any, NewType
 
-from shared.src.storage.utility_skill_pack import iter_skill_mds
-from shared.src.maintenance.utility_skills_mutation import (
-    archive_root,
-    assert_within_root,
-    atomic_write_json,
-)
-from shared.src.design.taxonomy_skills_constant import (
-    ARCHIVE_DIRNAME,
-    LIFECYCLE_STATES,
-)
+try:
+    import fcntl as _fcntl
+except ImportError:  # pragma: no cover - POSIX only
+    _fcntl = None
+try:
+    import msvcrt as _msvcrt
+except ImportError:  # pragma: no cover - Windows only
+    _msvcrt = None
+
+from shared.src.common.taxonomy_common_constant import ARCHIVE_DIRNAME
 from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,
 )
-from shared.src.design.taxonomy_skills_request import SkillsRoot
-import shared.src.discovery.utility_discovery_core as _core
 
 __all__ = [
     "ACTIVE",
@@ -54,7 +52,10 @@ __all__ = [
     "MANIFEST_NAME",
     "STALE",
     "TARBALL_NAME",
+    "archive_root",
     "archive_skill",
+    "assert_within_root",
+    "atomic_write_json",
     "find_skill_dir",
     "manifest_sha256",
     "now_iso",
@@ -64,6 +65,10 @@ __all__ = [
     "tar_data_filter",
     "write_record",
 ]
+
+# ── Lifecycle constants (local to maintenance, not shared with siblings) ─
+
+LIFECYCLE_STATES: tuple[str, str, str] = ("active", "stale", "archived")
 
 ACTIVE = LIFECYCLE_STATES[0]
 STALE = LIFECYCLE_STATES[1]
@@ -112,6 +117,10 @@ EXCLUDED_PATHS: frozenset[str] = frozenset(
 )
 _CACHE_MARKERS: frozenset[str] = frozenset({"__pycache__"})
 
+# SkillsRoot is a maintenance-local NewType over Path; it is not imported
+# from a sibling domain.
+SkillsRoot = NewType("SkillsRoot", Path)
+
 
 def _now_iso() -> str:
     return datetime.now(UTC).isoformat()
@@ -141,6 +150,7 @@ def entry_ts(entry: dict) -> str:
     value = entry.get("ts")
     return value if isinstance(value, str) and value else ""
 
+
 def _parse_ts(ts: str) -> float | None:
     if not ts:
         return None
@@ -148,6 +158,7 @@ def _parse_ts(ts: str) -> float | None:
         return datetime.fromisoformat(ts).timestamp()
     except ValueError:
         return None
+
 
 def _is_newer_than(entry: dict, days: int) -> bool:
     ts = entry_ts(entry)
@@ -178,11 +189,12 @@ def _blob_dir(root: Path | SkillsRoot) -> Path:
 
 
 def _ledger_file(root: Path | SkillsRoot | None) -> Path:
-    return Path(root) / LEDGER_FILENAME  # type: ignore[operator]
+    return Path(root) / LEDGER_FILENAME
 
 
 def _is_cache_dir(name: str) -> bool:
     return name == "__pycache__" or "cache" in name.lower()
+
 
 def _is_excluded(rel: str) -> bool:
     parts = Path(rel).parts
@@ -232,6 +244,19 @@ def _iter_pack_files(root: Path) -> list[tuple[str, Path]]:
     return rows
 
 
+def _cross_process_lock(handle: Any) -> None:
+    """Take an exclusive, blocking cross-process lock on *handle*.
+
+    Inlined from ``utility_discovery_core`` so this module does not import
+    from the discovery sibling domain (AES201).
+    """
+    if _fcntl is not None:
+        _fcntl.flock(handle.fileno(), _fcntl.LOCK_EX)
+    elif _msvcrt is not None:
+        handle.flush()
+        _msvcrt.locking(handle.fileno(), _msvcrt.LK_LOCK, (1 << 31) - 1)
+
+
 def _assert_member_safe(member: tarfile.TarInfo, target_root: Path) -> None:
     if os.path.isabs(member.name):
         raise SkillsUsageError(f"unsafe tarball member (absolute path): {member.name}")
@@ -242,16 +267,22 @@ def _assert_member_safe(member: tarfile.TarInfo, target_root: Path) -> None:
     try:
         target.resolve().relative_to(target_root.resolve())
     except ValueError as exc:
-        raise SkillsUsageError(f"unsafe tarball member escapes the pack root: {member.name}") from exc
+        raise SkillsUsageError(
+            f"unsafe tarball member escapes the pack root: {member.name}"
+        ) from exc
     if member.issym() or member.islnk():
         link_target = member.linkname
-        if os.path.isabs(link_target) or ".." in Path(link_target.lstrip("/")).parts:
+        if os.path.isabs(link_target) or ".." in Path(
+            link_target.lstrip("/")
+        ).parts:
             raise SkillsUsageError(f"unsafe tarball link target: {link_target}")
         link_path = target / link_target
         try:
             link_path.resolve().relative_to(target_root.resolve())
         except ValueError as exc:
-            raise SkillsUsageError(f"unsafe tarball link target: {link_target}") from exc
+            raise SkillsUsageError(
+                f"unsafe tarball link target: {link_target}"
+            ) from exc
 
 
 def tar_data_filter(member: tarfile.TarInfo, dest_path: str) -> tarfile.TarInfo:
@@ -301,21 +332,18 @@ def _normalize(raw: dict) -> dict:
 def _lock_path(usage_path: Path) -> Path:
     return usage_path.parent / ".usage.json.lock"
 
+
 def _lock_file(handle: Any) -> None:
-    _core.cross_process_lock(handle)
+    _cross_process_lock(handle)
+
 
 def _unlock_file(handle: Any) -> None:
-    try:
-        import fcntl as _fcntl
-
+    if _fcntl is not None:
         _fcntl.flock(handle.fileno(), _fcntl.LOCK_UN)
-    except ImportError:
-        try:
-            import msvcrt as _msvcrt
+    elif _msvcrt is not None:
+        _msvcrt.locking(handle.fileno(), _msvcrt.LK_UNLCK, (1 << 31) - 1)
 
-            _msvcrt.locking(handle.fileno(), _msvcrt.LK_UNLCK, (1 << 31) - 1)
-        except ImportError:
-            pass
+
 def _with_lock(path: Path, fn: Any) -> None:
     try:
         handle = _lock_path(path).open("a+", encoding="utf-8")
@@ -353,6 +381,50 @@ def _cron_referenced(pack_root: Path, skill_name: str) -> bool:
     return False
 
 
+# ─── Archive root / containment / atomic write (local to maintenance) ───
+
+
+def archive_root(skills_root: Path) -> Path:
+    """The archive tree for a skills root."""
+    return skills_root / ARCHIVE_DIRNAME
+
+
+def assert_within_root(path: Path, root: Path) -> None:
+    """Fail closed when a computed destination escapes the skills root."""
+    try:
+        contained = path.resolve().is_relative_to(root.resolve())
+    except OSError:
+        contained = False
+    if not contained:
+        raise SkillsUsageError(f"Refusing to write outside the skills root: {path}")
+
+
+def atomic_write_json(path: Path, payload: object) -> None:
+    """Atomically write ``payload`` as JSON to ``path`` (temp + os.replace).
+
+    Cross-process lock on POSIX via ``fcntl.flock`` and on Windows via
+    ``msvcrt.locking`` so concurrent writers never interleave or tear
+    the file. Fails closed: I/O or lock failures raise ``OSError``
+    rather than silently corrupting a sidecar.
+    """
+    if path.parent.is_dir():
+        tmp = path.with_name(path.name + ".tmp")
+        try:
+            with tmp.open("w", encoding="utf-8") as handle:
+                _cross_process_lock(handle)
+                json.dump(payload, handle, ensure_ascii=False)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(tmp, path)
+        finally:
+            try:
+                tmp.unlink(missing_ok=True)
+            except OSError:
+                pass
+    else:
+        raise OSError(f"Cannot write JSON outside a directory: {path.parent}")
+
+
 # ─── Record / transition helpers ────────────────────────────────────
 
 
@@ -376,10 +448,12 @@ def read_record(skill_dir: Path) -> dict:
 def write_record(skill_dir: Path, record: dict) -> None:
     atomic_write_json(_usage_path(skill_dir), record)
 
+
 def set_field(skill_dir: Path, field: str, value: object) -> None:
     record = read_record(skill_dir)
     record[field] = value
     write_record(skill_dir, record)
+
 
 def set_state(skill_dir: Path, state: str, archived_at: str | None = None) -> None:
     record = read_record(skill_dir)
@@ -387,6 +461,8 @@ def set_state(skill_dir: Path, state: str, archived_at: str | None = None) -> No
     if archived_at is not None:
         record["archived_at"] = archived_at
     write_record(skill_dir, record)
+
+
 def archive_skill(skill: str, pack_root: Path) -> dict:
     skill_dir = find_skill_dir(skill, pack_root, in_archive=False)
     if skill_dir is None:

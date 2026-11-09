@@ -30,7 +30,7 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsResult,
 )
 
-from storage.contract_storage_aggregate import ISkillsStorageAggregate
+from shared.src.storage.contract_storage_aggregate import ISkillsStorageAggregate
 
 __all__ = [
     "ISkillsStorageAggregate",

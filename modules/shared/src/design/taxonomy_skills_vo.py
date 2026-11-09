@@ -21,9 +21,7 @@ defaults. No imports from capabilities, agent, root, or surface layers.
 
 from __future__ import annotations
 
-import json
 import logging
-import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -403,9 +401,9 @@ __all__ = [
     "RULE_IDS",
     "IssueType",
     "LedgerEntry",
+    "Level",
     "LifecycleConfig",
     "LintReport",
-    "Level",
     "MutationOutcome",
     "MutationPlan",
     "MutationStep",

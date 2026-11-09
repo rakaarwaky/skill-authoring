@@ -21,17 +21,6 @@ from __future__ import annotations
 
 from typing import Final
 
-from shared.src.common.taxonomy_common_constant import (
-    BM25F_SCORE_SCALE,
-    CATALOG_FILENAME,
-    CATEGORY_DESCRIPTION_FILENAME,
-    DRIFT_WARNING,
-    IGNORED_CATEGORY_DIRS,
-    NAME_MAX,
-    NAME_MIN,
-    NAME_RE,
-)
-
 # Originally ``librarian.py`` (retired); now this module is the SSOT.
 MAX_DESCRIPTION_LEN: Final = 1024
 
@@ -125,17 +114,9 @@ LIFECYCLE_STATES: Final = ("active", "stale", "archived")
 __all__ = [
     "ARCHIVE_DIRNAME",
     "ASSETS_MARKER_FILENAME",
-    "BM25F_SCORE_SCALE",
-    "CATALOG_FILENAME",
     "CITATIONS",
-    "CATEGORY_DESCRIPTION_FILENAME",
-    "DRIFT_WARNING",
-    "IGNORED_CATEGORY_DIRS",
     "LIFECYCLE_STATES",
     "MAX_DESCRIPTION_LEN",
-    "NAME_MAX",
-    "NAME_MIN",
-    "NAME_RE",
     "PACK_MARKER_FILENAME",
     "SUMMARIES",
 ]

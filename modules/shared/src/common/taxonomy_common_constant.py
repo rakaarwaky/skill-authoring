@@ -15,8 +15,7 @@ from typing import Final
 
 # ─── Naming budget ─────────────────────────────────────────────────────
 
-#: Naming budget. ``is_valid_skill_name`` in
-#: ``taxonomy_skills_vo.py`` consumes these.
+#: Naming budget. ``is_valid_skill_name`` consumes these.
 NAME_MIN: Final = 2
 NAME_MAX: Final = 64
 NAME_RE: Final = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
@@ -30,6 +29,12 @@ CATEGORY_DESCRIPTION_FILENAME: Final = "DESCRIPTION.md"
 IGNORED_CATEGORY_DIRS: Final = frozenset(
     {".git", ".hg", ".svn", "__pycache__", "_archive"}
 )
+
+# ─── Archive ───────────────────────────────────────────────────────────
+
+#: Archive directory the ``archive`` mutation moves skills into; the
+#: walker skips it (it is in ``IGNORED_CATEGORY_DIRS``).
+ARCHIVE_DIRNAME: Final = "_archive"
 
 # ─── Discovery / catalog ─────────────────────────────────────────────
 
@@ -48,7 +53,17 @@ DRIFT_WARNING: Final = (
 #: Score scale factor: float BM25F score * scale → int legacy projection.
 BM25F_SCORE_SCALE: Final = 100
 
+# ─── DM markers ────────────────────────────────────────────────────────
+
+#: The DM2 asset-container marker file.
+ASSETS_MARKER_FILENAME: Final = "ASSETS.md"
+
+#: The DM1 nested-pack marker file.
+PACK_MARKER_FILENAME: Final = "pack.toml"
+
 __all__ = [
+    "ARCHIVE_DIRNAME",
+    "ASSETS_MARKER_FILENAME",
     "BM25F_SCORE_SCALE",
     "CATALOG_FILENAME",
     "CATEGORY_DESCRIPTION_FILENAME",
@@ -57,4 +72,5 @@ __all__ = [
     "NAME_MAX",
     "NAME_MIN",
     "NAME_RE",
+    "PACK_MARKER_FILENAME",
 ]

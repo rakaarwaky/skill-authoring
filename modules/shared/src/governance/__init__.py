@@ -6,8 +6,9 @@ its typed subclasses carrying the legacy message text and exit codes.
 from shared.src.governance.contract_governance_aggregate import (
     ISkillsGovernanceAggregate,
 )
-from shared.src.common.taxonomy_common_error import (
+from shared.src.governance.taxonomy_skills_error import (
     CategoryNameError,
+    GovernanceError,
     MutationConflictError,
     SkillNotFoundError,
     SkillsError,
@@ -17,6 +18,7 @@ from shared.src.common.taxonomy_common_error import (
 
 __all__ = [
     "CategoryNameError",
+    "GovernanceError",
     "ISkillsGovernanceAggregate",
     "MutationConflictError",
     "SkillNotFoundError",

@@ -1,0 +1,133 @@
+"""Shared-kernel cross-module symbols (AES common layer).
+
+Single barrel for all types consumed by more than one module domain
+(discovery, design, storage, maintenance, governance, observability).
+Modules import these from here rather than reaching into a sibling
+domain's taxonomy module — this is the anti-coupling seam.
+
+Everything here is pure data / types: no I/O, no imports from
+utility, capabilities, agent, root, or surface layers.
+"""
+
+from shared.src.common.taxonomy_common_constant import (
+    ARCHIVE_DIRNAME,
+    ASSETS_MARKER_FILENAME,
+    BM25F_SCORE_SCALE,
+    CATALOG_FILENAME,
+    CATEGORY_DESCRIPTION_FILENAME,
+    DRIFT_WARNING,
+    IGNORED_CATEGORY_DIRS,
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
+    PACK_MARKER_FILENAME,
+)
+from shared.src.common.taxonomy_common_entity import (
+    CategorySummary,
+    SkillEntry,
+)
+from shared.src.common.taxonomy_common_error import (
+    CategoryNameError,
+    MutationConflictError,
+    SkillNotFoundError,
+    SkillsError,
+    SkillsRootError,
+    SkillsUsageError,
+)
+from shared.src.common.taxonomy_common_vo import (
+    BM25FHit,
+    CatalogCheckResult,
+    CatalogReport,
+    CategoryName,
+    DiscoveryMatch,
+    DiscoveryResult,
+    ErrorMessage,
+    MutationOutcome,
+    MutationPlan,
+    MutationStep,
+    SkillContent,
+    SkillDescription,
+    SkillName,
+    SkillRecord,
+    SkillsJsonPayload,
+    map_to_legacy_score,
+    sanitize_skill_name,
+)
+
+__all__ = [
+    "ARCHIVE_DIRNAME",
+    "ASSETS_MARKER_FILENAME",
+    "BM25F_SCORE_SCALE",
+    "CATALOG_FILENAME",
+    "CATEGORY_DESCRIPTION_FILENAME",
+    "DRIFT_WARNING",
+    "IGNORED_CATEGORY_DIRS",
+    "NAME_MAX",
+    "NAME_MIN",
+    "NAME_RE",
+    "PACK_MARKER_FILENAME",
+    "BM25FHit",
+    "CatalogCheckResult",
+    "CatalogReport",
+    "CategoryName",
+    "CategoryNameError",
+    "CategorySummary",
+    "DiscoveryMatch",
+    "DiscoveryResult",
+    "ErrorMessage",
+    "MutationConflictError",
+    "MutationOutcome",
+    "MutationPlan",
+    "MutationStep",
+    "SkillContent",
+    "SkillDescription",
+    "SkillEntry",
+    "SkillName",
+    "SkillNotFoundError",
+    "SkillRecord",
+    "SkillsError",
+    "SkillsJsonPayload",
+    "SkillsRootError",
+    "SkillsUsageError",
+    "map_to_legacy_score",
+    "sanitize_skill_name",
+]
+
+_layer_symbols = {
+    "ARCHIVE_DIRNAME": ARCHIVE_DIRNAME,
+    "ASSETS_MARKER_FILENAME": ASSETS_MARKER_FILENAME,
+    "BM25FHit": BM25FHit,
+    "BM25F_SCORE_SCALE": BM25F_SCORE_SCALE,
+    "CATALOG_FILENAME": CATALOG_FILENAME,
+    "CATEGORY_DESCRIPTION_FILENAME": CATEGORY_DESCRIPTION_FILENAME,
+    "CatalogCheckResult": CatalogCheckResult,
+    "CatalogReport": CatalogReport,
+    "CategoryName": CategoryName,
+    "CategoryNameError": CategoryNameError,
+    "CategorySummary": CategorySummary,
+    "DiscoveryMatch": DiscoveryMatch,
+    "DiscoveryResult": DiscoveryResult,
+    "DRIFT_WARNING": DRIFT_WARNING,
+    "ErrorMessage": ErrorMessage,
+    "IGNORED_CATEGORY_DIRS": IGNORED_CATEGORY_DIRS,
+    "MutationConflictError": MutationConflictError,
+    "MutationOutcome": MutationOutcome,
+    "MutationPlan": MutationPlan,
+    "MutationStep": MutationStep,
+    "NAME_MAX": NAME_MAX,
+    "NAME_MIN": NAME_MIN,
+    "NAME_RE": NAME_RE,
+    "PACK_MARKER_FILENAME": PACK_MARKER_FILENAME,
+    "SkillContent": SkillContent,
+    "SkillDescription": SkillDescription,
+    "SkillEntry": SkillEntry,
+    "SkillName": SkillName,
+    "SkillNotFoundError": SkillNotFoundError,
+    "SkillRecord": SkillRecord,
+    "SkillsError": SkillsError,
+    "SkillsJsonPayload": SkillsJsonPayload,
+    "SkillsRootError": SkillsRootError,
+    "SkillsUsageError": SkillsUsageError,
+    "map_to_legacy_score": map_to_legacy_score,
+    "sanitize_skill_name": sanitize_skill_name,
+}

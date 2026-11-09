@@ -6,63 +6,279 @@ and the weed / repair report generators. These were split out of the
 retired ``capabilities_skills_mutator`` so each mutation capability can
 depend on the shared kernel without a sibling import.
 
-The skill-tree walkers and parsers this file needs live in
-``utility_discovery_core`` -- the single documented AES201 exception.
-AES201 forbids utility files importing one another; this module imports
-from the core module (not from a sibling utility) so the dependency
-graph stays acyclic.
+The skill-tree walkers and parsers this file needs are inlined here
+(AES201: utility files never import one another). All domain types come
+from ``shared.src.common`` — no sibling domain imports.
 """
 from __future__ import annotations
 
 import json
 import os
+import posixpath
+import re
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_constant import (
+    ARCHIVE_DIRNAME,
+    ASSETS_MARKER_FILENAME,
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
     NAME_MAX,
     NAME_MIN,
     NAME_RE,
 )
-from shared.src.design.taxonomy_skills_constant import (
-    ARCHIVE_DIRNAME,
-    ASSETS_MARKER_FILENAME,
-)
+from shared.src.common.taxonomy_common_entity import CategorySummary, SkillEntry
 from shared.src.common.taxonomy_common_error import (
     CategoryNameError,
     SkillNotFoundError,
     SkillsRootError,
     SkillsUsageError,
 )
-from shared.src.design.taxonomy_skills_vo import (
-    MutationPlan,
-    MutationStep,
-)
+from shared.src.common.taxonomy_common_vo import MutationPlan, MutationStep
 
-import shared.src.discovery.utility_discovery_core as _tree
+__all__ = [
+    "archive_root",
+    "assert_within_root",
+    "atomic_write_json",
+    "category_dirs",
+    "category_summaries",
+    "clean_one_line",
+    "iter_skill_mds",
+    "missing_category_descriptions",
+    "name_mismatch_repairs",
+    "parse_frontmatter",
+    "plan_repair",
+    "plan_weed",
+    "read_skill_md",
+    "relpath",
+    "resolve_skill_dir",
+    "sanitize_skill_name",
+    "skill_entries",
+    "validate_category_name",
+]
+
+
+def cross_process_lock(handle: object) -> None:
+    """Take an exclusive, blocking cross-process lock on *handle*.
+
+    Uses ``fcntl.flock`` on POSIX and ``msvcrt.locking`` on Windows.
+    """
+    try:
+        import fcntl as _fcntl
+    except ImportError:  # pragma: no cover - POSIX only
+        _fcntl = None
+    try:
+        import msvcrt as _msvcrt
+    except ImportError:  # pragma: no cover - Windows only
+        _msvcrt = None
+
+    if _fcntl is not None:
+        _fcntl.flock(handle.fileno(), _fcntl.LOCK_EX)
+    elif _msvcrt is not None:
+        handle.flush()
+        _msvcrt.locking(handle.fileno(), _msvcrt.LK_LOCK, (1 << 31) - 1)
+
+
+def clean_one_line(value: object) -> str:
+    """Collapse whitespace to single spaces and strip the edges."""
+    return " ".join(str(value).split()).strip()
+
+
+def relpath(path: Path, skills_root: Path) -> str:
+    """A skills-root-relative path when possible, else the absolute one."""
+    try:
+        return str(path.relative_to(skills_root))
+    except ValueError:
+        return str(path)
+
+
+def category_dirs(skills_root: Path) -> Iterator[Path]:
+    """Yield category directories, skipping hidden/ignored names."""
+    if not skills_root.is_dir():
+        raise SkillsRootError(f"Skills root does not exist: {skills_root}")
+
+    for path in sorted(skills_root.iterdir()):
+        if path.is_symlink() or not path.is_dir():
+            continue
+        if path.name.startswith("."):
+            continue
+        if path.name in IGNORED_CATEGORY_DIRS:
+            continue
+        yield path
+
+
+def parse_frontmatter(path: Path) -> dict[str, object]:
+    """Parse YAML frontmatter from ``path``; returns {} when absent/broken.
+
+    Optional PyYAML pass, then a minimal single-line ``key: value``
+    fallback.
+    """
+    try:
+        text = path.read_text(encoding="utf-8-sig", errors="replace")
+    except OSError:
+        return {}
+
+    stripped = text.lstrip()
+    if not stripped.startswith("---"):
+        return {}
+
+    parts = stripped.split("---", 2)
+    if len(parts) < 3:
+        return {}
+
+    fm_text = parts[1]
+
+    data: dict[str, object] = {}
+    for line in fm_text.splitlines():
+        if not line.strip():
+            continue
+        if line != line.lstrip():
+            continue
+        if ":" not in line:
+            continue
+
+        key, value = line.split(":", 1)
+        key = key.strip()
+        value = value.strip()
+
+        if not key or value in {"", "|", ">", "|-", ">-"}:
+            continue
+        if value.startswith(("[", "{", "- ")):
+            continue
+
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+
+        data[key] = value
+
+    return data
+
+
+def skill_entries(skills_root: Path) -> list[SkillEntry]:
+    """All discoverable skills: ``category/*/SKILL.md`` with frontmatter."""
+    entries: list[SkillEntry] = []
+
+    for category in category_dirs(skills_root):
+        for skill_md in sorted(category.glob("*/SKILL.md")):
+            skill_dir = skill_md.parent
+            frontmatter = parse_frontmatter(skill_md)
+
+            entries.append(
+                SkillEntry(
+                    skill=skill_dir.name,
+                    frontmatter_name=clean_one_line(
+                        frontmatter.get("name", skill_dir.name)
+                    ),
+                    category=category.name,
+                    description=clean_one_line(frontmatter.get("description", "")),
+                    when_to_use=clean_one_line(frontmatter.get("when-to-use", "")),
+                    path=f"{category.name}/{skill_dir.name}",
+                )
+            )
+
+    return entries
+
+
+def category_summaries(
+    entries: Iterable[SkillEntry], skills_root: Path
+) -> list[CategorySummary]:
+    """Per-category description state and skill counts."""
+    entries = list(entries)
+    summaries: list[CategorySummary] = []
+
+    for category in category_dirs(skills_root):
+        desc_file = category / CATEGORY_DESCRIPTION_FILENAME
+        description = ""
+        exists = desc_file.exists()
+
+        if exists:
+            frontmatter = parse_frontmatter(desc_file)
+            description = clean_one_line(frontmatter.get("description", ""))
+
+        skill_count = sum(1 for entry in entries if entry.category == category.name)
+
+        summaries.append(
+            CategorySummary(
+                category=category.name,
+                description=description,
+                description_file_exists=exists,
+                skill_count=skill_count,
+            )
+        )
+
+    return summaries
+
+
+# ─── Tree walker readers (local; utility files stay independent, AES201) ──
+
+
+def default_pack_root() -> Path:
+    """Return the repo's ``skills/`` pack (the SSOT for all skills)."""
+    return Path(__file__).resolve().parents[7]
+
+
+def iter_skill_mds(pack_root: Path) -> list[Path]:
+    """Return each ``SKILL.md`` in the pack as a sorted list, by path."""
+    if not pack_root.is_dir():
+        return []
+    found: list[Path] = []
+    for category in sorted(pack_root.iterdir()):
+        if not category.is_dir() or category.is_symlink():
+            continue
+        if category.name.startswith("."):
+            continue
+        if category.name in IGNORED_CATEGORY_DIRS:
+            continue
+        found.extend(sorted(category.glob("*/SKILL.md")))
+    return sorted(found)
+
+
+def read_skill_md(skill_md: Path) -> str | None:
+    """Read a SKILL.md, returning None when it cannot be read."""
+    try:
+        return skill_md.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+
+
+def is_valid_skill_name(name: str) -> bool:
+    """The name-format predicate for skill directory names."""
+    return bool(NAME_RE.match(name)) and "--" not in name and NAME_MIN <= len(name) <= NAME_MAX
+
+
+def sanitize_skill_name(raw: str, fallback: str) -> str:
+    """Convert frontmatter name into a safe directory name (prevents path traversal)."""
+    raw = (raw or "").strip().replace("\\", "/")
+    raw = posixpath.basename(raw)
+    name = re.sub(r"[^A-Za-z0-9._-]+", "-", raw).strip(".-")
+    if not name:
+        name = re.sub(r"[^A-Za-z0-9._-]+", "-", fallback).strip(".-") or "skill"
+    return name[:64]
+
+
+# ─── Private helpers ──────────────────────────────────────────────────
+
 
 def _assets_container(skills_root: Path) -> set[str]:
     """Category names that carry a declared DM2 asset-container marker."""
     declared: set[str] = set()
-    for category in _tree.category_dirs(skills_root):
+    for category in category_dirs(skills_root):
         marker = category / ASSETS_MARKER_FILENAME
         if not marker.is_file():
             continue
-        frontmatter = _tree.parse_frontmatter(marker)
+        frontmatter = parse_frontmatter(marker)
         if frontmatter.get("kind") == "assets":
             declared.add(category.name)
     return declared
 
 
-# ─── Inlined tree walkers (private; utility files stay independent, AES201) ──
-
-
-
 def _yaml_quote(value: object) -> str:
     """Quote a YAML scalar the way the original ``librarian.py`` did."""
     return json.dumps(str(value), ensure_ascii=False)
+
+
+# ─── Public mutation helpers ──────────────────────────────────────────
 
 
 def archive_root(skills_root: Path) -> Path:
@@ -100,7 +316,7 @@ def name_mismatch_repairs(skills_root: Path) -> list[tuple[Path, str]]:
     """The ``(skill_md, expected_name)`` pairs a repair would rewrite."""
     pairs: list[tuple[Path, str]] = []
 
-    for entry in _tree.skill_entries(skills_root):
+    for entry in skill_entries(skills_root):
         if entry.frontmatter_name != entry.skill:
             pairs.append((skills_root / entry.path / "SKILL.md", entry.skill))
 
@@ -116,7 +332,7 @@ def missing_category_descriptions(skills_root: Path) -> list[Path]:
     assets = _assets_container(skills_root)
     return [
         category / CATEGORY_DESCRIPTION_FILENAME
-        for category in _tree.category_dirs(skills_root)
+        for category in category_dirs(skills_root)
         if not (category / CATEGORY_DESCRIPTION_FILENAME).exists()
         and category.name not in assets
     ]
@@ -150,7 +366,7 @@ def resolve_skill_dir(skill_ref: str, skills_root: Path) -> Path:
             candidates.append(skills_root / p)
 
         if len(p.parts) == 1:
-            for category in _tree.category_dirs(skills_root):
+            for category in category_dirs(skills_root):
                 candidates.append(category / p)
 
         candidates.append(Path.cwd() / p)
@@ -169,8 +385,8 @@ def resolve_skill_dir(skill_ref: str, skills_root: Path) -> Path:
 def plan_weed(root: Path) -> MutationPlan:
     """The weeding report body, without the ``Weeding report:`` header."""
     skills_root = root
-    entries = _tree.skill_entries(skills_root)
-    summaries = _tree.category_summaries(entries, skills_root)
+    entries = skill_entries(skills_root)
+    summaries = category_summaries(entries, skills_root)
     assets = _assets_container(skills_root)
 
     name_map: dict[str, list[str]] = {}
@@ -251,6 +467,7 @@ def plan_repair(root: Path) -> MutationPlan:
         root=skills_root,
     )
 
+
 def atomic_write_json(path: Path, payload: object) -> None:
     """Atomically write ``payload`` as JSON to ``path`` (temp + os.replace).
 
@@ -264,7 +481,7 @@ def atomic_write_json(path: Path, payload: object) -> None:
         tmp = path.with_name(path.name + ".tmp")
         try:
             with tmp.open("w", encoding="utf-8") as handle:
-                _tree.cross_process_lock(handle)
+                cross_process_lock(handle)
                 json.dump(payload, handle, ensure_ascii=False)
                 handle.flush()
                 os.fsync(handle.fileno())
