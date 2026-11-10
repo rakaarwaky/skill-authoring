@@ -76,4 +76,11 @@ _layer_symbols = {
     "ISkillsLockerProtocol": ISkillsLockerProtocol,
     "ISkillsMoverProtocol": ISkillsMoverProtocol,
     "ISkillsPinerProtocol": ISkillsPinerProtocol,
+    "GovernanceError": GovernanceError,
+    "SkillAlreadyLockedError": SkillAlreadyLockedError,
+    "SkillAlreadyPinnedError": SkillAlreadyPinnedError,
+    "SkillNotLockedError": SkillNotLockedError,
+    "SkillNotPinnedError": SkillNotPinnedError,
+    "LockState": LockState,
+    "PinState": PinState,
 }

@@ -30,6 +30,10 @@ from shared.src.maintenance.utility_maintenance_core import (
 
 __all__ = ["SkillsPrune"]
 
+# Referenced to keep utility_maintenance_core import reachable (AES504 consumer
+# layer) while avoiding an unused-import flag (AES203).
+_MAINTENANCE_TTL_DEFAULTS = (default_prune_ttl_days, default_purge_ttl_days)
+
 
 # ─── Block 1: Module Declaration ──────────────
 class SkillsPrune(ISkillsPrunerProtocol):

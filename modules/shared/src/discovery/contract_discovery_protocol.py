@@ -138,4 +138,8 @@ _layer_symbols = {
     "ISkillsDiscoverProtocol": ISkillsDiscoverProtocol,
     "ISkillsListerProtocol": ISkillsListerProtocol,
     "ISkillsReaderProtocol": ISkillsReaderProtocol,
+    "BM25F_FIELD_WEIGHTS": BM25F_FIELD_WEIGHTS,
+    "MIN_TOKEN_LEN": MIN_TOKEN_LEN,
+    "SIMILARITY_THRESHOLD": SIMILARITY_THRESHOLD,
+    "STOP_WORDS": STOP_WORDS,
 }

@@ -59,4 +59,8 @@ __all__ = [
 _layer_symbols = {
     "ISkillsPrunerProtocol": ISkillsPrunerProtocol,
     "ISkillsPurgerProtocol": ISkillsPurgerProtocol,
+    "MAINTENANCE_LOCK_FILENAME": MAINTENANCE_LOCK_FILENAME,
+    "MAINTENANCE_SIDECAR_FILENAME": MAINTENANCE_SIDECAR_FILENAME,
+    "PRUNE_TTL_DEFAULT_DAYS": PRUNE_TTL_DEFAULT_DAYS,
+    "PURGE_TTL_DEFAULT_DAYS": PURGE_TTL_DEFAULT_DAYS,
 }

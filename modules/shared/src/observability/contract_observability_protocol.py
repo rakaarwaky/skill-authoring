@@ -134,4 +134,10 @@ _layer_symbols = {
     "ISkillsLedgerProtocol": ISkillsLedgerProtocol,
     "ISkillsTelemetryProtocol": ISkillsTelemetryProtocol,
     "ISkillsTracesProtocol": ISkillsTracesProtocol,
+    "GROK_HOME_ENV": GROK_HOME_ENV,
+    "MIN_SESSIONS_DEFAULT": MIN_SESSIONS_DEFAULT,
+    "MIN_TURNS_DEFAULT": MIN_TURNS_DEFAULT,
+    "GrokHomeMissingError": GrokHomeMissingError,
+    "NoSessionsError": NoSessionsError,
+    "ObservabilityError": ObservabilityError,
 }
