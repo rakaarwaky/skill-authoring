@@ -47,7 +47,7 @@ class SkillsPurge(ISkillsPurgerProtocol):
             if skill_dir is None:
                 return {"skill": skill, "purged": False, "reason": "not-found-in-archive"}
             if not dry_run:
-                shutil.rmtree(skill_dir, ignore_errors=True)
+                shutil.rmtree(skill_dir)
             return {"skill": skill, "purged": True, "dry_run": dry_run}
 
         ttl_days = getattr(config, "archive_ttl_days", 0) or default_purge_ttl_days()
@@ -71,7 +71,7 @@ class SkillsPurge(ISkillsPurgerProtocol):
             cmp_dt = max(dt, mtime) if dt else mtime
             if cmp_dt <= cutoff:
                 if not dry_run:
-                    shutil.rmtree(skill_dir, ignore_errors=True)
+                    shutil.rmtree(skill_dir)
                 purged.append({"skill": name, "archived_at": str(archived_at)})
             else:
                 kept.append({"skill": name, "archived_at": str(archived_at)})

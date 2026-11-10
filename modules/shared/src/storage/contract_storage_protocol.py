@@ -91,22 +91,12 @@ class ISkillsRollbackProtocol(ABC):
         ...
 
 
-class ISkillsStorageAggregate(ABC):
-    """Single entry point over storage-side ops."""
-
-    @abstractmethod
-    def execute(self, verb: StorageVerb, root: SkillsRoot | None = None) -> StorageResponse:
-        """Run the storage operation; return its response."""
-        ...
-
-
 __all__ = [
     "ISkillsArchiverProtocol",
     "ISkillsBackupProtocol",
     "ISkillsBootstrapProtocol",
     "ISkillsRestoreProtocol",
     "ISkillsRollbackProtocol",
-    "ISkillsStorageAggregate",
 ]
 
 _layer_symbols = {
@@ -115,5 +105,4 @@ _layer_symbols = {
     "ISkillsBootstrapProtocol": ISkillsBootstrapProtocol,
     "ISkillsRestoreProtocol": ISkillsRestoreProtocol,
     "ISkillsRollbackProtocol": ISkillsRollbackProtocol,
-    "ISkillsStorageAggregate": ISkillsStorageAggregate,
 }

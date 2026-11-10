@@ -9,7 +9,9 @@ package dir exists any more (AES702 independent packages).
 import sys
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[6]
+from shared.src.common.utility_common_skills import find_repo_root
+
+_REPO_ROOT = find_repo_root()
 _NS_ROOTS = [
     Path(__file__).resolve().parent,
     _REPO_ROOT,

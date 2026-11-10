@@ -86,5 +86,5 @@ class SkillsPrune(ISkillsPrunerProtocol):
             else:
                 kept.append({"skill": name, "state": state})
 
-        return {"pruned": pruned, "kept": kept}
+        return {"pruned": pruned, "kept": kept, "dry_run": dry_run}
 # ─── Block 3: Module Helpers ─────────

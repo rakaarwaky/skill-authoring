@@ -7,7 +7,6 @@ its own seams.
 
 No implementation code here — ABCs only, bodies are ``...``.
 """
-
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -26,18 +25,17 @@ from shared.src.governance.taxonomy_governance_error import (
     SkillNotLockedError,
     SkillNotPinnedError,
 )
-from shared.src.governance.taxonomy_governance_response import GovernanceResponse
 
 
 class ISkillsLockerProtocol(ABC):
     """Locker capability: lock/unlock verbs."""
 
     @abstractmethod
-    def lock(self, skill: SkillName, root: Path | None = None) -> GovernanceResponse:
+    def lock(self, skill: SkillName, root: Path | None = None) -> dict:
         ...
 
     @abstractmethod
-    def unlock(self, skill: SkillName, root: Path | None = None) -> GovernanceResponse:
+    def unlock(self, skill: SkillName, root: Path | None = None) -> dict:
         ...
 
 
@@ -45,11 +43,11 @@ class ISkillsPinerProtocol(ABC):
     """Piner capability: pin/unpin verbs."""
 
     @abstractmethod
-    def pin(self, skill: SkillName, root: Path | None = None) -> GovernanceResponse:
+    def pin(self, skill: SkillName, root: Path | None = None) -> dict:
         ...
 
     @abstractmethod
-    def unpin(self, skill: SkillName, root: Path | None = None) -> GovernanceResponse:
+    def unpin(self, skill: SkillName, root: Path | None = None) -> dict:
         ...
 
 

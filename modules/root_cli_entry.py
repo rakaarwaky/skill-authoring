@@ -18,10 +18,11 @@ from shared.src.storage.utility_path_bootstrap import _REPO_ROOT
 # Register this tree's namespace roots on sys.path before any feature
 # imports resolve; the module-level side effect in utility_path_bootstrap
 # runs here, and the root entry layer is a consumer that AES504 accepts.
+# _REPO_ROOT is intentionally discarded here — this import exists solely
+# for the side-effect path bootstrap performed at module import time.
 _ = _REPO_ROOT
 
 from cli.src.surface_skills_command import cmd_skills
-from mcp.src.surface_mcp_command import SkillsMcpAdapter
 from root_skills_container import default_aggregate
 
 
@@ -32,9 +33,6 @@ def main(argv: list[str] | None = None) -> int:
         print("Usage: sac <list|read|lint|catalog|discover|move|archive|create|status|usage|run|pause|resume|pin|unpin|lock|unlock|restore|list-unmanaged|list-archived|prune|purge|adopt|backup|rollback|ledger> [flags]", file=sys.stderr)
         return 2
     aggregate = default_aggregate()
-    # Wire the MCP surface into the root entry layer so it is reachable
-    # via the import graph (satisfies AES506).
-    _ = SkillsMcpAdapter(aggregate)
     return cmd_skills(args, aggregate)
 
 

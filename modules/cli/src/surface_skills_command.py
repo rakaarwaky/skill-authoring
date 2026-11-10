@@ -127,14 +127,11 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
 
     query = getattr(namespace, "query", "") or ""
     flags: dict[str, object] = {}
-    for key in ("days", "dry_run", "apply", "compact", "id"):
+    for key in ("days", "dry_run", "apply", "id"):
         if hasattr(namespace, key):
             value = getattr(namespace, key)
             if value is not None:
-                if key == "compact":
-                    flags[key] = "1" if value else "0"
-                else:
-                    flags[key] = value
+                flags[key] = value
 
     request = SkillsRequest(op=op, query=query, flags=flags, apply=bool(flags.get("apply", False)))
     result = aggregate.execute(request)
@@ -256,8 +253,6 @@ def _lifecycle_verb_parser(sub: str) -> argparse.ArgumentParser:
         parser.add_argument("--apply", action="store_true", default=False)
     elif sub == "rollback":
         parser.add_argument("--id", type=str, default=None)
-    elif sub == "ledger":
-        parser.add_argument("--compact", action="store_true", default=False)
     return parser
 
 
@@ -586,7 +581,12 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
-    request = _build_request(namespace)
+    try:
+        request = _build_request(namespace)
+    except SkillsUsageError as failure:
+        print(f"ERROR: {failure}", file=sys.stderr)
+        return _EXIT_USAGE
+
     result = aggregate.execute(request)
 
     if not result.ok and result.exit_code == _EXIT_USAGE:
@@ -603,7 +603,6 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         return _render_discover(result, request)
     if sub in ("move", "archive", "create"):
         return _render_mutation(sub, result, request)
-    raise SkillsUsageError(f"Unknown skills subcommand: {sub}")
 
 
 def _build_request(namespace: argparse.Namespace) -> SkillsRequest:

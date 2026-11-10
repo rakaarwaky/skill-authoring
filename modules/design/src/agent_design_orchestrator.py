@@ -91,7 +91,7 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
         skill_name = str(request.query).strip()
         try:
             result = getattr(capability, verb)(skill_name, root)
-        except (OSError, SkillsError) as failure:
+        except (OSError, ValueError, SkillsError) as failure:
             return SkillsResult(
                 ok=False,
                 op=op,
@@ -151,7 +151,7 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
 
         exit_code = (
             SkillsExitCode.CLEAN
-            if report.unfiltered_issue_count == 0
+            if report.issue_count == 0
             else SkillsExitCode.ISSUES_FOUND
         )
         return SkillsResult(
@@ -237,7 +237,7 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
                 exit_code=SkillsExitCode.ISSUES_FOUND,
                 message=str(failure),
             )
-        return SkillsResult(ok=True, op=op, records=report.get("applied", ()), message=str(report))
+        return SkillsResult(ok=True, op=op, message=str(report))
 
     def _execute_pause(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """PAUSE: set pause=True in config."""

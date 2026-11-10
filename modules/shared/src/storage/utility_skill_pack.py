@@ -26,8 +26,10 @@ __all__ = [
 
 
 def default_pack_root() -> Path:
-    """Return the default pack root path (repo root resolved from this file)."""
-    return Path(__file__).resolve().parents[6]
+    """Return the default pack root path (repo root resolved via marker discovery)."""
+    from shared.src.common.utility_common_skills import find_repo_root
+
+    return find_repo_root()
 
 
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:

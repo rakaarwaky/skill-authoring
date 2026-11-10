@@ -66,6 +66,9 @@ class SkillsCreator(ISkillsCreatorProtocol):
         directory = skills_root / category / skill
         skill_md = directory / "SKILL.md"
 
+        assert_within_root(directory, skills_root)
+        assert_within_root(skill_md, skills_root)
+
         plan = SkillCreatePlan(
             skill=skill,
             category=category,
@@ -91,6 +94,7 @@ class SkillsCreator(ISkillsCreatorProtocol):
             f"argument-hint: {argument_hint}\n"
             "---\n\n"
         )
+        assert_within_root(skill_md, skills_root)
         skill_md.write_text(frontmatter + body, encoding="utf-8")
         return plan
 
