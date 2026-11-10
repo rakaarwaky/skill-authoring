@@ -36,6 +36,7 @@ from shared.src.discovery.contract_discovery_protocol import (
 from shared.src.discovery.taxonomy_discovery_request import DiscoveryRoot
 from shared.src.discovery.utility_discovery_core import (
     category_summaries,
+    clean_one_line,
     skill_entries,
 )
 
@@ -130,14 +131,6 @@ class SkillsCatalog(ISkillsCatalogProtocol):
 def catalog_path(skills_root: Path) -> Path:
     """The catalog file for a skills root."""
     return skills_root / CATALOG_FILENAME
-
-
-def clean_one_line(value: object) -> str:
-    """Collapse whitespace to single spaces and strip the edges.
-
-    Catalog-local single-consumer string mechanic.
-    """
-    return " ".join(str(value).split()).strip()
 
 
 def render_catalog_json(

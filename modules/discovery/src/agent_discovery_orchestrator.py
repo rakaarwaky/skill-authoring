@@ -35,7 +35,6 @@ from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
 T = TypeVar("T")
 
 __all__ = [
-    "ISkillsDiscoveryAggregate",
     "SkillsDiscoveryAgent",
 ]
 
