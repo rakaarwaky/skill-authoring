@@ -34,16 +34,6 @@ from shared.src.common.taxonomy_common_error import (
     SkillsRootError,
     SkillsUsageError,
 )
-from shared.src.common.utility_common_skills import (
-    assert_within_root,
-    default_pack_root,
-    find_skill_dir,
-    iter_skill_mds,
-    relpath,
-    resolve_skill_dir,
-    set_field,
-    validate_category_name,
-)
 from shared.src.common.taxonomy_common_vo import (
     BM25FHit,
     CatalogCheckResult,
@@ -63,6 +53,16 @@ from shared.src.common.taxonomy_common_vo import (
     SkillsRoot,
     map_to_legacy_score,
     sanitize_skill_name,
+)
+from shared.src.common.utility_common_skills import (
+    assert_within_root,
+    default_pack_root,
+    find_skill_dir,
+    iter_skill_mds,
+    relpath,
+    resolve_skill_dir,
+    set_field,
+    validate_category_name,
 )
 
 __all__ = [

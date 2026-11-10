@@ -13,9 +13,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from shared.src.common.taxonomy_common_vo import SkillName
-from shared.src.common.taxonomy_common_vo import MutationOutcome, MutationPlan
-from shared.src.governance.taxonomy_governance_response import GovernanceResponse
+from shared.src.common.taxonomy_common_vo import (
+    MutationOutcome,
+    MutationPlan,
+    SkillName,
+)
+from shared.src.governance.taxonomy_governance_entity import LockState, PinState
 from shared.src.governance.taxonomy_governance_error import (
     GovernanceError,
     SkillAlreadyLockedError,
@@ -23,7 +26,7 @@ from shared.src.governance.taxonomy_governance_error import (
     SkillNotLockedError,
     SkillNotPinnedError,
 )
-from shared.src.governance.taxonomy_governance_entity import LockState, PinState
+from shared.src.governance.taxonomy_governance_response import GovernanceResponse
 
 
 class ISkillsLockerProtocol(ABC):

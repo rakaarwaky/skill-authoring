@@ -8,8 +8,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import pytest
-
 # Bootstrap sys.path so `shared.src.*`, `discovery.contract_*`, and the
 # `discovery/src` capability modules resolve (mirrors modules/conftest.py).
 _TOOLS_ROOT = Path(__file__).resolve().parents[2]
@@ -21,6 +19,12 @@ for _ns in (
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
+from agent_discovery_orchestrator import SkillsDiscoveryAgent
+from capabilities_discovery_catalog import SkillsCatalog
+from capabilities_discovery_finder import SkillsDiscover
+from capabilities_discovery_lister import SkillsLister
+from capabilities_discovery_reader import SkillsPackReader
+from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
@@ -28,12 +32,6 @@ from shared.src.discovery.contract_discovery_protocol import (
     ISkillsReaderProtocol,
 )
 from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
-from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
-from agent_discovery_orchestrator import SkillsDiscoveryAgent
-from capabilities_discovery_catalog import SkillsCatalog
-from capabilities_discovery_finder import SkillsDiscover
-from capabilities_discovery_lister import SkillsLister
-from capabilities_discovery_reader import SkillsPackReader
 
 
 def test_lister_implements_lister_protocol():

@@ -4,8 +4,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import pytest
-
 _TOOLS_ROOT = Path(__file__).resolve().parents[2]
 for _ns in (
     _TOOLS_ROOT,
@@ -20,14 +18,15 @@ from capabilities_discovery_catalog import SkillsCatalog
 from capabilities_discovery_finder import SkillsDiscover
 from capabilities_discovery_lister import SkillsLister
 from capabilities_discovery_reader import SkillsPackReader
+from shared.src.design.taxonomy_design_response import (
+    SkillsExitCode,  # type: ignore[assignment]
+)
 from shared.src.discovery.taxonomy_discovery_request import (
-    DiscoveryQuery,
     DiscoveryRequest,
     DiscoveryRoot,
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
-from shared.src.design.taxonomy_design_response import SkillsExitCode  # type: ignore[assignment]
 
 
 def _agent(root: Path) -> SkillsDiscoveryAgent:

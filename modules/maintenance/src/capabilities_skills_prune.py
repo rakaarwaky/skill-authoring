@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
 from shared.src.design.taxonomy_design_vo import (
     load_lifecycle_config,
 )
@@ -22,7 +23,6 @@ from shared.src.maintenance.utility_lifecycle_support import (
     archive_skill,
     read_record,
 )
-from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
 from shared.src.maintenance.utility_maintenance_core import default_prune_ttl_days
 
 __all__ = ["SkillsPrune"]

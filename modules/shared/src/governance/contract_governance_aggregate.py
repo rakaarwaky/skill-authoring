@@ -31,18 +31,18 @@ GOVERNANCE_PIN_STATES = (PIN_STATE_UNPINNED, PIN_STATE_PINNED)
 GOVERNANCE_LOCK_STATE_FILE = LOCK_STATE_FILENAME
 
 __all__ = [
-    "ISkillsGovernanceAggregate",
-    "ISkillsLockerProtocol",
-    "ISkillsMoverProtocol",
-    "ISkillsPinerProtocol",
+    "GOVERNANCE_LOCK_STATES",
+    "GOVERNANCE_LOCK_STATE_FILE",
+    "GOVERNANCE_PIN_STATES",
     "LOCK_STATE_ACTIVE",
     "LOCK_STATE_FILENAME",
     "LOCK_STATE_LOCKED",
     "PIN_STATE_PINNED",
     "PIN_STATE_UNPINNED",
-    "GOVERNANCE_LOCK_STATES",
-    "GOVERNANCE_PIN_STATES",
-    "GOVERNANCE_LOCK_STATE_FILE",
+    "ISkillsGovernanceAggregate",
+    "ISkillsLockerProtocol",
+    "ISkillsMoverProtocol",
+    "ISkillsPinerProtocol",
 ]
 
 

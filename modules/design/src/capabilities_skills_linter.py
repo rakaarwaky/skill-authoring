@@ -32,6 +32,7 @@ from shared.src.common.taxonomy_common_entity import (
     CategorySummary,
     SkillEntry,
 )
+from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.design.contract_design_protocol import ISkillsLinterProtocol
 from shared.src.design.taxonomy_design_constant import (
     ASSETS_MARKER_FILENAME,
@@ -41,7 +42,6 @@ from shared.src.design.taxonomy_design_constant import (
 from shared.src.design.taxonomy_design_entity import (
     Issue,
 )
-from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.design.taxonomy_design_vo import (
     IssueType,
     LintReport,

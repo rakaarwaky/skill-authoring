@@ -7,9 +7,9 @@ typed request and let the agent route it to a live capability.
 from __future__ import annotations
 
 from shared.src.governance.taxonomy_governance_request import (
-    SkillQuery,
-    GovernanceVerb,
     GovernanceRequest,
+    GovernanceVerb,
+    SkillQuery,
 )
 
 

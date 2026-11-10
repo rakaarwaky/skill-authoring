@@ -42,7 +42,7 @@ def test_cli_discover_subcommand(tmp_path):
     proc = subprocess.run(
         [sys.executable, str(entry), "skills", "discover",
          "--skills-root", str(tmp_path), "fetch", "--json"],
-        capture_output=True, text=True, timeout=60,
+        capture_output=True, text=True, timeout=60, check=False,
     )
     assert proc.returncode == 0, proc.stderr
     assert "fetch" in proc.stdout

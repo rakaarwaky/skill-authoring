@@ -4,8 +4,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import pytest
-
 _TOOLS_ROOT = Path(__file__).resolve().parents[2]
 for _ns in (
     _TOOLS_ROOT,
@@ -15,13 +13,13 @@ for _ns in (
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
+from shared.src.common.taxonomy_common_vo import _Row
 from shared.src.discovery.taxonomy_discovery_vo import (
     BM25F_FIELD_WEIGHTS,
     SkillsBm25fRanker,
     build_index,
     tokenize,
 )
-from shared.src.common.taxonomy_common_vo import _Row
 
 
 def _row(skill: str, description: str, category: str = "automation") -> _Row:

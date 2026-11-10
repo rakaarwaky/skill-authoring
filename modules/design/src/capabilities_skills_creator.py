@@ -23,11 +23,11 @@ from shared.src.common.taxonomy_common_constant import (
 from shared.src.common.taxonomy_common_vo import (
     CategoryName,
     SkillName,
+    SkillsRoot,
 )
 from shared.src.design.contract_design_protocol import (
     ISkillsCreatorProtocol,
 )
-from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.design.taxonomy_design_vo import (
     NewCategoryPlan,
     SkillCreatePlan,

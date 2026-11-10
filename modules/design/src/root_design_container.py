@@ -17,8 +17,8 @@ from capabilities_skills_adopter import SkillsAdopter
 from capabilities_skills_creator import SkillsCreator
 from capabilities_skills_linter import SkillsLinter
 from capabilities_skills_runner import SkillsRunner
-from shared.src.design.contract_design_aggregate import ISkillsDesignAggregate
 from shared.src.common.utility_common_skills import default_pack_root
+from shared.src.design.contract_design_aggregate import ISkillsDesignAggregate
 
 __all__ = [
     "DesignContainer",

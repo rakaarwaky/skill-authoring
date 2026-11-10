@@ -24,7 +24,9 @@ from shared.src.observability.contract_observability_protocol import (
     ISkillsTracesProtocol,
 )
 from shared.src.observability.taxonomy_observability_request import ObservabilityOp
-from shared.src.observability.taxonomy_observability_response import ObservabilityExitCode
+from shared.src.observability.taxonomy_observability_response import (
+    ObservabilityExitCode,
+)
 
 #: Operations the observability aggregate exposes (re-exported for discovery).
 OBSERVABILITY_OPS = (ObservabilityOp.PHRASES, ObservabilityOp.SCAN)
@@ -37,12 +39,12 @@ OBSERVABILITY_EXIT_CODES = (
 )
 
 __all__ = [
-    "ISkillsLedgerProtocol",
+    "OBSERVABILITY_EXIT_CODES",
+    "OBSERVABILITY_OPS",
     "IObservabilityAggregate",
+    "ISkillsLedgerProtocol",
     "ISkillsTelemetryProtocol",
     "ISkillsTracesProtocol",
-    "OBSERVABILITY_OPS",
-    "OBSERVABILITY_EXIT_CODES",
 ]
 
 

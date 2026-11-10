@@ -92,11 +92,8 @@ CITATIONS: Final = {
 LIFECYCLE_STATES: Final = ("active", "stale", "archived")
 
 __all__ = [
-    "ASSETS_MARKER_FILENAME",
-    "ARCHIVE_DIRNAME",
     "CITATIONS",
     "LIFECYCLE_STATES",
     "MAX_DESCRIPTION_LEN",
-    "PACK_MARKER_FILENAME",
     "SUMMARIES",
 ]

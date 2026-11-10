@@ -15,10 +15,10 @@ from pathlib import Path
 from agent_maintenance_orchestrator import SkillsMaintenanceAgent
 from capabilities_skills_prune import SkillsPrune
 from capabilities_skills_purge import SkillsPurge
+from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.maintenance.contract_maintenance_aggregate import (
     ISkillsMaintenanceAggregate,
 )
-from shared.src.common.utility_common_skills import default_pack_root
 
 __all__ = [
     "MaintenanceContainer",

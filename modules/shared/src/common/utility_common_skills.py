@@ -14,7 +14,13 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from shared.src.common.taxonomy_common_constant import ARCHIVE_DIRNAME, IGNORED_CATEGORY_DIRS, NAME_MAX, NAME_MIN, NAME_RE
+from shared.src.common.taxonomy_common_constant import (
+    ARCHIVE_DIRNAME,
+    IGNORED_CATEGORY_DIRS,
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
+)
 from shared.src.common.taxonomy_common_error import (
     CategoryNameError,
     SkillNotFoundError,

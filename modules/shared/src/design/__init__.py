@@ -6,14 +6,12 @@ dispatch contract.
 """
 from shared.src.common.taxonomy_common_constant import (
     ARCHIVE_DIRNAME,
-    ASSETS_MARKER_FILENAME,
     BM25F_SCORE_SCALE,
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
     NAME_MAX,
     NAME_MIN,
     NAME_RE,
-    PACK_MARKER_FILENAME,
 )
 from shared.src.common.taxonomy_common_entity import (
     CategorySummary,

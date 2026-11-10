@@ -6,9 +6,9 @@ import tempfile
 from pathlib import Path
 
 from shared.src.governance.taxonomy_governance_request import (
-    SkillQuery,
-    GovernanceVerb,
     GovernanceRequest,
+    GovernanceVerb,
+    SkillQuery,
 )
 
 
