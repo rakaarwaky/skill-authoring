@@ -72,3 +72,146 @@ def test_read_routes_to_reader(tmp_path):
     )
     assert result.ok is True
     assert "Fetch web content" in str(result.content)
+
+
+def test_list_skills_json_source_names_walked_root(tmp_path):
+    """INT-DISCOVERY-003: list_skills_json source names the actually-walked root."""
+    skill = tmp_path / "automation" / "fetch" / "SKILL.md"
+    skill.parent.mkdir(parents=True)
+    skill.write_text(
+        "---\nname: fetch\ndescription: Fetch web content.\n---\n# Fetch\n",
+        encoding="utf-8",
+    )
+    other = tmp_path / "other"
+    (other / "automation" / "fetch").mkdir(parents=True)
+    (other / "automation" / "fetch" / "SKILL.md").write_text(
+        "---\nname: fetch\ndescription: Fetch web content.\n---\n# Fetch\n",
+        encoding="utf-8",
+    )
+    lister = SkillsLister(tmp_path)
+    payload = lister.list_skills_json(root=DiscoveryRoot(other))
+    assert payload["skills"][0]["source"] == str(other)
+    # No override: source equals the construction root.
+    payload_default = lister.list_skills_json()
+    assert payload_default["skills"][0]["source"] == str(tmp_path)
+
+
+def test_show_skill_ambiguous_exact_match_returns_none(tmp_path):
+    """INT-DISCOVERY-004: two skills sharing a frontmatter name resolve to None."""
+    for cat in ("automation", "office"):
+        skill_dir = tmp_path / cat / "fetch"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: fetch\ndescription: A fetch skill.\n---\n# Fetch\n",
+            encoding="utf-8",
+        )
+    reader = SkillsPackReader(tmp_path)
+    assert reader.show_skill(DiscoveryQuery("fetch"), root=DiscoveryRoot(tmp_path)) is None
+
+
+def test_read_ambiguous_exact_match_agent_exit_1(tmp_path):
+    """INT-DISCOVERY-005: two skills sharing a frontmatter name -> agent READ exit 1."""
+    for cat in ("automation", "office"):
+        skill_dir = tmp_path / cat / "fetch"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: fetch\ndescription: A fetch skill.\n---\n# Fetch\n",
+            encoding="utf-8",
+        )
+    agent = _make_agent(tmp_path)
+    result = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.READ,
+            query=DiscoveryQuery("fetch"),
+            root=DiscoveryRoot(tmp_path),
+        )
+    )
+    assert result.ok is False
+    assert result.exit_code == 1
+    assert "Skill not found" in result.message
+
+
+def test_read_skill_named_none_is_resolvable(tmp_path):
+    """INT-DISCOVERY-006: a skill literally named None is readable after dropping the 'None' guard."""
+    skill_dir = tmp_path / "automation" / "None"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text(
+        "---\nname: None\ndescription: A skill literally named None.\n---\n# None\n",
+        encoding="utf-8",
+    )
+    agent = _make_agent(tmp_path)
+    result = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.READ,
+            query=DiscoveryQuery("None"),
+            root=DiscoveryRoot(tmp_path),
+        )
+    )
+    assert result.ok is True
+    assert result.content is not None
+    assert "A skill literally named None" in str(result.content)
+
+
+def test_show_skill_single_prefix_match_returns_content(tmp_path):
+    """INT-DISCOVERY-007: single prefixed candidate (fetch-mcp) resolves for query 'fetch'."""
+    skill_dir = tmp_path / "automation" / "fetch-mcp"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text(
+        "---\nname: fetch-mcp\ndescription: Fetch web pages.\n---\n# Fetch MCP\n",
+        encoding="utf-8",
+    )
+    reader = SkillsPackReader(tmp_path)
+    content = reader.show_skill(
+        DiscoveryQuery("fetch"), root=DiscoveryRoot(tmp_path)
+    )
+    assert content is not None
+    assert "Fetch web pages" in str(content)
+
+
+def test_show_skill_ambiguous_prefix_match_returns_none(tmp_path):
+    """INT-DISCOVERY-009: multiple prefixed candidates (fetch-mcp, fetch-cli) -> None (FR-discovery-002)."""
+    for name in ("fetch-mcp", "fetch-cli"):
+        skill_dir = tmp_path / "automation" / name
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text(
+            f"---\nname: {name}\ndescription: Fetch {name}.\n---\n# {name}\n",
+            encoding="utf-8",
+        )
+    reader = SkillsPackReader(tmp_path)
+    assert reader.show_skill(DiscoveryQuery("fetch"), root=DiscoveryRoot(tmp_path)) is None
+
+
+def test_list_skills_root_override(tmp_path):
+    """INT-DISCOVERY-010: list_skills(root=...) returns records from the override root (FR-discovery-001)."""
+    skill_dir = tmp_path / "other" / "automation" / "fetch"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text(
+        "---\nname: fetch\ndescription: Fetch web content.\n---\n# Fetch\n",
+        encoding="utf-8",
+    )
+    lister = SkillsLister(tmp_path)
+    records = lister.list_skills(root=DiscoveryRoot(tmp_path / "other"))
+    assert len(records) == 1
+    assert records[0].name == "fetch"
+    assert records[0].path == tmp_path / "other" / "automation" / "fetch" / "SKILL.md"
+def test_list_skills_empty_pack(tmp_path):
+    """INT-DISCOVERY-008: empty pack returns empty record sequence."""
+    lister = SkillsLister(tmp_path)
+    assert lister.list_skills() == ()
+    payload = lister.list_skills_json()
+    assert payload == {"skills": []}
+
+
+def test_discover_empty_query_exit_2(tmp_path):
+    """INT-DISCOVERY-011: agent-level empty discover query -> exit 2 end-to-end (FR-discovery-004/INT)."""
+    agent = _make_agent(tmp_path)
+    result = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.DISCOVER,
+            query=DiscoveryQuery(""),
+            root=DiscoveryRoot(tmp_path),
+        )
+    )
+    assert result.ok is False
+    assert result.exit_code == 2
+    assert "Query required" in result.message

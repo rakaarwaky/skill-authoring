@@ -67,3 +67,140 @@ def test_catalog_then_discover_round_trip(tmp_path):
     assert search.discovery is not None
     assert len(search.discovery.matches) > 0
     assert search.discovery.matches[0].skill == "arxiv"
+
+
+def test_discover_fallback_on_corrupt_catalog(tmp_path):
+    """E2E-DISCOVERY-002: corrupt catalog.json -> tree scan fallback with warnings."""
+    _seed_skills(tmp_path)
+    catalog = SkillsCatalog()
+    agent = SkillsDiscoveryAgent(
+        catalog=catalog,
+        discover=SkillsDiscover(catalog, SkillsBm25fRanker()),
+        lister=SkillsLister(tmp_path),
+        reader=SkillsPackReader(tmp_path),
+    )
+
+    # Write a corrupt catalog.json so discover must fall back to the live tree scan.
+    catalog_path = tmp_path / "catalog.json"
+    catalog_path.write_text("{ not valid json ", encoding="utf-8")
+
+    search = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.DISCOVER,
+            query=DiscoveryQuery("arxiv papers"),
+            root=DiscoveryRoot(tmp_path),
+        )
+    )
+    assert search.ok is True
+    assert search.discovery is not None
+    # Matches come from the live tree scan, not the corrupt catalog.
+    assert len(search.discovery.matches) > 0
+    assert any(m.skill == "arxiv" for m in search.discovery.matches)
+    # Warning fields are set to report the drift.
+    assert search.discovery.warning
+    assert search.discovery.warning_detail
+
+
+def test_discover_fallback_on_missing_catalog(tmp_path):
+    """E2E-DISCOVERY-003: no catalog.json -> tree scan fallback with warnings."""
+    _seed_skills(tmp_path)
+    catalog = SkillsCatalog()
+    agent = SkillsDiscoveryAgent(
+        catalog=catalog,
+        discover=SkillsDiscover(catalog, SkillsBm25fRanker()),
+        lister=SkillsLister(tmp_path),
+        reader=SkillsPackReader(tmp_path),
+    )
+
+    # Never write catalog.json; discover must fall back to the live tree scan.
+    search = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.DISCOVER,
+            query=DiscoveryQuery("arxiv papers"),
+            root=DiscoveryRoot(tmp_path),
+        )
+    )
+    assert search.ok is True
+    assert search.discovery is not None
+    assert len(search.discovery.matches) > 0
+    assert any(m.skill == "arxiv" for m in search.discovery.matches)
+    assert search.discovery.warning
+    assert search.discovery.warning_detail
+
+
+def test_discover_fallback_on_empty_catalog(tmp_path):
+    """E2E-DISCOVERY-004: empty catalog (skills not a list) -> tree scan fallback."""
+    _seed_skills(tmp_path)
+    catalog = SkillsCatalog()
+    agent = SkillsDiscoveryAgent(
+        catalog=catalog,
+        discover=SkillsDiscover(catalog, SkillsBm25fRanker()),
+        lister=SkillsLister(tmp_path),
+        reader=SkillsPackReader(tmp_path),
+    )
+
+    # Write an empty (invalid) catalog payload so discover falls back.
+    catalog_path = tmp_path / "catalog.json"
+    catalog_path.write_text('{"skills": "not-a-list"}', encoding="utf-8")
+
+    search = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.DISCOVER,
+            query=DiscoveryQuery("arxiv papers"),
+            root=DiscoveryRoot(tmp_path),
+        )
+    )
+    assert search.ok is True
+    assert search.discovery is not None
+    assert len(search.discovery.matches) > 0
+    assert any(m.skill == "arxiv" for m in search.discovery.matches)
+    assert search.discovery.warning
+    assert search.discovery.warning_detail
+
+
+def test_discover_invalid_limit_e2e(tmp_path):
+    """E2E-DISCOVERY-005: invalid limit flag through full agent returns exit_code 2."""
+    _seed_skills(tmp_path)
+    catalog = SkillsCatalog()
+    agent = SkillsDiscoveryAgent(
+        catalog=catalog,
+        discover=SkillsDiscover(catalog, SkillsBm25fRanker()),
+        lister=SkillsLister(tmp_path),
+        reader=SkillsPackReader(tmp_path),
+    )
+
+    result = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.DISCOVER,
+            query=DiscoveryQuery("arxiv papers"),
+            root=DiscoveryRoot(tmp_path),
+            flags={"limit": "abc"},
+        )
+    )
+    assert result.ok is False
+    assert result.exit_code == 2
+    assert "Invalid limit" in result.message
+
+
+def test_discover_zero_match_returns_empty_list_exit_0(tmp_path):
+    """E2E-DISCOVERY-006: valid query matching nothing -> empty matches + exit 0 (FR-discovery-004)."""
+    _seed_skills(tmp_path)
+    catalog = SkillsCatalog()
+    agent = SkillsDiscoveryAgent(
+        catalog=catalog,
+        discover=SkillsDiscover(catalog, SkillsBm25fRanker()),
+        lister=SkillsLister(tmp_path),
+        reader=SkillsPackReader(tmp_path),
+    )
+
+    result = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.DISCOVER,
+            query=DiscoveryQuery("zzznonexistentzzz"),
+            root=DiscoveryRoot(tmp_path),
+        )
+    )
+    assert result.ok is True
+    assert result.exit_code == 0
+    assert result.discovery is not None
+    assert result.discovery.matches == ()

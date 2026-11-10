@@ -1,18 +1,12 @@
-"""Discovery composition root — wires four capabilities into the orchestrator.
+"""Discovery composition root (AES root layer).
 
-The AES root layer is the only layer allowed to construct capabilities.
-This module builds the four discovery capabilities (catalog, discover,
-lister, reader), injects them into ``SkillsDiscoveryAgent``, and exposes
-the ``ISkillsDiscoveryAggregate`` contract to the surface and entry layers.
+Wires the discovery-side capabilities (catalog, discover, lister, reader)
+into the discovery orchestrator and exposes the ``ISkillsDiscoveryAggregate``
+contract to the surface and entry layers.
 
 Wiring only: no business logic, no orchestration policy, no technical
 parsing, no UI behaviour — those live in capabilities / agent / surface.
-
-Drift contract (carried over from the discover capability): if the catalog
-is missing, corrupt, or empty, discovery falls back to a read-only tree
-scan and sets the warning fields; the drift gate lives in ``catalog --check``.
 """
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -23,15 +17,7 @@ from capabilities_discovery_finder import SkillsDiscover
 from capabilities_discovery_lister import SkillsLister
 from capabilities_discovery_reader import SkillsPackReader
 from shared.src.common.utility_common_skills import default_pack_root
-from shared.src.discovery.contract_discovery_aggregate import (
-    ISkillsDiscoveryAggregate,
-)
-from shared.src.discovery.contract_discovery_protocol import (
-    ISkillsCatalogProtocol,
-    ISkillsDiscoverProtocol,
-    ISkillsListerProtocol,
-    ISkillsReaderProtocol,
-)
+from shared.src.discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
 from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 
 __all__ = [
@@ -45,17 +31,19 @@ class DiscoveryContainer:
 
     def __init__(
         self,
-        lister: ISkillsListerProtocol | None = None,
-        reader: ISkillsReaderProtocol | None = None,
-        catalog: ISkillsCatalogProtocol | None = None,
-        discover: ISkillsDiscoverProtocol | None = None,
+        catalog: SkillsCatalog | None = None,
+        discover: SkillsDiscover | None = None,
+        lister: SkillsLister | None = None,
+        reader: SkillsPackReader | None = None,
         default_root: Path | None = None,
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
         self._catalog = catalog or SkillsCatalog()
-        self._discover = discover or SkillsDiscover(self._catalog, SkillsBm25fRanker())
-        self._lister = lister or SkillsLister(pack_root=root)
-        self._reader = reader or SkillsPackReader(pack_root=root)
+        self._discover = discover or SkillsDiscover(
+            self._catalog, SkillsBm25fRanker()
+        )
+        self._lister = lister or SkillsLister()
+        self._reader = reader or SkillsPackReader()
         self._orchestrator = SkillsDiscoveryAgent(
             catalog=self._catalog,
             discover=self._discover,
@@ -73,10 +61,10 @@ class DiscoveryContainer:
 def create_discovery_feature(
     root: Path | None = None,
     *,
-    lister: ISkillsListerProtocol | None = None,
-    reader: ISkillsReaderProtocol | None = None,
-    catalog: ISkillsCatalogProtocol | None = None,
-    discover: ISkillsDiscoverProtocol | None = None,
+    catalog: SkillsCatalog | None = None,
+    discover: SkillsDiscover | None = None,
+    lister: SkillsLister | None = None,
+    reader: SkillsPackReader | None = None,
 ) -> ISkillsDiscoveryAggregate:
     """Fully-wired discovery feature aggregate (factory for entry / DI).
 
@@ -84,9 +72,9 @@ def create_discovery_feature(
     are for DI / test injection.
     """
     return DiscoveryContainer(
-        lister=lister,
-        reader=reader,
         catalog=catalog,
         discover=discover,
+        lister=lister,
+        reader=reader,
         default_root=root,
     ).aggregate

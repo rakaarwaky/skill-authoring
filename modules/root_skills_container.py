@@ -22,11 +22,7 @@ from pathlib import Path
 from design.src.agent_design_orchestrator import SkillsDesignAgent
 from design.src.capabilities_skills_adopter import SkillsAdopter
 from design.src.capabilities_skills_runner import SkillsRunner
-from discovery.agent_discovery_orchestrator import SkillsDiscoveryAgent
-from discovery.src.capabilities_discovery_catalog import SkillsCatalog
-from discovery.src.capabilities_discovery_finder import SkillsDiscover
-from discovery.src.capabilities_discovery_lister import SkillsLister
-from discovery.src.capabilities_discovery_reader import SkillsPackReader
+from discovery.src.root_discovery_container import create_discovery_feature
 from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
 from governance.src.capabilities_skills_locker import SkillsLocker
 from governance.src.capabilities_skills_piner import SkillsPiner
@@ -65,7 +61,6 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
-from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 from shared.src.governance.contract_governance_protocol import ISkillsMoverProtocol
 from shared.src.governance.taxonomy_governance_request import (
     GovernanceRequest,
@@ -119,18 +114,12 @@ def default_aggregate(
         runner=SkillsRunner(),
         default_root=root,
     )
-    _catalog = catalog if catalog is not None else SkillsCatalog()
-    _discover = discover if discover is not None else SkillsDiscover(
-        _catalog, SkillsBm25fRanker()
-    )
-    _lister = lister if lister is not None else SkillsLister()
-    _reader = reader if reader is not None else SkillsPackReader()
-    discovery = SkillsDiscoveryAgent(
-        catalog=_catalog,
-        discover=_discover,
-        lister=_lister,
-        reader=_reader,
-        default_root=root,
+    discovery = create_discovery_feature(
+        root=root,
+        catalog=catalog,
+        discover=discover,
+        lister=lister,
+        reader=reader,
     )
     governance = SkillsGovernanceAgent(
         locker=SkillsLocker(),
