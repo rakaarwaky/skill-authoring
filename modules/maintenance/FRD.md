@@ -27,7 +27,7 @@ The maintenance feature sits in the agent layer and is called by the surface and
 #### Technical Specification
 
 | Aspect | Detail |
-|--------|--------|
+| -------- | -------- |
 | **Input** | `MaintenanceRequest` (verb, skill, flags, root). Source: surface / root CLI. |
 | **Output** | `MaintenanceResponse` (ok, verb, exit_code, message, op-specific payload fields). Destination: surface / root CLI. |
 | **Protocol** | `ISkillsPrunerProtocol` |
@@ -38,7 +38,7 @@ The maintenance feature sits in the agent layer and is called by the surface and
 #### Test
 
 | Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
+| --------- | ------------- | ------------------------ |
 | A `PRUNE` request that finds idle skills | The surface invokes `execute` with `verb=PRUNE` | `MaintenanceResponse` with `ok=True`, `pruned` populated, exit code `CLEAN` |
 | A `PRUNE` request that finds no idle skills | The surface invokes `execute` with `verb=PRUNE` | `MaintenanceResponse` with `ok=True`, `kept` populated, exit code `CLEAN` |
 | A `PRUNE` request with `dry_run=True` | The surface invokes `execute` with `verb=PRUNE` and `dry_run=True` | Plan with `pruned` list; no filesystem write occurs |
@@ -47,7 +47,7 @@ The maintenance feature sits in the agent layer and is called by the surface and
 #### Metric
 
 | Target Metric | Value |
-|---------------|-------|
+| --------------- | ------- |
 | Dispatch p95 latency | 5 ms |
 | Unknown-op rejection rate | 100 % |
 | Unhandled exception escape rate | 0 % |
@@ -74,7 +74,7 @@ The maintenance feature sits in the agent layer and is called by the surface and
 #### Technical Specification
 
 | Aspect | Detail |
-|--------|--------|
+| -------- | -------- |
 | **Input** | `MaintenanceRequest` (verb, skill, flags, root). Source: surface / root CLI. |
 | **Output** | `MaintenanceResponse` (ok, verb, exit_code, message, op-specific payload fields). Destination: surface / root CLI. |
 | **Protocol** | `ISkillsPurgerProtocol` |
@@ -85,7 +85,7 @@ The maintenance feature sits in the agent layer and is called by the surface and
 #### Test
 
 | Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
+| --------- | ------------- | ------------------------ |
 | A `PURGE` request with `apply=True` | The surface invokes `execute` with `verb=PURGE` | `MaintenanceResponse` with `ok=True`, `purged` populated |
 | A valid `PURGE` request | The surface invokes `execute` with `verb=PURGE` | `MaintenanceResponse` with `ok=True`, message populated |
 | A `PURGE` request with a missing skill name | The surface invokes `execute` with `verb=PURGE` and an empty query | `MaintenanceResponse` with `ok=False`, exit code `ISSUES_FOUND`, message "Skill name required" |
@@ -94,7 +94,7 @@ The maintenance feature sits in the agent layer and is called by the surface and
 #### Metric
 
 | Target Metric | Value |
-|---------------|-------|
+| --------------- | ------- |
 | Dispatch p95 latency | 5 ms |
 | Unknown-op rejection rate | 100 % |
 | Unhandled exception escape rate | 0 % |

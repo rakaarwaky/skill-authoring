@@ -40,7 +40,6 @@ The discovery feature shall list every skill record in the pack, one record per 
 
 #### Technical Specification
 
-
 | Aspect       | Detail                                                        |
 | ------------ | ------------------------------------------------------------- |
 | **Input**    | `DiscoveryRequest(verb=LIST, root?)`. Source: surface/CLI.    |
@@ -50,9 +49,7 @@ The discovery feature shall list every skill record in the pack, one record per 
 | **Event**    | none                                                          |
 | **Error**    | unwired lister → `SkillsRootError`, exit 2                    |
 
-
 #### Test
-
 
 | Context                         | When Action                            | Then Observable Result                                                             |
 | ------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -60,15 +57,12 @@ The discovery feature shall list every skill record in the pack, one record per 
 | The pack is empty               | The caller lists skills                | An empty record sequence is returned                                               |
 | An explicit root is supplied    | The caller lists skills with that root | The walk targets the supplied root, not the construction-time root                 |
 
-
 #### Metric
-
 
 | Target Metric   | Value     |
 | --------------- | --------- |
 | Record Accuracy | 100%      |
 | List Latency    | &lt; 50ms |
-
 
 ### FR-discovery-002: Read one skill's SKILL.md
 
@@ -92,7 +86,6 @@ The discovery feature shall return the raw `SKILL.md` content for one skill iden
 
 #### Technical Specification
 
-
 | Aspect       | Detail                                                                     |
 | ------------ | -------------------------------------------------------------------------- |
 | **Input**    | `DiscoveryRequest(verb=READ, query, root?)`. Source: surface/CLI.          |
@@ -102,9 +95,7 @@ The discovery feature shall return the raw `SKILL.md` content for one skill iden
 | **Event**    | none                                                                       |
 | **Error**    | missing query or missing skill → exit 1                                    |
 
-
 #### Test
-
 
 | Context                                                        | When Action                        | Then Observable Result                          |
 | -------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------- |
@@ -113,15 +104,12 @@ The discovery feature shall return the raw `SKILL.md` content for one skill iden
 | Two skills share prefix `fetch` (e.g. `fetch`, `fetch-mcp`)    | The caller reads query `fetch`     | `None` is returned (ambiguous)                  |
 | No skill matches the query                                     | The caller reads an unknown name   | `None` is returned                              |
 
-
 #### Metric
-
 
 | Target Metric | Value     |
 | ------------- | --------- |
 | Read Accuracy | 100%      |
 | Read Latency  | &lt; 50ms |
-
 
 ### FR-discovery-003: Rebuild and check the catalog
 
@@ -145,7 +133,6 @@ The discovery feature shall rebuild the tracked `catalog.json` from the live tre
 
 #### Technical Specification
 
-
 | Aspect       | Detail                                                                                                               |
 | ------------ | -------------------------------------------------------------------------------------------------------------------- |
 | **Input**    | `DiscoveryRequest(verb=CATALOG, flags={check: bool}, root?)`. Source: surface/CLI.                                   |
@@ -155,9 +142,7 @@ The discovery feature shall rebuild the tracked `catalog.json` from the live tre
 | **Event**    | none                                                                                                                 |
 | **Error**    | drift → exit 3 (clean → exit 0 on check)                                                                             |
 
-
 #### Test
-
 
 | Context                                               | When Action                     | Then Observable Result                                         |
 | ----------------------------------------------------- | ------------------------------- | -------------------------------------------------------------- |
@@ -167,15 +152,12 @@ The discovery feature shall rebuild the tracked `catalog.json` from the live tre
 | `catalog.json` is corrupt JSON                        | The caller runs catalog check   | `in_sync=False`, corrupt-catalog message, exit 3               |
 | Rebuild is invoked                                    | The caller runs catalog rebuild | `catalog.json` is rewritten and legacy `CATALOG.md` is deleted |
 
-
 #### Metric
-
 
 | Target Metric            | Value      |
 | ------------------------ | ---------- |
 | Drift Detection Accuracy | 100%       |
 | Catalog Rebuild Latency  | &lt; 500ms |
-
 
 ### FR-discovery-004: BM25F-ranked and finder
 
@@ -202,7 +184,6 @@ The discovery feature shall rank catalog rows against a free-text query using BM
 
 #### Technical Specification
 
-
 | Aspect       | Detail                                                                               |
 | ------------ | ------------------------------------------------------------------------------------ |
 | **Input**    | `DiscoveryRequest(verb=DISCOVER, query, flags={limit}, root?)`. Source: surface/CLI. |
@@ -212,9 +193,7 @@ The discovery feature shall rank catalog rows against a free-text query using BM
 | **Event**    | `warning` / `warning_detail` fields on drift                                         |
 | **Error**    | empty query → exit 2                                                                 |
 
-
 #### Test
-
 
 | Context                            | When Action              | Then Observable Result                                            |
 | ---------------------------------- | ------------------------ | ----------------------------------------------------------------- |
@@ -225,16 +204,13 @@ The discovery feature shall rank catalog rows against a free-text query using BM
 | An empty query                     | The caller runs discover | Exit 2, usage error message                                       |
 | No row matches the query           | The caller runs discover | Empty match list, exit 0                                          |
 
-
 #### Metric
-
 
 | Target Metric       | Value               |
 | ------------------- | ------------------- |
 | Match Accuracy      | 100%                |
 | Drift Fallback Rate | 100% of drift cases |
 | Discover Latency    | &lt; 100ms          |
-
 
 ## Public Interface
 
@@ -247,7 +223,6 @@ The discovery feature shall rank catalog rows against a free-text query using BM
 | Response  | `DiscoveryResponse`         |
 
 ## Reference
-
 
 | Artifact     | Purpose                                         | Link                                     |
 | ------------ | ----------------------------------------------- | ---------------------------------------- |

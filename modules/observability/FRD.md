@@ -53,12 +53,12 @@ up to `limit` most recent entries.
 
 #### Test
 
-| Context           | When Action                             | Then Observable Result                                   |
+| Context | When Action | Then Observable Result |
 | ----------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------- |
-| `ledger_append` with a valid entry        | The agent executes `op=LEDGER`          | `ObservabilityResult.ok=True`, entry stored with id/ts/actor defaults populated    |
-| `ledger_read` on an existing ledger       | The agent executes `op=LEDGER` read     | Up to `limit` most recent entries returned in insertion order                      |
-| `ledger_read` on a missing ledger         | The agent executes `op=LEDGER` read     | Empty tuple returned                                                               |
-| Invalid sha256 digest in a manifest entry | Append attempted                        | `SkillsUsageError` raised, mapped to `USAGE_ERROR` result                          |
+| `ledger_append` with a valid entry | The agent executes `op=LEDGER` | `ObservabilityResult.ok=True`, entry stored with id/ts/actor defaults populated |
+| `ledger_read` on an existing ledger | The agent executes `op=LEDGER` read | Up to `limit` most recent entries returned in insertion order |
+| `ledger_read` on a missing ledger | The agent executes `op=LEDGER` read | Empty tuple returned |
+| Invalid sha256 digest in a manifest entry | Append attempted | `SkillsUsageError` raised, mapped to `USAGE_ERROR` result |
 
 #### Metric
 
