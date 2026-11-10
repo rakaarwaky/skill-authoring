@@ -13,6 +13,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from shared.src.common.taxonomy_common_vo import SkillName
+from shared.src.maintenance.taxonomy_maintenance_constant import (
+    MAINTENANCE_LOCK_FILENAME,
+    MAINTENANCE_SIDECAR_FILENAME,
+    PRUNE_TTL_DEFAULT_DAYS,
+    PURGE_TTL_DEFAULT_DAYS,
+)
 from shared.src.maintenance.taxonomy_maintenance_request import SkillsRoot
 from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
 

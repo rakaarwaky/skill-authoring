@@ -6,7 +6,7 @@ The skill-design pack ships three invocation modes — `--create`, `--improve`, 
 
 ## Roadmap Status
 
-### PR-SKILLDESIGN-001: .mypy_cache
+### PR-SKILLDESIGN-001: cli
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
@@ -14,7 +14,7 @@ The skill-design pack ships three invocation modes — `--create`, `--improve`, 
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-002: __pycache__
+### PR-SKILLDESIGN-002: design
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
@@ -22,7 +22,55 @@ The skill-design pack ships three invocation modes — `--create`, `--improve`, 
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-003: cli
+### PR-SKILLDESIGN-003: discovery
+
+| Aspect       | Detail                                                        |
+|--------------|---------------------------------------------------------------|
+| Priority     | P2                                                            |
+| State        | Done                                                          |
+| Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
+
+### PR-SKILLDESIGN-004: governance
+
+| Aspect       | Detail                                                        |
+|--------------|---------------------------------------------------------------|
+| Priority     | P2                                                            |
+| State        | Done                                                          |
+| Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
+
+### PR-SKILLDESIGN-005: maintenance
+
+| Aspect       | Detail                                                        |
+|--------------|---------------------------------------------------------------|
+| Priority     | P2                                                            |
+| State        | Done                                                          |
+| Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
+
+### PR-SKILLDESIGN-006: mcp
+
+| Aspect       | Detail                                                        |
+|--------------|---------------------------------------------------------------|
+| Priority     | P2                                                            |
+| State        | Done                                                          |
+| Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
+
+### PR-SKILLDESIGN-007: observability
+
+| Aspect       | Detail                                                        |
+|--------------|---------------------------------------------------------------|
+| Priority     | P2                                                            |
+| State        | Done                                                          |
+| Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
+
+### PR-SKILLDESIGN-008: shared
+
+| Aspect       | Detail                                                        |
+|--------------|---------------------------------------------------------------|
+| Priority     | P2                                                            |
+| State        | Done                                                          |
+| Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
+
+### PR-SKILLDESIGN-009: storage
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|

@@ -203,19 +203,19 @@ class SkillsLedger(ISkillsLedgerProtocol):
             raise MutationConflictError("rollback_entry: no ledger file found")
 
         entries = self.ledger_read(root)
-        match: dict | None = None
+        matched_entry: dict | None = None
         for candidate in reversed(entries):
             if candidate.get("id") == entry_id:
-                match = candidate
+                matched_entry = candidate
                 break
 
-        if match is None:
+        if matched_entry is None:
             raise MutationConflictError(
                 f"rollback_entry: entry not found: {entry_id!r}"
             )
 
         blobs = _blob_dir(root)
-        after_manifest = match.get("after") or []
+        after_manifest = matched_entry.get("after") or []
         for item in after_manifest:
             digest = item.get("sha256")
             if not isinstance(digest, str) or not (blobs / digest).is_file():
@@ -237,7 +237,7 @@ class SkillsLedger(ISkillsLedgerProtocol):
             root,
             {
                 "action": "rollback",
-                "skill": match.get("skill", ""),
+                "skill": matched_entry.get("skill", ""),
                 "before": after_manifest,
                 "after": after_manifest,
                 "evidence": {"rollback_target": entry_id},
@@ -250,8 +250,8 @@ class SkillsLedger(ISkillsLedgerProtocol):
             "restored_files": restored_files,
         }
 
-    @staticmethod
 # ─── Block 3: Module Helpers ─────────
+    @staticmethod
     def _digest_matches(src: Path, digest: str) -> bool:
         from hashlib import sha256 as _sha256
 

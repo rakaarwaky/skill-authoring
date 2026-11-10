@@ -23,6 +23,12 @@ from shared.src.common.taxonomy_common_vo import (
     SkillRecord,
     SkillsJsonPayload,
 )
+from shared.src.discovery.taxonomy_discovery_constant import (
+    BM25F_FIELD_WEIGHTS,
+    MIN_TOKEN_LEN,
+    SIMILARITY_THRESHOLD,
+    STOP_WORDS,
+)
 from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryQuery,
     DiscoveryRoot,

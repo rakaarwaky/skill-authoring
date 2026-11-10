@@ -20,7 +20,17 @@ from shared.src.design.taxonomy_design_vo import (
     MutationOutcome,
     TelemetryRow,
 )
+from shared.src.observability.taxonomy_observability_constant import (
+    GROK_HOME_ENV,
+    MIN_SESSIONS_DEFAULT,
+    MIN_TURNS_DEFAULT,
+)
 from shared.src.observability.taxonomy_observability_entity import ScanResult
+from shared.src.observability.taxonomy_observability_error import (
+    GrokHomeMissingError,
+    NoSessionsError,
+    ObservabilityError,
+)
 from shared.src.observability.taxonomy_observability_vo import (
     GrokHome,
     PhrasesReport,

@@ -16,6 +16,14 @@ from pathlib import Path
 from shared.src.common.taxonomy_common_vo import SkillName
 from shared.src.common.taxonomy_common_vo import MutationOutcome, MutationPlan
 from shared.src.governance.taxonomy_governance_response import GovernanceResponse
+from shared.src.governance.taxonomy_governance_error import (
+    GovernanceError,
+    SkillAlreadyLockedError,
+    SkillAlreadyPinnedError,
+    SkillNotLockedError,
+    SkillNotPinnedError,
+)
+from shared.src.governance.taxonomy_governance_entity import LockState, PinState
 
 
 class ISkillsLockerProtocol(ABC):
