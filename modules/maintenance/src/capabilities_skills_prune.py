@@ -23,16 +23,9 @@ from shared.src.maintenance.utility_lifecycle_support import (
     read_record,
 )
 from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
-from shared.src.maintenance.utility_maintenance_core import (
-    default_prune_ttl_days,
-    default_purge_ttl_days,
-)
+from shared.src.maintenance.utility_maintenance_core import default_prune_ttl_days
 
 __all__ = ["SkillsPrune"]
-
-# Referenced to keep utility_maintenance_core import reachable (AES504 consumer
-# layer) while avoiding an unused-import flag (AES203).
-_MAINTENANCE_TTL_DEFAULTS = (default_prune_ttl_days, default_purge_ttl_days)
 
 
 # ─── Block 1: Module Declaration ──────────────
@@ -48,7 +41,11 @@ class SkillsPrune(ISkillsPrunerProtocol):
     ) -> dict:
         pack_root = Path(root) if root is not None else default_pack_root()
         config = load_lifecycle_config(pack_root)
-        effective_days = days if days is not None else config.archive_after_days
+        effective_days = (
+            days
+            if days is not None
+            else getattr(config, "archive_after_days", None) or default_prune_ttl_days()
+        )
         if effective_days < 1:
             raise ValueError(f"prune days must be >= 1, got {effective_days}")
 

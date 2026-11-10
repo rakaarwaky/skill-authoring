@@ -23,6 +23,7 @@ from shared.src.maintenance.utility_lifecycle_support import (
 )
 from shared.src.maintenance.utility_skills_mutation import archive_root
 from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
+from shared.src.maintenance.utility_maintenance_core import default_purge_ttl_days
 
 __all__ = ["SkillsPurge"]
 
@@ -49,7 +50,7 @@ class SkillsPurge(ISkillsPurgerProtocol):
                 shutil.rmtree(skill_dir, ignore_errors=True)
             return {"skill": skill, "purged": True, "dry_run": dry_run}
 
-        ttl_days = getattr(config, "archive_ttl_days", 0)
+        ttl_days = getattr(config, "archive_ttl_days", 0) or default_purge_ttl_days()
         if ttl_days <= 0:
             return {"purged": [], "kept": [], "reason": "archive_ttl_days disabled"}
 

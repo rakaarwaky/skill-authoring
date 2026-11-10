@@ -13,8 +13,14 @@ from typing import Final
 #: Default idle TTL in days before a skill is considered prunable.
 PRUNE_TTL_DEFAULT_DAYS: Final = 30
 
-#: Default idle TTL in days before an archived skill is purged.
+#: Default idle TTL in days before a skill is purged after archiving.
 PURGE_TTL_DEFAULT_DAYS: Final = 90
+
+#: Default maintenance TTL defaults consumed by prune/purge capabilities.
+_MAINTENANCE_TTL_DEFAULTS: Final[tuple] = (
+    PRUNE_TTL_DEFAULT_DAYS,
+    PURGE_TTL_DEFAULT_DAYS,
+)
 
 #: Sidecar file holding prune/purge decision records.
 MAINTENANCE_SIDECAR_FILENAME: Final = ".maintenance.json"
