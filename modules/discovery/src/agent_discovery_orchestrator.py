@@ -13,10 +13,11 @@ discovery-domain request/response VOs from ``taxonomy_discovery_request`` and
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import cast
+from typing import TypeVar, cast
 
-from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
 from shared.src.common.taxonomy_common_error import SkillsError, SkillsRootError
+from shared.src.common.taxonomy_common_vo import SkillContent
+from shared.src.discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
@@ -30,6 +31,8 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
+
+T = TypeVar("T")
 
 __all__ = [
     "ISkillsDiscoveryAggregate",
@@ -56,7 +59,7 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
         self._default_root = default_root
 
 
-    def _require(self, capability: object, name: str) -> object:
+    def _require(self, capability: T | None, name: str) -> T:
         if capability is None:
             raise SkillsRootError(f"discovery capability not wired: {name}")
         return capability
@@ -92,11 +95,19 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
 
         try:
             if verb == DiscoveryVerb.CATALOG:
-                return handler(request, check=bool(request.flags.get("check", "")))
+                return handler(request, check=request.flags.get("check", "") == "1")
             if verb == DiscoveryVerb.DISCOVER:
-                return handler(
-                    request, limit=int(request.flags.get("limit", "20") or 20)
-                )
+                limit_raw = request.flags.get("limit", "20") or "20"
+                try:
+                    limit = int(limit_raw)
+                except (TypeError, ValueError):
+                    return DiscoveryResponse(
+                        ok=False,
+                        verb=verb,
+                        exit_code=2,
+                        message=f"Invalid limit: {limit_raw!r}",
+                    )
+                return handler(request, limit=limit)
             return handler(request)
         except SkillsError as failure:
             return DiscoveryResponse(
@@ -127,7 +138,7 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
         """READ: show one skill's SKILL.md content."""
         reader = self._require(self._reader, "reader")
         root = self._root(request)
-        if not request.query or str(request.query).strip() in ("", "None"):
+        if not request.query or not str(request.query).strip():
             return DiscoveryResponse(
                 ok=False,
                 verb=request.verb,
@@ -181,11 +192,11 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
         """DISCOVER: BM25F-ranked search over catalog rows."""
         discover = self._require(self._discover, "discover")
         root = self._root(request)
-        if not request.query or str(request.query).strip() in ("", "None"):
+        if not request.query or not str(request.query).strip():
             return DiscoveryResponse(
                 ok=False,
                 verb=request.verb,
-                exit_code=1,
+                exit_code=2,
                 message="Query required",
             )
         result = discover.discover(
@@ -193,7 +204,9 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
         )
         return DiscoveryResponse(ok=True, verb=request.verb, discovery=result, root=root)
 
-    def show_skill(self, name: str, root: DiscoveryRoot | None = None):
+    def show_skill(
+        self, name: str, root: DiscoveryRoot | None = None
+    ) -> SkillContent | None:
         """Pass-through to the reader (used by the facade)."""
         reader = self._require(self._reader, "reader")
-        return cast(ISkillsReaderProtocol, reader).show_skill(DiscoveryQuery(name), root)
+        return reader.show_skill(DiscoveryQuery(name), root)

@@ -8,6 +8,7 @@ depends on contract + taxonomy + utility only — never on a sibling.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 from shared.src.common.taxonomy_common_vo import (
     SkillContent,
@@ -22,7 +23,7 @@ from shared.src.storage.utility_skill_pack import (
     parse_skill_frontmatter,
 )
 
-__all__ = ["SkillsLister", "default_pack_root"]
+__all__ = ["SkillsLister"]
 
 # ─── Block 1: Module Declaration ──────────────
 class SkillsLister(ISkillsListerProtocol):
@@ -59,17 +60,20 @@ class SkillsLister(ISkillsListerProtocol):
         """Return the global-skill JSON list as a pure-data dict."""
         skills_root = Path(root) if root is not None else self._root
         records = self.list_skills(DiscoveryRoot(skills_root) if root is not None else None)
-        return {
-            "skills": [
-                {
-                    "name": record.name,
-                    "source": str(self._root),
-                    "path": str(record.path),
-                    "loaded": True,
-                }
-                for record in records
-            ]
-        }
+        return cast(
+            SkillsJsonPayload,
+            {
+                "skills": [
+                    {
+                        "name": record.name,
+                        "source": str(skills_root),
+                        "path": str(record.path),
+                        "loaded": True,
+                    }
+                    for record in records
+                ]
+            },
+        )
 
     # ─── Block 3: Module Helpers ───
 

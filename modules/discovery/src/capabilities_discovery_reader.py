@@ -57,7 +57,7 @@ class SkillsPackReader(ISkillsReaderProtocol):
             or wanted_plain
             in (name_.replace("-", ""), md.parent.name.replace("-", ""))
         ]
-        if exact:
+        if len(exact) == 1:
             raw = read_skill_md(exact[0][1])
             return SkillContent(raw) if raw is not None else None
         prefixed = [

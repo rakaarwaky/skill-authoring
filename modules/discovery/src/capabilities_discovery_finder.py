@@ -50,10 +50,7 @@ from shared.src.discovery.taxonomy_discovery_vo import (
 )
 from shared.src.discovery.utility_discovery_core import skill_entries
 
-__all__ = [
-    "SkillsDiscover",
-    "tree_scan_rows",
-]
+__all__ = ["SkillsDiscover"]
 
 
 def tree_scan_rows(skills_root: Path) -> list[_Row]:

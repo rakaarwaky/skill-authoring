@@ -82,3 +82,4 @@ def test_unknown_op_maps_to_usage_error(tmp_path):
     )
     assert result.ok is False
     assert result.exit_code == SkillsExitCode.USAGE_ERROR
+    assert "Unknown discovery verb" in result.message
