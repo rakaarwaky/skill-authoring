@@ -19,20 +19,12 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from design.src.agent_design_orchestrator import SkillsDesignAgent
-from design.src.capabilities_skills_adopter import SkillsAdopter
-from design.src.capabilities_skills_runner import SkillsRunner
+from design.src.root_design_container import create_design_feature
 from discovery.src.root_discovery_container import create_discovery_feature
-from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
-from governance.src.capabilities_skills_locker import SkillsLocker
-from governance.src.capabilities_skills_piner import SkillsPiner
-from maintenance.src.agent_maintenance_orchestrator import SkillsMaintenanceAgent
-from maintenance.src.capabilities_skills_prune import SkillsPrune
-from maintenance.src.capabilities_skills_purge import SkillsPurge
-from observability.src.agent_observability_orchestrator import ObservabilityAgent
-from observability.src.capabilities_skills_ledger import SkillsLedger
-from observability.src.capabilities_skills_phrase_scan import SkillsPhraseScan
-from observability.src.capabilities_skills_telemetry import SkillsTelemetry
+from governance.src.root_governance_container import create_governance_feature
+from maintenance.src.root_maintenance_container import create_maintenance_feature
+from observability.src.root_observability_container import create_observability_feature
+from storage.src.root_storage_container import create_storage_feature
 from shared.src.common.taxonomy_common_vo import (
     SkillRecord,
 )
@@ -78,7 +70,6 @@ from shared.src.storage.taxonomy_storage_request import (
     StorageVerb,
 )
 from shared.src.storage.taxonomy_storage_response import StorageResponse
-from storage.src.agent_storage_orchestrator import SkillsStorageAgent
 from storage.src.capabilities_skills_backup import SkillsBackup
 from storage.src.capabilities_skills_restore import SkillsRestore
 from storage.src.capabilities_skills_rollback import SkillsRollback
@@ -107,12 +98,10 @@ def default_aggregate(
     """Return a composed agent bound to the repo's ``skills/`` pack."""
     root = default_root if default_root is not None else default_pack_root()
 
-    design = SkillsDesignAgent(
+    design = create_design_feature(
+        root=root,
         creator=creator,
-        adopter=SkillsAdopter(),
         linter=linter,
-        runner=SkillsRunner(),
-        default_root=root,
     )
     discovery = create_discovery_feature(
         root=root,
@@ -121,29 +110,22 @@ def default_aggregate(
         lister=lister,
         reader=reader,
     )
-    governance = SkillsGovernanceAgent(
-        locker=SkillsLocker(),
-        piner=SkillsPiner(),
+    governance = create_governance_feature(
+        root=root,
         mover=mover,
-        default_root=root,
     )
-    maintenance = SkillsMaintenanceAgent(
-        prune=SkillsPrune(),
-        purge=SkillsPurge(),
-        default_root=root,
+    maintenance = create_maintenance_feature(
+        root=root,
     )
-    observability = ObservabilityAgent(
-        ledger=SkillsLedger(),
-        telemetry=SkillsTelemetry(),
-        scan=SkillsPhraseScan(),
-        default_root=root,
+    observability = create_observability_feature(
+        root=root,
     )
-    storage = SkillsStorageAgent(
+    storage = create_storage_feature(
+        root=root,
         archiver=archiver,
-        backup=backup or SkillsBackup(),
+        backup=backup,
         restore=restore,
-        rollback=rollback or SkillsRollback(backup or SkillsBackup()),
-        default_root=root,
+        rollback=rollback,
     )
 
     return _ComposedAggregate(
