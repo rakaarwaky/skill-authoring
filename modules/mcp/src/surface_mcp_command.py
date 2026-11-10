@@ -158,8 +158,6 @@ class SkillsMcpAdapter:
                     flags[key] = str(args[key])
         if tool == "rollback" and args.get("id"):
             flags["id"] = args["id"]
-        if tool == "ledger" and args.get("compact"):
-            flags["compact"] = "1"
         return flags
 
 

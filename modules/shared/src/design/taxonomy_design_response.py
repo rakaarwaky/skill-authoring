@@ -87,6 +87,7 @@ class SkillsResult:
     create_plan: SkillCreatePlan | None = None
     warning: str | None = None
     root: Path | None = None
+    dry_run: bool = False
 
 
 __all__ = ["SkillsExitCode", "SkillsResult"]

@@ -123,6 +123,7 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
             verb=op.value,
             records=tuple(SkillName(p["skill"]) for p in report.get("pruned", ())),
             message=str(report),
+            dry_run=dry_run,
         )
 
     def _execute_purge(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
@@ -143,4 +144,4 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
                 exit_code=1,
                 message=str(failure),
             )
-        return MaintenanceResponse(ok=True, verb=op.value, message=str(result))
+        return MaintenanceResponse(ok=True, verb=op.value, message=str(result), dry_run=dry_run)

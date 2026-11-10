@@ -16,7 +16,14 @@ _NS_ROOTS = [
     Path(__file__).resolve().parent,
     _REPO_ROOT,
 ]
-for _ns in _NS_ROOTS:
-    _ns_str = str(_ns)
-    if _ns.is_dir() and _ns_str not in sys.path:
-        sys.path.insert(0, _ns_str)
+
+
+def bootstrap_ns_roots() -> None:
+    """Insert this tree's namespace roots onto sys.path (explicit entry-point call)."""
+    for _ns in _NS_ROOTS:
+        _ns_str = str(_ns)
+        if _ns.is_dir() and _ns_str not in sys.path:
+            sys.path.insert(0, _ns_str)
+
+
+bootstrap_ns_roots()

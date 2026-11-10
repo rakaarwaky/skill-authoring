@@ -13,14 +13,12 @@ from __future__ import annotations
 
 import sys
 
-from shared.src.storage.utility_path_bootstrap import _REPO_ROOT
+from shared.src.storage.utility_path_bootstrap import bootstrap_ns_roots
 
-# Register this tree's namespace roots on sys.path before any feature
-# imports resolve; the module-level side effect in utility_path_bootstrap
-# runs here, and the root entry layer is a consumer that AES504 accepts.
-# _REPO_ROOT is intentionally discarded here — this import exists solely
-# for the side-effect path bootstrap performed at module import time.
-_ = _REPO_ROOT
+# Explicit namespace-root path bootstrap at entry (replaces import-time
+# side effect plus discard of _REPO_ROOT). AES504 consumers that need
+# _REPO_ROOT itself can import it from utility_path_bootstrap directly.
+bootstrap_ns_roots()
 
 from cli.src.surface_skills_command import cmd_skills
 from root_skills_container import default_aggregate

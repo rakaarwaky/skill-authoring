@@ -48,14 +48,13 @@ def find_repo_root(start: Path | None = None) -> Path:
     """Walk up from *start* (default: this file's directory) until a repo marker is found.
 
     The first ancestor directory containing ``.git`` or ``pyproject.toml`` wins.
-    Falls back to the depth-based ``Path(__file__).resolve().parents[7]`` if no
-    marker exists, preserving the previous default behaviour for relocated trees.
+    Raises ``SkillsUsageError`` when no marker exists anywhere up the tree.
     """
     current = (start or Path(__file__)).resolve()
     for ancestor in (current, *current.parents):
         if any((ancestor / marker).exists() for marker in _REPO_MARKERS):
             return ancestor
-    return Path(__file__).resolve().parents[7]
+    raise SkillsUsageError(f"No repo marker ({', '.join(_REPO_MARKERS)}) found from {current}")
 
 
 def relpath(path: Path, skills_root: Path) -> str:

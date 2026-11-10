@@ -354,9 +354,7 @@ def _render_list_archived(result: SkillsResult) -> int:
 
 def _render_prune(result: SkillsResult) -> int:
     pruned = result.records or ()
-    dry_run = False
-    if "'dry_run': True" in str(result.message) or '"dry_run": true' in str(result.message):
-        dry_run = True
+    dry_run = bool(result.dry_run)
     prefix = "[DRY-RUN]" if dry_run else "[OK]"
     info(f"{prefix} prune — {len(pruned)} pruned; {result.message}")
     return 0
@@ -433,7 +431,7 @@ def _print_usage() -> None:
     info(f"{BOLD()}Backup & Rollback:{RESET()}")
     info(f"{BOLD()}sac backup{RESET()}                        Create a snapshot of skills pack")
     info(f"{BOLD()}sac rollback [--id ID]{RESET()}            Restore from snapshot")
-    info(f"{BOLD()}sac ledger [--compact]{RESET()}            View or compact audit ledger")
+    info(f"{BOLD()}sac ledger{RESET()}                        View or compact audit ledger")
     print()
     info(f"{BOLD()}Note:{RESET()} move/archive/create are dry-run by default; pass --apply to write.")
     info(
@@ -679,7 +677,6 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
             flags=flags,
         )
 
-    raise SkillsUsageError(f"Unknown skills subcommand: {command}")
 
 
 # ─── Renderers ───────────────────────────────────────────────────────

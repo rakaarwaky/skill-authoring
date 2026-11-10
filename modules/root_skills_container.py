@@ -247,6 +247,7 @@ def _maintenance_response_to_result(
         message=mresp.message,
         root=mresp.root,
         records=mresp.records,
+        dry_run=mresp.dry_run,
     )
 
 
