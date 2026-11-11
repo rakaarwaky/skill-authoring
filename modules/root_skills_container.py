@@ -23,7 +23,6 @@ from discovery.src.root_discovery_container import create_discovery_feature
 from governance.src.root_governance_container import create_governance_feature
 from maintenance.src.root_maintenance_container import create_maintenance_feature
 from observability.src.root_observability_container import create_observability_feature
-from storage.src.root_storage_container import create_storage_feature
 from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.design.contract_design_aggregate import ISkillsAggregate
 from shared.src.design.contract_design_protocol import (
@@ -69,6 +68,7 @@ from shared.src.storage.taxonomy_storage_response import StorageResponse
 from storage.src.capabilities_skills_backup import SkillsBackup
 from storage.src.capabilities_skills_restore import SkillsRestore
 from storage.src.capabilities_skills_rollback import SkillsRollback
+from storage.src.root_storage_container import create_storage_feature
 
 __all__ = [
     "default_aggregate",

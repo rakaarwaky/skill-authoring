@@ -27,7 +27,9 @@ requirements are implemented.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `capabilities_skills_locker.py` implements `ISkillsLockerProtocol` (lock/unlock verbs write the `locked` sidecar flag in place). |
+| Done         | `capabilities_skills_locker.py` implements                   |
+|              | `ISkillsLockerProtocol`; lock/unlock verbs write the `locked` |
+|              | sidecar flag in place.                                         |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-08                                                   |
@@ -37,7 +39,9 @@ requirements are implemented.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `capabilities_skills_piner.py` implements `ISkillsPinerProtocol` (pin/unpin verbs write the `pinned` sidecar flag in place). |
+| Done         | `capabilities_skills_piner.py` implements                    |
+|              | `ISkillsPinerProtocol`; pin/unpin verbs write the `pinned`   |
+|              | sidecar flag in place.                                         |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-08                                                   |
@@ -47,16 +51,19 @@ requirements are implemented.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `capabilities_skills_mover.py` implements `ISkillsMoverProtocol` (plan_move is pure; apply_move re-checks containment so a symlink between plan and apply fails closed). |
+| Done         | `capabilities_skills_mover.py` implements                    |
+|              | `ISkillsMoverProtocol`; plan_move is pure; apply_move        |
+|              | re-checks containment so a symlink between plan and apply     |
+|              | fails closed.                                                  |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-08                                                   |
 
 ## Reference
 
-| Artifact | Purpose | Link |
-|----------|---------|------|
-| PRD | Business goals and scope | [PRD.md](../../PRD.md) |
-| FRD | Functional requirements specification | [FRD.md](FRD.md) |
-| Roadmap | Timeline, phasing, and dependencies | [ROADMAP.md](../../ROADMAP.md) |
+| Artifact     | Purpose                                | Link |
+|--------------|----------------------------------------|------|
+| PRD          | Business goals and scope               | [PRD.md](../../PRD.md) |
+| FRD          | Functional requirements specification  | [FRD.md](FRD.md) |
+| Roadmap      | Timeline, phasing, and dependencies    | [ROADMAP.md](../../ROADMAP.md) |
 | Architecture | System boundaries, tech stack, and infra | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

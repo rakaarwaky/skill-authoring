@@ -38,9 +38,9 @@ def test_phrases_result_has_phrases_fields() -> None:
 
 def test_execute_tool_empty_message_fallback() -> None:
     """UT-OBSERVABILITY-002: MCP execute_tool returns a meaningful fallback string."""
+    from mcp.src.surface_mcp_command import SkillsMcpAdapter
     from shared.src.design.taxonomy_design_request import SkillsOp
     from shared.src.design.taxonomy_design_response import SkillsResult
-    from mcp.src.surface_mcp_command import SkillsMcpAdapter
 
     class FakeAggregate:
         def execute(self, request):

@@ -9,11 +9,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
 from shared.src.common.taxonomy_common_vo import (
     SkillContent,
     sanitize_skill_name,
 )
+from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
 from shared.src.discovery.contract_discovery_protocol import ISkillsReaderProtocol
 from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryQuery,

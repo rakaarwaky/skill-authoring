@@ -64,7 +64,7 @@ spatial layout or color.
 ## Reference
 
 | Artifact | Purpose | Link |
-|----------|---------|------|
+| ---------- | --------- | ------ |
 | PRD | Business goals, user stories, and scope | [PRD.md](../../../../../PRD.md) |
 | Backlog | Task tracking, epics, and implementation status | [BACKLOG.md](BACKLOG.md) |
 | Roadmap | Timeline, phasing, and dependencies | [ROADMAP.md](../../../../../ROADMAP.md) |
