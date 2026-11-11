@@ -19,6 +19,7 @@ directory and placing it at `_archive/<category>/<skill>/`. No filesystem
 state is held by the agent; the archiver capability performs the move.
 
 #### Business Logic
+
 - The archiver shall resolve the skill's source directory under the pack
   root.
 - The archive destination shall be `_archive/<category>/<skill>/`.
@@ -27,12 +28,14 @@ state is held by the agent; the archiver capability performs the move.
   root before any write, and re-checked at apply time.
 
 #### Edge Cases
+
 - An archive destination that already exists shall produce a conflict
   error and overwrite nothing.
 - A computed destination that escapes the pack root shall fail closed
   before writing.
 
 #### Technical Specification
+
 | Aspect | Detail |
 |--------|--------|
 | **Input** | skill, root |
@@ -43,6 +46,7 @@ state is held by the agent; the archiver capability performs the move.
 | **Error** | MutationConflictError, SkillsUsageError |
 
 #### Test
+
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
 | An existing skill | The archiver is invoked | The skill is moved under `_archive/<category>/<skill>/` |
@@ -50,6 +54,7 @@ state is held by the agent; the archiver capability performs the move.
 | The computed destination escapes the pack root | The archiver is invoked | The operation fails closed with a containment error |
 
 #### Metric
+
 | Target Metric | Value |
 |---------------|-------|
 | Archive containment violation rate | 0 % |
@@ -71,11 +76,13 @@ manifest file, and prune old snapshots beyond the configured keep count.
   count, respecting any excluded snapshot names.
 
 #### Edge Cases
+
 - A missing pack root shall raise `SkillsRootError`.
 - A tarball extraction path that escapes the target directory shall fail
   closed.
 
 #### Technical Specification
+
 | Aspect | Detail |
 |--------|--------|
 | **Input** | root (pack root) |
@@ -86,6 +93,7 @@ manifest file, and prune old snapshots beyond the configured keep count.
 | **Error** | OSError, SkillsRootError |
 
 #### Test
+
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
 | A valid pack root | The backup capability is invoked | A snapshot directory is created |
@@ -93,6 +101,7 @@ manifest file, and prune old snapshots beyond the configured keep count.
 | The pack root is missing | The backup capability is invoked | `SkillsRootError` is raised |
 
 #### Metric
+
 | Target Metric | Value |
 |---------------|-------|
 | Snapshot creation failure rate | 0 % |
@@ -111,11 +120,13 @@ category directories and writing the pack sidecar used by every verb.
 - Bootstrap shall not fail when the root already exists.
 
 #### Edge Cases
+
 - A missing root shall be created if possible.
 - Existing category directories shall be left in place.
 - No root given shall use the default pack root.
 
 #### Technical Specification
+
 | Aspect | Detail |
 |--------|--------|
 | **Input** | root (pack root or None) |
@@ -126,6 +137,7 @@ category directories and writing the pack sidecar used by every verb.
 | **Error** | OSError |
 
 #### Test
+
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
 | No pack root exists | Bootstrap is invoked | Category directories and sidecar are created |
@@ -133,6 +145,7 @@ category directories and writing the pack sidecar used by every verb.
 | No root is given | Bootstrap is invoked | The default pack root is used |
 
 #### Metric
+
 | Target Metric | Value |
 |---------------|-------|
 | Bootstrap idempotency rate | 100 % |
@@ -151,11 +164,13 @@ re-anchoring the skill after the move.
 - Restore shall re-anchor the skill after moving it.
 
 #### Edge Cases
+
 - A skill that is not archived shall produce a not-found error.
 - A restore destination that already exists shall produce a conflict error
   and overwrite nothing.
 
 #### Technical Specification
+
 | Aspect | Detail |
 |--------|--------|
 | **Input** | skill, root |
@@ -166,6 +181,7 @@ re-anchoring the skill after the move.
 | **Error** | SkillNotFoundError, MutationConflictError |
 
 #### Test
+
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
 | An archived skill exists | Restore is invoked | The skill is restored to its live category directory |
@@ -173,6 +189,7 @@ re-anchoring the skill after the move.
 | The restore destination already exists | Restore is invoked | A conflict error is raised and nothing is overwritten |
 
 #### Metric
+
 | Target Metric | Value |
 |---------------|-------|
 | Restore success rate | 100 % |
@@ -192,12 +209,14 @@ the live tree before extraction so the operation is reversible.
 - Rollback shall reject a snapshot id containing path separators or `..`.
 
 #### Edge Cases
+
 - No snapshots available shall raise `SkillsUsageError`.
 - An invalid or escaping snapshot id shall raise `SkillsUsageError`.
 - A failed extraction shall restore the staged tree and raise
   `MutationConflictError`.
 
 #### Technical Specification
+
 | Aspect | Detail |
 |--------|--------|
 | **Input** | root, id_ (snapshot id or None) |
@@ -208,6 +227,7 @@ the live tree before extraction so the operation is reversible.
 | **Error** | OSError, SkillsUsageError, MutationConflictError |
 
 #### Test
+
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
 | No snapshots exist | Rollback is invoked | `SkillsUsageError` is raised |
@@ -216,6 +236,7 @@ the live tree before extraction so the operation is reversible.
 | Extraction fails | Rollback is invoked | The staged tree is restored and `MutationConflictError` is raised |
 
 #### Metric
+
 | Target Metric | Value |
 |---------------|-------|
 | Rollback success rate | 100 % |
