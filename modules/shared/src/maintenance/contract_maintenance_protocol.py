@@ -20,7 +20,9 @@ from shared.src.maintenance.taxonomy_maintenance_constant import (
     PURGE_TTL_DEFAULT_DAYS,
 )
 from shared.src.maintenance.taxonomy_maintenance_request import SkillsRoot
-from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
+from shared.src.maintenance.taxonomy_maintenance_response import (
+    MaintenanceResponse,
+)
 
 
 class ISkillsPrunerProtocol(ABC):

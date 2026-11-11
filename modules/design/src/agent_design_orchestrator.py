@@ -31,7 +31,9 @@ from shared.src.design.taxonomy_design_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from shared.src.discovery.contract_discovery_protocol import ISkillsCatalogProtocol
+from shared.src.discovery.contract_discovery_protocol import (
+    ISkillsCatalogProtocol,
+)
 
 __all__ = [
     "ISkillsDesignAggregate",

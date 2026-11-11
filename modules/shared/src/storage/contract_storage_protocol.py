@@ -21,7 +21,7 @@ from shared.src.design.taxonomy_design_vo import (
     MutationOutcome,
     MutationPlan,
 )
-from shared.src.storage.taxonomy_storage_request import SkillsRoot, StorageVerb
+from shared.src.storage.taxonomy_storage_request import SkillsRoot
 from shared.src.storage.taxonomy_storage_response import StorageResponse
 
 

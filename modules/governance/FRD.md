@@ -16,8 +16,8 @@ protocol seams (`ISkillsLockerProtocol`, `ISkillsPinerProtocol`,
 `ISkillsMoverProtocol`).
 
 The feature is composed with the design, discovery, maintenance,
-observability, storage, and traces agents into a single `ISkillsAggregate`
-facade that the CLI surface receives.
+observability, storage, and traces agents into a single
+`ISkillsAggregate` facade that the CLI surface receives.
 
 ## Functional Requirements
 
@@ -27,7 +27,7 @@ facade that the CLI surface receives.
 A locked skill is exempt from prune and archive sweeps; an unlocked
 skill is fair game again.
 
-#### Business Logic
+#### Business Logic — Locker
 
 - Lock sets `locked=True` in the skill's sidecar; unlock sets
   `locked=False`.
@@ -35,35 +35,37 @@ skill is fair game again.
   skill file is touched.
 - A missing skill directory is a usage error naming the skill.
 
-#### Edge Cases
+#### Edge Cases — Locker
 
 - Skill directory not found → typed error naming the skill.
 - Capability unwired → typed error before any work begins.
 
-#### Technical Specification
+#### Technical Specification — Locker
 
-| Aspect | Detail |
-| -------- | -------- |
-| **Input** | skill name; optional pack-root override |
-| **Output** | `GovernanceResponse` with ok=True, verb=lock/unlock, message carrying the sidecar write result |
-| **Protocol** | `ISkillsLockerProtocol` |
-| **Method** | `lock(skill, root)` / `unlock(skill, root)` |
-| **Event** | — |
-| **Error** | missing skill, unwired capability → typed error |
+| Aspect   | Detail                                               |
+| -------- | ---------------------------------------------------- |
+| Input    | skill name; optional pack-root override              |
+| Output   | `GovernanceResponse` with ok=True, verb=lock/unlock, |
+|          | message carrying the sidecar write result            |
+| Protocol | `ISkillsLockerProtocol`                              |
+| Method   | `lock(skill, root)` / `unlock(skill, root)`          |
+| Event    | —                                                    |
+| Error    | missing skill, unwired capability → typed error      |
 
-#### Test
+#### Test — Locker
 
-| Context | When Action | Then Observable Result |
-| --------- | ------------- | ------------------------ |
-| Existing skill | `sac skills lock <skill>` | sidecar `locked=True`, exit 0 |
-| Existing locked skill | `sac skills unlock <skill>` | sidecar `locked=False`, exit 0 |
-| Unknown skill | `sac skills lock <unknown>` | exit 2 naming the skill |
+| When Action                 | Then Observable Result         |
+| --------------------------- | ------------------------------ |
+| `sac skills lock <skill>`   | sidecar `locked=True`, exit 0  |
+| `sac skills unlock <skill>` | sidecar `locked=False`, exit 0 |
+| `sac skills lock <unknown>` | exit 2 naming the skill        |
 
-#### Metric
+#### Metric — Locker
 
-| Target Metric | Value |
-|---------------|-------|
-| Flag fidelity | a lock/unlock pair returns the sidecar to its original state |
+| Target Metric | Value                                                  |
+| ------------- | ------------------------------------------------------ |
+| Flag fidelity | a lock/unlock pair returns the sidecar to its original |
+|               | state                                                  |
 
 ### FR-GOVERNANCE-002: Mover
 
@@ -71,7 +73,7 @@ skill is fair game again.
 category under the same pack root. The move is dry-run by default;
 `--apply` writes.
 
-#### Business Logic
+#### Business Logic — Mover
 
 - Plan resolves the source skill directory, validates the target
   category name, and asserts the destination stays inside the pack
@@ -82,36 +84,40 @@ category under the same pack root. The move is dry-run by default;
   `already_in_category=True`.
 - A destination that already exists is a conflict error.
 
-#### Edge Cases
+#### Edge Cases — Mover
 
 - Target category does not exist → usage error naming the category.
 - Destination already exists → conflict error.
 - Missing `--target` flag → usage error.
 - Capability unwired → typed error before any work begins.
 
-#### Technical Specification
+#### Technical Specification — Mover
 
-| Aspect | Detail |
-| -------- | -------- |
-| **Input** | skill name, target category, pack root, `--apply` flag |
-| **Output** | `GovernanceResponse` with `MutationPlan` (dry-run) or `MutationOutcome` (apply) |
-| **Protocol** | `ISkillsMoverProtocol` |
-| **Method** | `plan_move(skill, target, root)` / `apply_move(plan)` |
-| **Event** | — |
-| **Error** | missing target, unknown category, conflict, unwired capability → typed error |
+| Aspect   | Detail                                                 |
+| -------- | ------------------------------------------------------ |
+| Input    | skill name, target category, pack root, `--apply` flag |
+| Output   | `GovernanceResponse` with `MutationPlan` (dry-run) or  |
+|          | `MutationOutcome` (apply)                              |
+| Protocol | `ISkillsMoverProtocol`                                 |
+| Method   | `plan_move(skill, target, root)` / `apply_move(plan)`  |
+| Event    | —                                                      |
+| Error    | missing target, unknown category, conflict, unwired    |
+|          | capability → typed error                               |
 
-#### Test
+#### Test — Mover
 
-| Context | When Action | Then Observable Result |
-| --------- | ------------- | ------------------------ |
-| Skill in category A, target B exists | `sac skills move <skill> --target B` | plan reports the destination, nothing written |
-| Same command + `--apply` | `sac skills move <skill> --target B --apply` | skill directory now under B, exit 0 |
-| Target category missing | `sac skills move <skill> --target C` | exit 2 naming C |
+| When Action                                  | Then Observable Result        |
+|----------------------------------------------|-------------------------------|
+| `sac skills move <skill> --target B`         | plan reports destination,     |
+|                                              |   none                        |
+| `sac skills move <skill> --target B --apply` | skill directory under B, exit |
+|                                              |   0                           |
+| `sac skills move <skill> --target C`         | exit 2 naming C               |
 
-#### Metric
+#### Metric — Mover
 
-| Target Metric | Value |
-|---------------|-------|
+| Target Metric         | Value                                 |
+| --------------------- | ------------------------------------- |
 | Containment invariant | no apply writes outside the pack root |
 
 ### FR-GOVERNANCE-003: Pinner
@@ -120,56 +126,51 @@ category under the same pack root. The move is dry-run by default;
 A pinned skill is exempt from automatic lifecycle transitions
 (archive-on-idle); an unpinned skill is subject to them.
 
-#### Business Logic
+#### Business Logic — Pinner
 
 - Pin sets `pinned=True`; unpin sets `pinned=False`.
 - The pin flag is read by the telemetry auto-transition pass; it does
   not affect lock, move, or archive on its own.
 
-#### Edge Cases
+#### Edge Cases — Pinner
 
 - Skill directory not found → typed error naming the skill.
 - Capability unwired → typed error before any work begins.
 
-#### Technical Specification
+#### Technical Specification — Pinner
 
-| Aspect | Detail |
-| -------- | -------- |
-| **Input** | skill name; optional pack-root override |
-| **Output** | `GovernanceResponse` with ok=True, verb=pin/unpin, message carrying the sidecar write result |
-| **Protocol** | `ISkillsPinerProtocol` |
-| **Method** | `pin(skill, root)` / `unpin(skill, root)` |
-| **Event** | — |
-| **Error** | missing skill, unwired capability → typed error |
+| Aspect   | Detail                                             |
+| -------- | -------------------------------------------------- |
+| Input    | skill name; optional pack-root override            |
+| Output   | `GovernanceResponse` with ok=True, verb=pin/unpin, |
+|          | message carrying the sidecar write result          |
+| Protocol | `ISkillsPinerProtocol`                             |
+| Method   | `pin(skill, root)` / `unpin(skill, root)`          |
+| Event    | —                                                  |
+| Error    | missing skill, unwired capability → typed error    |
 
-#### Test
+#### Test — Pinner
 
-| Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
-| Existing skill | `sac skills pin <skill>` | sidecar `pinned=True`, exit 0 |
-| Existing pinned skill | `sac skills unpin <skill>` | sidecar `pinned=False`, exit 0 |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Flag fidelity | a pin/unpin pair returns the sidecar to its original state |
+| When Action                | Then Observable Result         |
+| -------------------------- | ------------------------------ |
+| `sac skills pin <skill>`   | sidecar `pinned=True`, exit 0  |
+| `sac skills unpin <skill>` | sidecar `pinned=False`, exit 0 |
 
 ## Public Interface
 
-| Aspect | Detail |
-| -------- | -------- |
-| Agent | `SkillsGovernanceAgent` |
-| Aggregate | `ISkillsGovernanceAggregate` |
-| Method | `execute(request)` |
-| Request | `SkillsRequest` (op, query, root, flags) |
-| Response | `SkillsResult` (message, move_plan, root, exit_code) |
+| Aspect    | Detail                                               |
+| --------- | ---------------------------------------------------- |
+| Agent     | `SkillsGovernanceAgent`                              |
+| Aggregate | `ISkillsGovernanceAggregate`                         |
+| Method    | `execute(request)`                                   |
+| Request   | `SkillsRequest` (op, query, root, flags)             |
+| Response  | `SkillsResult` (message, move_plan, root, exit_code) |
 
 ## Reference
 
-| Artifact | Purpose | Link |
-| ---------- | --------- | ------ |
-| PRD | Business goals, user stories, and scope | [PRD.md](../../PRD.md) |
-| Backlog | Task tracking, epics, and implementation status | [BACKLOG.md](BACKLOG.md) |
-| Roadmap | Timeline, phasing, and dependencies | [ROADMAP.md](../../ROADMAP.md) |
-| Architecture | System boundaries, tech stack, and infra | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
+| Artifact     | Purpose                                  |
+| ------------ | ---------------------------------------- |
+| PRD          | [PRD.md](../../PRD.md)                   |
+| FRD          | [FRD.md](FRD.md)                         |
+| Roadmap      | [ROADMAP.md](../../ROADMAP.md)           |
+| Architecture | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

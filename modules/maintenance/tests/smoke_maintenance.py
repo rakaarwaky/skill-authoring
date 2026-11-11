@@ -5,7 +5,9 @@ Smoke-checks the maintenance agent's public surface.
 
 from __future__ import annotations
 
-from maintenance.src.agent_maintenance_orchestrator import SkillsMaintenanceAgent
+from maintenance.src.agent_maintenance_orchestrator import (
+    SkillsMaintenanceAgent,
+)
 
 
 def test_maintenance_smoke_surface() -> None:

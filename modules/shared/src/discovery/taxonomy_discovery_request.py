@@ -14,7 +14,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import NewType
+from typing import NewType, TypeVar
 
 DiscoveryQuery = NewType("DiscoveryQuery", str)
 """A skill name / identifier to look up in the pack."""
@@ -49,4 +49,7 @@ __all__ = [
     "DiscoveryRequest",
     "DiscoveryRoot",
     "DiscoveryVerb",
+    "T",
 ]
+
+T = TypeVar("T")

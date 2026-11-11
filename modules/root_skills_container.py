@@ -21,8 +21,12 @@ from pathlib import Path
 from design.src.root_design_container import create_design_feature
 from discovery.src.root_discovery_container import create_discovery_feature
 from governance.src.root_governance_container import create_governance_feature
-from maintenance.src.root_maintenance_container import create_maintenance_feature
-from observability.src.root_observability_container import create_observability_feature
+from maintenance.src.root_maintenance_container import (
+    create_maintenance_feature,
+)
+from observability.src.root_observability_container import (
+    create_observability_feature,
+)
 from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.design.contract_design_aggregate import ISkillsAggregate
 from shared.src.design.contract_design_protocol import (
@@ -48,17 +52,23 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
-from shared.src.governance.contract_governance_protocol import ISkillsMoverProtocol
+from shared.src.governance.contract_governance_protocol import (
+    ISkillsMoverProtocol,
+)
 from shared.src.governance.taxonomy_governance_request import (
     GovernanceRequest,
     GovernanceVerb,
 )
-from shared.src.governance.taxonomy_governance_response import GovernanceResponse
+from shared.src.governance.taxonomy_governance_response import (
+    GovernanceResponse,
+)
 from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceRequest,
     MaintenanceVerb,
 )
-from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
+from shared.src.maintenance.taxonomy_maintenance_response import (
+    MaintenanceResponse,
+)
 from shared.src.storage.contract_storage_protocol import ISkillsArchiverProtocol
 from shared.src.storage.taxonomy_storage_request import (
     StorageRequest,

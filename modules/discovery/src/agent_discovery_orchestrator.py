@@ -13,11 +13,13 @@ discovery-domain request/response VOs from ``taxonomy_discovery_request`` and
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TypeVar, cast
+from typing import cast
 
 from shared.src.common.taxonomy_common_error import SkillsError, SkillsRootError
 from shared.src.common.taxonomy_common_vo import SkillContent
-from shared.src.discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
+from shared.src.discovery.contract_discovery_aggregate import (
+    ISkillsDiscoveryAggregate,
+)
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
@@ -29,10 +31,9 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryRequest,
     DiscoveryRoot,
     DiscoveryVerb,
+    T,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
-
-T = TypeVar("T")
 
 __all__ = [
     "SkillsDiscoveryAgent",

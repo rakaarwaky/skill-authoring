@@ -18,8 +18,11 @@ from capabilities_skills_backup import SkillsBackup
 from capabilities_skills_bootstrap import SkillsBootstrap
 from capabilities_skills_restore import SkillsRestore
 from capabilities_skills_rollback import SkillsRollback
+
 from shared.src.common.utility_common_skills import default_pack_root
-from shared.src.storage.contract_storage_aggregate import ISkillsStorageAggregate
+from shared.src.storage.contract_storage_aggregate import (
+    ISkillsStorageAggregate,
+)
 
 __all__ = [
     "StorageContainer",

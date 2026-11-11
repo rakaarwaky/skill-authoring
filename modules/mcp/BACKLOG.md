@@ -18,58 +18,62 @@ identically through both entry points.
 
 ### DS-MCP-001: Expose all `24` sac verbs as MCP tools
 
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `surface_mcp_command.py::SkillsMcpAdapter.list_tools`        |
-|              | returns descriptors for all 24 verbs;                          |
-|              | `execute_tool` dispatches to `ISkillsAggregate.execute`.      |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-04                                                   |
+| Aspect      | Detail                                                   |
+| ----------- | -------------------------------------------------------- |
+| State       | Done                                                     |
+| Done        | `surface_mcp_command.py::SkillsMcpAdapter.list_tools`    |
+|             | returns descriptors for all 24 verbs;                    |
+|             | `execute_tool` dispatches to `ISkillsAggregate.execute`. |
+| In Progress | None                                                     |
+| Risk        | None                                                     |
+| Updated     | 2026-11-04                                               |
 
 ### DS-MCP-002: No capability import on the surface
 
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `SkillsMcpAdapter` imports only `ISkillsAggregate`,          |
-|              | `SkillsRequest`, `SkillsOp`, `SkillsResult`, `SkillQuery`;   |
-|              | composition root injects capabilities into the aggregate.    |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-04                                                   |
+| Aspect      | Detail                                                     |
+| ----------- | ---------------------------------------------------------- |
+| State       | Done                                                       |
+| Done        | `SkillsMcpAdapter` imports only `ISkillsAggregate`,        |
+|             | `SkillsRequest`, `SkillsOp`, `SkillsResult`, `SkillQuery`; |
+|             | composition root injects capabilities into the aggregate.  |
+| In Progress | None                                                       |
+| Risk        | None                                                       |
+| Updated     | 2026-11-04                                                 |
 
 ### DS-MCP-003: Reachable from the root entry layer
 
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `root_cli_entry.py` imports `SkillsMcpAdapter` from           |
-|              | `mcp.src.surface_mcp_command`, making the surface reachable   |
-|              | via the import graph (satisfies AES506).                     |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-04                                                   |
+| Aspect      | Detail                                                      |
+| ----------- | ----------------------------------------------------------- |
+| State       | Done                                                        |
+| Done        | `root_cli_entry.py` imports `SkillsMcpAdapter` from         |
+|             | `mcp.src.surface_mcp_command`, making the surface reachable |
+|             | via the import graph (satisfies AES506).                    |
+| In Progress | None                                                        |
+| Risk        | None                                                        |
+| Updated     | 2026-11-04                                                  |
 
 ### DS-MCP-004: Agent-readable result contract
 
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `execute_tool` returns a stable envelope (`ok`, `content`    |
-|              | with a single text block) drawn from `SkillsResult`; state   |
-|              | is conveyed by the textual payload, never by spatial layout  |
-|              | or color.                                                    |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-04                                                   |
+| Aspect      | Detail                                                      |
+| ----------- | ----------------------------------------------------------- |
+| State       | Done                                                        |
+| Done        | `execute_tool` returns a stable envelope (`ok`, `content`   |
+|             | with a single text block) drawn from `SkillsResult`; state  |
+|             | is conveyed by the textual payload, never by spatial layout |
+|             | or color.                                                   |
+| In Progress | None                                                        |
+| Risk        | None                                                        |
+| Updated     | 2026-11-04                                                  |
 
 ## Reference
 
-| Artifact     | Purpose                                    | Link |
-|--------------|--------------------------------------------|------|
-| PRD          | Business goals and scope                   | [PRD.md](../../../../../PRD.md) |
-| Design       | Visual & interaction contract              | [DESIGN.md](DESIGN.md) |
-| Roadmap      | Timeline, phasing, and dependencies        | [ROADMAP.md](../../../../../ROADMAP.md) |
-| Architecture | System boundaries, tech stack, and infra   | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
+| Artifact     | Purpose                                           |
+| ------------ | ------------------------------------------------- |
+| PRD          | Business goals and scope                          |
+|              | [PRD.md](../../../../../PRD.md)                   |
+| Design       | Visual & interaction contract                     |
+|              | [DESIGN.md](DESIGN.md)                            |
+| Roadmap      | Timeline, phasing, and dependencies               |
+|              | [ROADMAP.md](../../../../../ROADMAP.md)           |
+| Architecture | System boundaries, tech stack, and infra          |
+|              | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |

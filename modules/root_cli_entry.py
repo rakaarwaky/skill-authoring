@@ -21,6 +21,7 @@ from shared.src.storage.utility_path_bootstrap import bootstrap_ns_roots
 bootstrap_ns_roots()
 
 from cli.src.surface_skills_command import cmd_skills
+from mcp.src.surface_mcp_command import SkillsMcpAdapter  # noqa: F401  (AES506 surface reachability)
 from root_skills_container import default_aggregate
 
 

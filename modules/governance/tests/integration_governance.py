@@ -21,7 +21,9 @@ def _make_pack(tmp: Path, category: str, skill: str) -> Path:
 
 def test_agent_with_locker_capability_end_to_end():
     """IT-GOVERNANCE-001: agent + real locker toggles the locked sidecar flag."""
-    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import (
+        SkillsGovernanceAgent,
+    )
     from governance.src.capabilities_skills_locker import SkillsLocker
 
     with tempfile.TemporaryDirectory() as d:
@@ -37,7 +39,9 @@ def test_agent_with_locker_capability_end_to_end():
 
 def test_agent_with_piner_capability_end_to_end():
     """IT-GOVERNANCE-002: agent + real piner toggles the pinned sidecar flag."""
-    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import (
+        SkillsGovernanceAgent,
+    )
     from governance.src.capabilities_skills_piner import SkillsPiner
 
     with tempfile.TemporaryDirectory() as d:

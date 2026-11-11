@@ -30,7 +30,9 @@ from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceVerb,
     SkillsRoot,
 )
-from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
+from shared.src.maintenance.taxonomy_maintenance_response import (
+    MaintenanceResponse,
+)
 from shared.src.maintenance.taxonomy_maintenance_vo import MaintenanceOpId
 from shared.src.maintenance.utility_lifecycle_support import (
     ACTIVE,

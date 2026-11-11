@@ -22,7 +22,9 @@ if str(_MOD_ROOT) not in sys.path:
 
 def bench_agent_construction():
     """Benchmark: construct the governance agent with mocked capabilities."""
-    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import (
+        SkillsGovernanceAgent,
+    )
 
     iterations = 1000
     start = time.perf_counter()
@@ -37,7 +39,9 @@ def bench_agent_construction():
 
 def bench_agent_execute_dispatch():
     """Benchmark: execute() dispatch overhead for a governance op."""
-    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import (
+        SkillsGovernanceAgent,
+    )
     from shared.src.design.taxonomy_design_request import (
         SkillQuery,
         SkillsOp,

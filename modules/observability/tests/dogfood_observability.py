@@ -7,7 +7,10 @@ Skips when no live fixture is available.
 from __future__ import annotations
 
 import pytest
-from observability.src.agent_observability_orchestrator import ObservabilityAgent
+
+from observability.src.agent_observability_orchestrator import (
+    ObservabilityAgent,
+)
 from shared.src.design.taxonomy_design_request import SkillsRequest
 
 

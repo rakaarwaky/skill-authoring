@@ -14,33 +14,45 @@ composition root.
 
 ### DS-CLI-001: Route `sac skills` verbs to the aggregate
 
-| Variant | Use case | Token | Value |
-|---------|----------|-------|-------|
-| list | List every skill in the pack | `SkillsOp.LIST` | `ISkillsAggregate.execute` |
-| read | Print a skill's SKILL.md | `SkillsOp.READ` | `ISkillsAggregate.execute` |
-| lint | Lint scan all skills | `SkillsOp.LINT` | `ISkillsAggregate.execute` |
-| catalog | Build and/or print catalog.json | `SkillsOp.CATALOG` | `ISkillsAggregate.execute` |
-| discover | Search the catalog | `SkillsOp.DISCOVER` | `ISkillsAggregate.execute` |
-| move | Move a skill to a category | `SkillsOp.MOVE` | `ISkillsAggregate.execute` |
-| archive | Archive a skill into _archive/ | `SkillsOp.ARCHIVE` | `ISkillsAggregate.execute` |
-| create | Create a skill or category | `SkillsOp.CREATE` | `ISkillsAggregate.execute` |
+| Variant    | Use case            | Token               | Value               |
+| ---------- | ------------------- | ------------------- | ------------------- |
+| list       | List every skill    | `SkillsOp.LIST`     | `ISkillsAggregate   |
+|            | in the pack         |                     | .execute`           |
+| read       | Print a skill's     | `SkillsOp.READ`     | `ISkillsAggregate   |
+|            | SKILL.md            |                     | .execute`           |
+| lint       | Lint scan all       | `SkillsOp.LINT`     | `ISkillsAggregate   |
+|            | skills              |                     | .execute`           |
+| catalog    | Build and/or        | `SkillsOp.CATALOG   | `ISkillsAggregate   |
+|            | print               | `                   | .execute`           |
+|            | catalog.json        |                     |                     |
+| discover   | Search the          | `SkillsOp.DISCOVE   | `ISkillsAggregate   |
+|            | catalog             | R`                  | .execute`           |
+| move       | Move a skill to a   | `SkillsOp.MOVE`     | `ISkillsAggregate   |
+|            | category            |                     | .execute`           |
+| archive    | Archive a skill     | `SkillsOp.ARCHIVE   | `ISkillsAggregate   |
+|            | into _archive/      | `                   | .execute`           |
+| create     | Create a skill or   | `SkillsOp.CREATE`   | `ISkillsAggregate   |
+|            | category            |                     | .execute`           |
 
 ### DS-CLI-002: Tri-state catalog build/read flags
 
-| Flag state | Meaning | Behavior |
-|------------|---------|----------|
-| neither `--build` nor `--read` | both | build then read |
-| `--build` only | build | rebuild catalog.json, print counts line |
-| `--read` only | read | print current catalog.json content |
+| Flag state                     | Meaning   | Behavior                        |
+| ------------------------------ | --------- | ------------------------------- |
+| neither `--build` nor          | both      | build then read                 |
+| `--read`                       |           |                                 |
+| `--build` only                 | build     | rebuild catalog.json, print     |
+|                                |           | counts line                     |
+| `--read` only                  | read      | print current catalog.json      |
+|                                |           | content                         |
 
 ### DS-CLI-003: Exit-code contract
 
-| Outcome | Exit code |
-|---------|-----------|
-| clean | 0 |
-| issues found | 1 |
-| usage error | 2 |
-| catalog drift | 3 |
+| Outcome         | Exit code   |
+| --------------- | ----------- |
+| clean           | 0           |
+| issues found    | 1           |
+| usage error     | 2           |
+| catalog drift   | 3           |
 
 ### DS-CLI-004: No capability import on the surface
 
@@ -63,9 +75,13 @@ output are distinguished by text markers alone, with and without color.
 
 ## Reference
 
-| Artifact | Purpose | Link |
-|----------|---------|------|
-| PRD | Business goals, user stories, and scope | [PRD.md](../../../../../PRD.md) |
-| Backlog | Task tracking, epics, and implementation status | [BACKLOG.md](BACKLOG.md) |
-| Roadmap | Timeline, phasing, and dependencies | [ROADMAP.md](../../../../../ROADMAP.md) |
-| Architecture | System boundaries, tech stack, and infra | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
+| Artifact       | Purpose                      | Link                         |
+| -------------- | ---------------------------- | ---------------------------- |
+| PRD            | Business goals, user         | [PRD.md](../../../../../PR   |
+|                | stories, and scope           | D.md)                        |
+| Backlog        | Task tracking, epics, and    | [BACKLOG.md](BACKLOG.md)     |
+|                | implementation status        |                              |
+| Roadmap        | Timeline, phasing, and       | [ROADMAP.md](../../../../.   |
+|                | dependencies                 | ./ROADMAP.md)                |
+| Architecture   | System boundaries, tech      | [ARCHITECTURE.md](../../..   |
+|                | stack, and infra             | /../../ARCHITECTURE.md)      |

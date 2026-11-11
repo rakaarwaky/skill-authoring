@@ -31,11 +31,11 @@ class ISkillsLockerProtocol(ABC):
     """Locker capability: lock/unlock verbs."""
 
     @abstractmethod
-    def lock(self, skill: SkillName, root: Path | None = None) -> dict:
+    def lock(self, skill: SkillName, root: Path | None = None) -> LockState:
         ...
 
     @abstractmethod
-    def unlock(self, skill: SkillName, root: Path | None = None) -> dict:
+    def unlock(self, skill: SkillName, root: Path | None = None) -> LockState:
         ...
 
 
@@ -43,11 +43,11 @@ class ISkillsPinerProtocol(ABC):
     """Piner capability: pin/unpin verbs."""
 
     @abstractmethod
-    def pin(self, skill: SkillName, root: Path | None = None) -> dict:
+    def pin(self, skill: SkillName, root: Path | None = None) -> PinState:
         ...
 
     @abstractmethod
-    def unpin(self, skill: SkillName, root: Path | None = None) -> dict:
+    def unpin(self, skill: SkillName, root: Path | None = None) -> PinState:
         ...
 
 

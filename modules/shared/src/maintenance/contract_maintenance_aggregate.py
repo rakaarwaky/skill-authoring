@@ -20,8 +20,12 @@ from shared.src.maintenance.taxonomy_maintenance_error import (
     MaintenanceError,
     SkillNotArchivedError,
 )
-from shared.src.maintenance.taxonomy_maintenance_request import MaintenanceRequest
-from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
+from shared.src.maintenance.taxonomy_maintenance_request import (
+    MaintenanceRequest,
+)
+from shared.src.maintenance.taxonomy_maintenance_response import (
+    MaintenanceResponse,
+)
 from shared.src.maintenance.taxonomy_maintenance_vo import MaintenanceOpId
 
 __all__ = [

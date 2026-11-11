@@ -5,7 +5,9 @@ Performance regression benchmark for the maintenance agent's op dispatch path.
 
 from __future__ import annotations
 
-from maintenance.src.agent_maintenance_orchestrator import SkillsMaintenanceAgent
+from maintenance.src.agent_maintenance_orchestrator import (
+    SkillsMaintenanceAgent,
+)
 from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceRequest,
     MaintenanceVerb,

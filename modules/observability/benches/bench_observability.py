@@ -6,7 +6,9 @@ Side-effect free: dispatches an unknown op so no capability I/O is exercised.
 
 from __future__ import annotations
 
-from observability.src.agent_observability_orchestrator import ObservabilityAgent
+from observability.src.agent_observability_orchestrator import (
+    ObservabilityAgent,
+)
 from shared.src.design.taxonomy_design_request import SkillsRequest
 
 

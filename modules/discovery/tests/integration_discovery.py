@@ -18,6 +18,7 @@ from capabilities_discovery_catalog import SkillsCatalog
 from capabilities_discovery_finder import SkillsDiscover
 from capabilities_discovery_lister import SkillsLister
 from capabilities_discovery_reader import SkillsPackReader
+
 from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryQuery,
     DiscoveryRequest,

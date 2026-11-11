@@ -15,8 +15,13 @@ from shared.src.common.taxonomy_common_vo import (
     SkillRecord,
     SkillsJsonPayload,
 )
-from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
-from shared.src.discovery.contract_discovery_protocol import ISkillsListerProtocol
+from shared.src.common.utility_common_skills import (
+    default_pack_root,
+    iter_skill_mds,
+)
+from shared.src.discovery.contract_discovery_protocol import (
+    ISkillsListerProtocol,
+)
 from shared.src.discovery.taxonomy_discovery_request import DiscoveryRoot
 from shared.src.storage.utility_skill_pack import (
     parse_skill_frontmatter,

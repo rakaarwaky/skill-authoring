@@ -16,7 +16,9 @@ from shared.src.governance.taxonomy_governance_request import (
 
 
 def _make_agent(pack: Path):
-    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import (
+        SkillsGovernanceAgent,
+    )
     from governance.src.capabilities_skills_locker import SkillsLocker
     from governance.src.capabilities_skills_mover import SkillsMover
     from governance.src.capabilities_skills_piner import SkillsPiner

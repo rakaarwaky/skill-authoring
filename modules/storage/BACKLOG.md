@@ -17,59 +17,76 @@ typed `StorageResponse`.
 
 ### FR-storage-001: Orchestrate archive and restore operations
 
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `SkillsArchiver` and `SkillsRestore` implement their protocols; `SkillsStorageAgent` routes ARCHIVE and RESTORE |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Aspect      | Detail      |
+| ----------- | ----------- |
+| State       | Done        |
+| Done        | Wired       |
+| In Progress | None        |
+| Risk        | None        |
+| Updated     | 2026-11-09  |
+
+`SkillsArchiver` and `SkillsRestore` implement their protocols;
+`SkillsStorageAgent` routes ARCHIVE and RESTORE.
 
 ### FR-storage-002: Backup snapshot creation and pruning
 
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `SkillsBackup` implements create_snapshot and prune_old_snapshots |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Aspect      | Detail      |
+| ----------- | ----------- |
+| State       | Done        |
+| Done        | Wired       |
+| In Progress | None        |
+| Risk        | None        |
+| Updated     | 2026-11-09  |
+
+`SkillsBackup` implements `create_snapshot` and `prune_old_snapshots`.
 
 ### FR-storage-003: Rollback snapshot restoration
 
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `SkillsRollback` restores the pack tree from a stored snapshot |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Aspect      | Detail      |
+| ----------- | ----------- |
+| State       | Done        |
+| Done        | Wired       |
+| In Progress | None        |
+| Risk        | None        |
+| Updated     | 2026-11-09  |
+
+`SkillsRollback` restores the pack tree from a stored snapshot.
 
 ### FR-storage-004: Storage agent wiring and contract
 
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `ISkillsStorageAggregate` in `shared/src/storage/`; agent registered in root |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Aspect      | Detail      |
+| ----------- | ----------- |
+| State       | Done        |
+| Done        | Wired       |
+| In Progress | None        |
+| Risk        | None        |
+| Updated     | 2026-11-09  |
+
+`ISkillsStorageAggregate` in `shared/src/storage/`; agent registered in
+root.
 
 ### FR-storage-005: Bootstrap a skill pack root
 
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `SkillsBootstrap` implements bootstrap; standard category directories and pack sidecar are created |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-11-09                                                   |
+| Aspect      | Detail      |
+| ----------- | ----------- |
+| State       | Done        |
+| Done        | Wired       |
+| In Progress | None        |
+| Risk        | None        |
+| Updated     | 2026-11-09  |
+
+`SkillsBootstrap` implements bootstrap; standard category directories
+and pack sidecar are created.
 
 ## Reference
 
-| Artifact     | Purpose                                    | Link |
-|--------------|--------------------------------------------|------|
-| PRD          | Business goals and scope                   | [PRD.md](../../../../../PRD.md) |
-| FRD          | Functional requirements                    | [FRD.md](FRD.md) |
-| Roadmap      | Timeline, phasing, and dependencies        | [ROADMAP.md](../../../../../ROADMAP.md) |
-| Architecture | System boundaries, tech stack, and infra   | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
+| Artifact     | Purpose                                  |
+| ------------ | ---------------------------------------- |
+| PRD          | Business goals and scope                 |
+| FRD          | Functional requirements                  |
+| Roadmap      | Timeline, phasing, and dependencies      |
+| Architecture | System boundaries, tech stack, and infra |
+
+Links: [PRD.md](../../../../../PRD.md), [FRD.md](FRD.md),
+[ROADMAP.md](../../../../../ROADMAP.md),
+[ARCHITECTURE.md](../../../../../ARCHITECTURE.md)

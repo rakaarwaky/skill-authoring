@@ -11,7 +11,10 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import SkillsRoot
-from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
+from shared.src.common.utility_common_skills import (
+    default_pack_root,
+    iter_skill_mds,
+)
 from shared.src.design.contract_design_protocol import (
     ISkillsRunnerProtocol,
 )

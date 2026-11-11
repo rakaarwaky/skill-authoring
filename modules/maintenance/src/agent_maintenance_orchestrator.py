@@ -26,7 +26,9 @@ from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceVerb,
     SkillsRoot,
 )
-from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
+from shared.src.maintenance.taxonomy_maintenance_response import (
+    MaintenanceResponse,
+)
 
 __all__ = [
     "ISkillsMaintenanceAggregate",
