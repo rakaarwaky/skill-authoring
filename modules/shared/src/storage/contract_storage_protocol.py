@@ -15,11 +15,9 @@ from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import (
     EntryId,
-    SkillName,
-)
-from shared.src.design.taxonomy_design_vo import (
     MutationOutcome,
     MutationPlan,
+    SkillName,
 )
 from shared.src.storage.taxonomy_storage_request import SkillsRoot
 from shared.src.storage.taxonomy_storage_response import StorageResponse

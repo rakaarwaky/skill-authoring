@@ -25,8 +25,10 @@ from collections.abc import Iterator
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_constant import (
+    ASSETS_MARKER_FILENAME,
     CATALOG_FILENAME,
     IGNORED_CATEGORY_DIRS,
+    PACK_MARKER_FILENAME,
 )
 from shared.src.common.taxonomy_common_entity import (
     CategorySummary,
@@ -35,9 +37,7 @@ from shared.src.common.taxonomy_common_entity import (
 from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.design.contract_design_protocol import ISkillsLinterProtocol
 from shared.src.design.taxonomy_design_constant import (
-    ASSETS_MARKER_FILENAME,
     MAX_DESCRIPTION_LEN,
-    PACK_MARKER_FILENAME,
 )
 from shared.src.design.taxonomy_design_entity import (
     Issue,

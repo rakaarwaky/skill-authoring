@@ -14,12 +14,12 @@ from abc import ABC, abstractmethod
 
 from shared.src.common.taxonomy_common_vo import (
     CategoryName,
+    MutationOutcome,
     SkillName,
     SkillsRoot,
 )
 from shared.src.design.taxonomy_design_vo import (
     LintReport,
-    MutationOutcome,
     NewCategoryPlan,
     SkillCreatePlan,
 )

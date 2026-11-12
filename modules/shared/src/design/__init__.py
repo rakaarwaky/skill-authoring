@@ -24,6 +24,9 @@ from shared.src.common.taxonomy_common_vo import (
     CategoryName,
     DiscoveryMatch,
     DiscoveryResult,
+    MutationOutcome,
+    MutationPlan,
+    MutationStep,
     SkillContent,
     SkillDescription,
     SkillName,
@@ -52,9 +55,6 @@ from shared.src.design.taxonomy_design_response import (
 )
 from shared.src.design.taxonomy_design_vo import (
     LintReport,
-    MutationOutcome,
-    MutationPlan,
-    MutationStep,
     NewCategoryPlan,
     SkillCreatePlan,
     TelemetryRow,

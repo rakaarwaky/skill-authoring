@@ -31,13 +31,13 @@ if TYPE_CHECKING:
         CatalogCheckResult,
         CatalogReport,
         DiscoveryMatch,
+        MutationOutcome,
+        MutationPlan,
         SkillContent,
         SkillRecord,
     )
     from shared.src.design.taxonomy_design_vo import (
         LintReport,
-        MutationOutcome,
-        MutationPlan,
         NewCategoryPlan,
         SkillCreatePlan,
     )

@@ -5,7 +5,7 @@ package surface and the command module share one implementation — no
 duplication between the barrel and the module.
 """
 
-from .surface_mcp_command import SkillsMcpAdapter
+from .src.surface_mcp_command import SkillsMcpAdapter
 
 __all__ = ["SkillsMcpAdapter"]
 

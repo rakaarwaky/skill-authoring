@@ -27,12 +27,9 @@ from shared.src.common.taxonomy_common_vo import (
     SkillName,
     SkillsRoot,
 )
+from shared.src.common.utility_common_skills import assert_within_root, resolve_skill_dir
 from shared.src.maintenance.utility_lifecycle_support import archive_skill
-from shared.src.maintenance.utility_skills_mutation import (
-    archive_root,
-    assert_within_root,
-    resolve_skill_dir,
-)
+from shared.src.maintenance.utility_skills_mutation import archive_root
 from shared.src.storage.contract_storage_protocol import (
     ISkillsArchiverProtocol,
 )

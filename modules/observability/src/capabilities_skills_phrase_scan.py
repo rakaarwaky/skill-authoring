@@ -14,16 +14,17 @@ import re
 from collections import Counter, defaultdict
 from urllib.parse import unquote
 
-from shared.src.observability.contract_traces_protocol import (
+from shared.src.observability.contract_observability_protocol import (
     ISkillsTracesProtocol,
 )
-from shared.src.observability.taxonomy_traces_vo import (
+from shared.src.observability.taxonomy_observability_entity import (
+    TraceSessionRecord,
+)
+from shared.src.observability.taxonomy_observability_vo import (
     GrokHome,
     PhraseRow,
     PhrasesReport,
-    ScanResult,
     TraceRunDir,
-    TraceSessionRecord,
 )
 
 __all__ = ["SkillsPhraseScan"]

@@ -13,10 +13,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from shared.src.common.taxonomy_common_vo import EntryId, SkillName, SkillsRoot
+from shared.src.common.taxonomy_common_vo import (
+    EntryId,
+    MutationOutcome,
+    SkillName,
+    SkillsRoot,
+)
 from shared.src.design.taxonomy_design_vo import (
     LedgerEntry,
-    MutationOutcome,
     TelemetryRow,
 )
 from shared.src.observability.taxonomy_observability_constant import (

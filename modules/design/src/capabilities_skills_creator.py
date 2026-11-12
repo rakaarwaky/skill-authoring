@@ -25,6 +25,10 @@ from shared.src.common.taxonomy_common_vo import (
     SkillName,
     SkillsRoot,
 )
+from shared.src.common.utility_common_skills import (
+    assert_within_root,
+    validate_category_name,
+)
 from shared.src.design.contract_design_protocol import (
     ISkillsCreatorProtocol,
 )
@@ -33,8 +37,6 @@ from shared.src.design.taxonomy_design_vo import (
     SkillCreatePlan,
 )
 from shared.src.maintenance.utility_skills_mutation import (
-    assert_within_root,
-    validate_category_name,
     write_category_description,
 )
 
