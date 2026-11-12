@@ -1,8 +1,8 @@
-# PRD — skill-design
+# PRD — Skill Authoring
 
 ## Project Overview
 
-skill-design is the skill-authoring skill that keeps the skill tree clean, correct, and consolidated. It reads agent `SKILL.md` skill directories and runs one of three modes per invocation: `--create` builds a publishable `SKILL.md` plus its `references/` from a described job, `--improve` audits an existing skill against the shared lint standard and applies the repair edit recipe, and `--prune` collapses duplicate or same-purpose skills into one folder and archives the dropped duplicates. Every fact in a skill lives once, in a single authoritative home; every flag and mode term stays in lockstep across `SKILL.md` and its reference files. The skill exists so that AI coding agents (GrokBuild via Orca, Hermes, and others) always work from skill bodies that invoke correctly, carry no dangling refs, and contain no overlapping folders.
+Skill Authoring is the skill-authoring skill that keeps the skill tree clean, correct, and consolidated. It reads agent `SKILL.md` skill directories and runs one of three modes per invocation: `--create` builds a publishable `SKILL.md` plus its `references/` from a described job, `--improve` audits an existing skill against the shared lint standard and applies the repair edit recipe, and `--prune` collapses duplicate or same-purpose skills into one folder and archives the dropped duplicates. Every fact in a skill lives once, in a single authoritative home; every flag and mode term stays in lockstep across `SKILL.md` and its reference files. The skill exists so that AI coding agents (GrokBuild via Orca, Hermes, and others) always work from skill bodies that invoke correctly, carry no dangling refs, and contain no overlapping folders.
 
 ## Goals
 

@@ -1,4 +1,4 @@
-# CONTRIBUTING — skill-design
+# CONTRIBUTING — Skill Authoring
 
 ## Contribution Overview
 

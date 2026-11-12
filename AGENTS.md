@@ -1,13 +1,13 @@
 ---
 trigger: always
-description: "AGENTS.md operational guide for skill-design pack."
+description: "AGENTS.md operational guide for Skill Authoring pack."
 ---
 
-# AGENTS — skill-design
+# AGENTS — Skill Authoring
 
 ## Agent Overview
 
-skill-design is the skill-authoring skill that keeps the skill tree clean, correct, and consolidated. It runs one of three modes per invocation: `--create` builds a publishable `SKILL.md` plus its `references/` from a described job, `--improve` audits an existing skill against the shared lint standard and applies the repair edit recipe, and `--prune` collapses duplicate or same-purpose skills into one folder and archives the dropped duplicates. Agents generating code, docs, or suggestions must only edit files under `skills/skill-authoring/skill-design/` and must keep every flag and mode term in lockstep across `SKILL.md` and its reference files.
+Skill Authoring is the skill-authoring skill that keeps the skill tree clean, correct, and consolidated. It runs one of three modes per invocation: `--create` builds a publishable `SKILL.md` plus its `references/` from a described job, `--improve` audits an existing skill against the shared lint standard and applies the repair edit recipe, and `--prune` collapses duplicate or same-purpose skills into one folder and archives the dropped duplicates. Agents generating code, docs, or suggestions must only edit files under `skills/skill-authoring/skill-design/` and must keep every flag and mode term in lockstep across `SKILL.md` and its reference files.
 
 ## Runtime
 
