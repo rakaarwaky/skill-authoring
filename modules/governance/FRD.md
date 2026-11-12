@@ -16,8 +16,8 @@ protocol seams (`ISkillsLockerProtocol`, `ISkillsPinerProtocol`,
 `ISkillsMoverProtocol`).
 
 The feature is composed with the design, discovery, maintenance,
-observability, storage, and traces agents into a single `ISkillsAggregate`
-facade that the CLI surface receives.
+observability, storage, and traces agents into a single
+`ISkillsAggregate` facade that the CLI surface receives.
 
 ## Functional Requirements
 
@@ -43,7 +43,7 @@ skill is fair game again.
 #### Technical Specification
 
 | Aspect | Detail |
-| -------- | -------- |
+|--------|--------|
 | **Input** | skill name; optional pack-root override |
 | **Output** | `GovernanceResponse` with ok=True, verb=lock/unlock, message carrying the sidecar write result |
 | **Protocol** | `ISkillsLockerProtocol` |
@@ -54,10 +54,10 @@ skill is fair game again.
 #### Test
 
 | Context | When Action | Then Observable Result |
-| --------- | ------------- | ------------------------ |
-| Existing skill | `sac skills lock <skill>` | sidecar `locked=True`, exit 0 |
-| Existing locked skill | `sac skills unlock <skill>` | sidecar `locked=False`, exit 0 |
-| Unknown skill | `sac skills lock <unknown>` | exit 2 naming the skill |
+|---------|-------------|------------------------|
+| `sac skills lock <skill>` | The caller runs | sidecar `locked=True`, exit 0 |
+| `sac skills unlock <skill>` | The caller runs | sidecar `locked=False`, exit 0 |
+| `sac skills lock <unknown>` | The caller runs | exit 2 naming the skill |
 
 #### Metric
 
@@ -92,7 +92,7 @@ category under the same pack root. The move is dry-run by default;
 #### Technical Specification
 
 | Aspect | Detail |
-| -------- | -------- |
+|--------|--------|
 | **Input** | skill name, target category, pack root, `--apply` flag |
 | **Output** | `GovernanceResponse` with `MutationPlan` (dry-run) or `MutationOutcome` (apply) |
 | **Protocol** | `ISkillsMoverProtocol` |
@@ -103,10 +103,10 @@ category under the same pack root. The move is dry-run by default;
 #### Test
 
 | Context | When Action | Then Observable Result |
-| --------- | ------------- | ------------------------ |
-| Skill in category A, target B exists | `sac skills move <skill> --target B` | plan reports the destination, nothing written |
-| Same command + `--apply` | `sac skills move <skill> --target B --apply` | skill directory now under B, exit 0 |
-| Target category missing | `sac skills move <skill> --target C` | exit 2 naming C |
+|---------|-------------|------------------------|
+| `sac skills move <skill> --target B` | The caller runs | plan reports destination, none |
+| `sac skills move <skill> --target B --apply` | The caller runs | skill directory under B, exit 0 |
+| `sac skills move <skill> --target C` | The caller runs | exit 2 naming C |
 
 #### Metric
 
@@ -134,7 +134,7 @@ A pinned skill is exempt from automatic lifecycle transitions
 #### Technical Specification
 
 | Aspect | Detail |
-| -------- | -------- |
+|--------|--------|
 | **Input** | skill name; optional pack-root override |
 | **Output** | `GovernanceResponse` with ok=True, verb=pin/unpin, message carrying the sidecar write result |
 | **Protocol** | `ISkillsPinerProtocol` |
@@ -146,30 +146,24 @@ A pinned skill is exempt from automatic lifecycle transitions
 
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
-| Existing skill | `sac skills pin <skill>` | sidecar `pinned=True`, exit 0 |
-| Existing pinned skill | `sac skills unpin <skill>` | sidecar `pinned=False`, exit 0 |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Flag fidelity | a pin/unpin pair returns the sidecar to its original state |
+| `sac skills pin <skill>` | The caller runs | sidecar `pinned=True`, exit 0 |
+| `sac skills unpin <skill>` | The caller runs | sidecar `pinned=False`, exit 0 |
 
 ## Public Interface
 
-| Aspect | Detail |
-| -------- | -------- |
-| Agent | `SkillsGovernanceAgent` |
-| Aggregate | `ISkillsGovernanceAggregate` |
-| Method | `execute(request)` |
-| Request | `SkillsRequest` (op, query, root, flags) |
-| Response | `SkillsResult` (message, move_plan, root, exit_code) |
+| Aspect    | Detail                                               |
+| --------- | ---------------------------------------------------- |
+| Agent     | `SkillsGovernanceAgent`                              |
+| Aggregate | `ISkillsGovernanceAggregate`                         |
+| Method    | `execute(request)`                                   |
+| Request   | `SkillsRequest` (op, query, root, flags)             |
+| Response  | `SkillsResult` (message, move_plan, root, exit_code) |
 
 ## Reference
 
-| Artifact | Purpose | Link |
-| ---------- | --------- | ------ |
-| PRD | Business goals, user stories, and scope | [PRD.md](../../PRD.md) |
-| Backlog | Task tracking, epics, and implementation status | [BACKLOG.md](BACKLOG.md) |
-| Roadmap | Timeline, phasing, and dependencies | [ROADMAP.md](../../ROADMAP.md) |
-| Architecture | System boundaries, tech stack, and infra | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
+| Artifact     | Purpose                                         | Link |
+|--------------|-------------------------------------------------|------|
+| PRD          | Business goals and scope                        | [PRD.md](../../PRD.md) |
+| Backlog      | Task tracking and implementation status         | [BACKLOG.md](BACKLOG.md) |
+| Roadmap      | Timeline, phasing, and dependencies             | [ROADMAP.md](../../ROADMAP.md) |
+| Architecture | System boundaries, tech stack, and infra        | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

@@ -30,6 +30,7 @@ from shared.src.common.taxonomy_common_error import (
 __all__ = [
     "assert_within_root",
     "default_pack_root",
+    "find_repo_root",
     "find_skill_dir",
     "iter_skill_mds",
     "relpath",
@@ -37,6 +38,23 @@ __all__ = [
     "set_field",
     "validate_category_name",
 ]
+
+
+# Repo markers recognized by ``find_repo_root``.
+_REPO_MARKERS = (".git", "pyproject.toml")
+
+
+def find_repo_root(start: Path | None = None) -> Path:
+    """Walk up from *start* (default: this file's directory) until a repo marker is found.
+
+    The first ancestor directory containing ``.git`` or ``pyproject.toml`` wins.
+    Raises ``SkillsUsageError`` when no marker exists anywhere up the tree.
+    """
+    current = (start or Path(__file__)).resolve()
+    for ancestor in (current, *current.parents):
+        if any((ancestor / marker).exists() for marker in _REPO_MARKERS):
+            return ancestor
+    raise SkillsUsageError(f"No repo marker ({', '.join(_REPO_MARKERS)}) found from {current}")
 
 
 def relpath(path: Path, skills_root: Path) -> str:
@@ -111,7 +129,8 @@ def validate_category_name(name: str) -> None:
 
 
 def default_pack_root() -> Path:
-    return Path(__file__).resolve().parents[7]
+    """Return the default pack root path (repo root resolved via marker discovery)."""
+    return find_repo_root()
 
 
 def iter_skill_mds(pack_root: Path) -> list[Path]:

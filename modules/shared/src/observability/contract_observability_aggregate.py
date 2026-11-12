@@ -23,7 +23,9 @@ from shared.src.observability.contract_observability_protocol import (
     ISkillsTelemetryProtocol,
     ISkillsTracesProtocol,
 )
-from shared.src.observability.taxonomy_observability_request import ObservabilityOp
+from shared.src.observability.taxonomy_observability_request import (
+    ObservabilityOp,
+)
 from shared.src.observability.taxonomy_observability_response import (
     ObservabilityExitCode,
 )

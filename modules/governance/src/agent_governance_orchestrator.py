@@ -9,7 +9,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import cast
 
-from shared.src.common.taxonomy_common_constant import EXIT_ISSUES_FOUND, EXIT_USAGE
+from shared.src.common.taxonomy_common_constant import (
+    EXIT_ISSUES_FOUND,
+    EXIT_USAGE,
+)
 from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
@@ -28,7 +31,9 @@ from shared.src.governance.taxonomy_governance_request import (
     GovernanceRequest,
     GovernanceVerb,
 )
-from shared.src.governance.taxonomy_governance_response import GovernanceResponse
+from shared.src.governance.taxonomy_governance_response import (
+    GovernanceResponse,
+)
 
 __all__ = [
     "ISkillsGovernanceAggregate",

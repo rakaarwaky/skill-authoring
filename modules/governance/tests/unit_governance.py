@@ -11,7 +11,9 @@ from shared.src.governance.taxonomy_governance_request import (
 
 
 def _agent():
-    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import (
+        SkillsGovernanceAgent,
+    )
 
     locker = MagicMock()
     piner = MagicMock()
@@ -64,9 +66,10 @@ def test_agent_unknown_op_returns_usage_error():
 
 def test_agent_missing_capability_raises():
     """UT-GOVERNANCE-005: dispatching to an unwired capability raises."""
+    from governance.src.agent_governance_orchestrator import (
+        SkillsGovernanceAgent,
+    )
     from shared.src.common.taxonomy_common_error import SkillsRootError
-
-    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
 
     agent = SkillsGovernanceAgent(locker=None, piner=None, mover=None)
     req = GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("skill-a"))

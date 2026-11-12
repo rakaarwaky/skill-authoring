@@ -9,13 +9,17 @@ The public entry point is ``SkillsMcpAdapter``.
 """
 from __future__ import annotations
 
+from shared.src.common.taxonomy_common_error import SkillsUsageError
 from shared.src.design.contract_design_aggregate import ISkillsAggregate
 from shared.src.design.taxonomy_design_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
 )
-from shared.src.design.taxonomy_design_response import SkillsResult
+from shared.src.design.taxonomy_design_response import (
+    SkillsExitCode,
+    SkillsResult,
+)
 
 __all__ = ["SkillsMcpAdapter"]
 
@@ -34,7 +38,7 @@ class SkillsMcpAdapter:
     # ── Tool registry ───────────────────────────────────────────────
 
     def list_tools(self) -> list[dict]:
-        """Return MCP tool descriptors, one per sac verb (24 tools)."""
+        """Return MCP tool descriptors, one per sac verb (23 tools)."""
         return [
             {"name": "sac_list", "description": "List all skills in the pack"},
             {"name": "sac_read", "description": "Print a skill's SKILL.md"},
@@ -68,7 +72,12 @@ class SkillsMcpAdapter:
         result = self._dispatch(tool_name, arguments)
         return {
             "ok": result.ok,
-            "content": [{"type": "text", "text": result.message or str(result)}],
+            "content": [
+                {
+                    "type": "text",
+                    "text": result.message or f"{result.op}: exit {result.exit_code}",
+                }
+            ],
         }
 
     # ── Internals ──────────────────────────────────────────────────
@@ -103,10 +112,18 @@ class SkillsMcpAdapter:
         try:
             return mapping[tool]
         except KeyError:
-            return SkillsOp.LIST
+            raise SkillsUsageError(f"Unknown skills subcommand: {tool}")
 
     def _dispatch(self, tool: str, args: dict) -> SkillsResult:
-        op = self._op_from_tool(tool)
+        try:
+            op = self._op_from_tool(tool)
+        except SkillsUsageError as failure:
+            return SkillsResult(
+                ok=False,
+                op=SkillsOp.LIST,
+                exit_code=SkillsExitCode.USAGE_ERROR,
+                message=str(failure),
+            )
         query = SkillQuery(args.get("query", args.get("skill", "")))
         flags = self._flags(tool, args)
         apply_ = bool(args.get("apply", False))
@@ -141,8 +158,6 @@ class SkillsMcpAdapter:
                     flags[key] = str(args[key])
         if tool == "rollback" and args.get("id"):
             flags["id"] = args["id"]
-        if tool == "ledger" and args.get("compact"):
-            flags["compact"] = "1"
         return flags
 
 

@@ -9,7 +9,10 @@ No I/O, no imports from capabilities, agent, surface, root, or contract layers.
 
 from __future__ import annotations
 
-from shared.src.common.taxonomy_common_error import SkillsError, SkillsUsageError
+from shared.src.common.taxonomy_common_error import (
+    SkillsError,
+    SkillsUsageError,
+)
 from shared.src.common.taxonomy_common_vo import ErrorMessage
 
 

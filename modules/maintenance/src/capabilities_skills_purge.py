@@ -9,7 +9,10 @@ import shutil
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
+from shared.src.common.utility_common_skills import (
+    default_pack_root,
+    iter_skill_mds,
+)
 from shared.src.design.taxonomy_design_vo import (
     load_lifecycle_config,
 )
@@ -22,7 +25,9 @@ from shared.src.maintenance.utility_lifecycle_support import (
     find_skill_dir,
     read_record,
 )
-from shared.src.maintenance.utility_maintenance_core import default_purge_ttl_days
+from shared.src.maintenance.utility_maintenance_core import (
+    default_purge_ttl_days,
+)
 from shared.src.maintenance.utility_skills_mutation import archive_root
 
 __all__ = ["SkillsPurge"]
@@ -47,7 +52,7 @@ class SkillsPurge(ISkillsPurgerProtocol):
             if skill_dir is None:
                 return {"skill": skill, "purged": False, "reason": "not-found-in-archive"}
             if not dry_run:
-                shutil.rmtree(skill_dir, ignore_errors=True)
+                shutil.rmtree(skill_dir)
             return {"skill": skill, "purged": True, "dry_run": dry_run}
 
         ttl_days = getattr(config, "archive_ttl_days", 0) or default_purge_ttl_days()
@@ -71,7 +76,7 @@ class SkillsPurge(ISkillsPurgerProtocol):
             cmp_dt = max(dt, mtime) if dt else mtime
             if cmp_dt <= cutoff:
                 if not dry_run:
-                    shutil.rmtree(skill_dir, ignore_errors=True)
+                    shutil.rmtree(skill_dir)
                 purged.append({"skill": name, "archived_at": str(archived_at)})
             else:
                 kept.append({"skill": name, "archived_at": str(archived_at)})

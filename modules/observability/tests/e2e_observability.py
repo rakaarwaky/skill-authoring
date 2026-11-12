@@ -5,7 +5,9 @@ End-to-end check of observability agent lifecycle behavior.
 
 from __future__ import annotations
 
-from observability.src.agent_observability_orchestrator import ObservabilityAgent
+from observability.src.agent_observability_orchestrator import (
+    ObservabilityAgent,
+)
 from shared.src.design.taxonomy_design_request import SkillsRequest
 
 

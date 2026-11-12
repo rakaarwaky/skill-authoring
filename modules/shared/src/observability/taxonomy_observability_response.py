@@ -14,10 +14,14 @@ from enum import IntEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from shared.src.observability.taxonomy_observability_request import ObservabilityOp
+from shared.src.observability.taxonomy_observability_request import (
+    ObservabilityOp,
+)
 
 if TYPE_CHECKING:
-    from shared.src.observability.taxonomy_observability_entity import ScanResult
+    from shared.src.observability.taxonomy_observability_entity import (
+        ScanResult,
+    )
     from shared.src.observability.taxonomy_observability_vo import (
         PhraseRow,
     )

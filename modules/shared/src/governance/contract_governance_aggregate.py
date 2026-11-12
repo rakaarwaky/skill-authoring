@@ -21,7 +21,9 @@ from shared.src.governance.taxonomy_governance_constant import (
     PIN_STATE_UNPINNED,
 )
 from shared.src.governance.taxonomy_governance_request import GovernanceRequest
-from shared.src.governance.taxonomy_governance_response import GovernanceResponse
+from shared.src.governance.taxonomy_governance_response import (
+    GovernanceResponse,
+)
 
 #: Lock states the locker/piner capabilities manage (re-exported for discovery).
 GOVERNANCE_LOCK_STATES = (LOCK_STATE_ACTIVE, LOCK_STATE_LOCKED)

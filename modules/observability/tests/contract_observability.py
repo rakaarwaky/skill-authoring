@@ -5,7 +5,9 @@ Verifies that ObservabilityAgent implements IObservabilityAggregate.
 
 from __future__ import annotations
 
-from observability.src.agent_observability_orchestrator import ObservabilityAgent
+from observability.src.agent_observability_orchestrator import (
+    ObservabilityAgent,
+)
 from shared.src.observability.contract_observability_aggregate import (
     IObservabilityAggregate,
 )

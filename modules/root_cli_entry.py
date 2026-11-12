@@ -13,16 +13,28 @@ from __future__ import annotations
 
 import sys
 
-from shared.src.storage.utility_path_bootstrap import _REPO_ROOT
+from shared.src.storage.utility_path_bootstrap import bootstrap_ns_roots
 
-# Register this tree's namespace roots on sys.path before any feature
-# imports resolve; the module-level side effect in utility_path_bootstrap
-# runs here, and the root entry layer is a consumer that AES504 accepts.
-_ = _REPO_ROOT
+# Explicit namespace-root path bootstrap at entry (replaces import-time
+# side effect plus discard of _REPO_ROOT). AES504 consumers that need
+# _REPO_ROOT itself can import it from utility_path_bootstrap directly.
+bootstrap_ns_roots()
 
 from cli.src.surface_skills_command import cmd_skills
 from mcp.src.surface_mcp_command import SkillsMcpAdapter
 from root_skills_container import default_aggregate
+
+__all__ = ["create_mcp_adapter", "main"]
+
+
+def create_mcp_adapter() -> SkillsMcpAdapter:
+    """Build the MCP adapter wired to the composed aggregate.
+
+    This is the entry-layer reachability seam for the mcp surface (AES506):
+    the only module that knows both the root and surface packages exist and
+    composes them at the call site.
+    """
+    return SkillsMcpAdapter(default_aggregate())
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -32,9 +44,6 @@ def main(argv: list[str] | None = None) -> int:
         print("Usage: sac <list|read|lint|catalog|discover|move|archive|create|status|usage|run|pause|resume|pin|unpin|lock|unlock|restore|list-unmanaged|list-archived|prune|purge|adopt|backup|rollback|ledger> [flags]", file=sys.stderr)
         return 2
     aggregate = default_aggregate()
-    # Wire the MCP surface into the root entry layer so it is reachable
-    # via the import graph (satisfies AES506).
-    _ = SkillsMcpAdapter(aggregate)
     return cmd_skills(args, aggregate)
 
 

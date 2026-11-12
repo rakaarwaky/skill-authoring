@@ -28,7 +28,9 @@ def test_import_governance_capabilities():
 
 def test_agent_constructs_with_none_capabilities():
     """SM-GOVERNANCE-004: the agent constructs with an all-None wiring."""
-    from governance.src.agent_governance_orchestrator import SkillsGovernanceAgent
+    from governance.src.agent_governance_orchestrator import (
+        SkillsGovernanceAgent,
+    )
 
     agent = SkillsGovernanceAgent(locker=None, piner=None, mover=None)
     assert agent is not None

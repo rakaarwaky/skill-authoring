@@ -17,17 +17,11 @@ from shared.src.common.taxonomy_common_constant import (
 )
 
 __all__ = [
-    "default_pack_root",
     "is_valid_skill_name",
     "parse_skill_frontmatter",
     "read_skill_md",
     "sanitize_skill_name",
 ]
-
-
-def default_pack_root() -> Path:
-    """Return the default pack root path (repo root resolved from this file)."""
-    return Path(__file__).resolve().parents[6]
 
 
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:

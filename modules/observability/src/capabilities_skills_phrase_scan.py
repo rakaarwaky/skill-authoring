@@ -14,7 +14,9 @@ import re
 from collections import Counter, defaultdict
 from urllib.parse import unquote
 
-from shared.src.observability.contract_traces_protocol import ISkillsTracesProtocol
+from shared.src.observability.contract_traces_protocol import (
+    ISkillsTracesProtocol,
+)
 from shared.src.observability.taxonomy_traces_vo import (
     GrokHome,
     PhraseRow,

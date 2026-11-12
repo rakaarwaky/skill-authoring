@@ -16,6 +16,7 @@ from shared.src.common.utility_common_skills import (
 from shared.src.governance.contract_governance_protocol import (
     ISkillsPinerProtocol,
 )
+from shared.src.governance.taxonomy_governance_entity import PinState
 
 __all__ = ["SkillsPiner"]
 
@@ -25,19 +26,19 @@ class SkillsPiner(ISkillsPinerProtocol):
     """Piner capability: pin/unpin verbs."""
 
 # ─── Block 2: Module Contract ─────────────
-    def pin(self, skill: str, root: SkillsRoot | None = None) -> dict:
+    def pin(self, skill: str, root: SkillsRoot | None = None) -> PinState:
         pack_root = Path(root) if root is not None else default_pack_root()
         skill_dir = find_skill_dir(skill, pack_root)
         if skill_dir is None:
             raise ValueError(f"No skill directory found for: {skill}")
         set_field(skill_dir, "pinned", True)
-        return {"skill": skill, "pinned": True}
+        return PinState(skill=skill, pinned=True)
 
-    def unpin(self, skill: str, root: SkillsRoot | None = None) -> dict:
+    def unpin(self, skill: str, root: SkillsRoot | None = None) -> PinState:
         pack_root = Path(root) if root is not None else default_pack_root()
         skill_dir = find_skill_dir(skill, pack_root)
         if skill_dir is None:
             raise ValueError(f"No skill directory found for: {skill}")
         set_field(skill_dir, "pinned", False)
-        return {"skill": skill, "pinned": False}
+        return PinState(skill=skill, pinned=False)
 # ─── Block 3: Module Helpers ─────────

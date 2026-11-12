@@ -16,17 +16,16 @@ Discovery ops are translated at the boundary: ``SkillsRequest`` →
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from pathlib import Path
 
 from design.src.root_design_container import create_design_feature
 from discovery.src.root_discovery_container import create_discovery_feature
 from governance.src.root_governance_container import create_governance_feature
-from maintenance.src.root_maintenance_container import create_maintenance_feature
-from observability.src.root_observability_container import create_observability_feature
-from storage.src.root_storage_container import create_storage_feature
-from shared.src.common.taxonomy_common_vo import (
-    SkillRecord,
+from maintenance.src.root_maintenance_container import (
+    create_maintenance_feature,
+)
+from observability.src.root_observability_container import (
+    create_observability_feature,
 )
 from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.design.contract_design_aggregate import ISkillsAggregate
@@ -53,17 +52,23 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
-from shared.src.governance.contract_governance_protocol import ISkillsMoverProtocol
+from shared.src.governance.contract_governance_protocol import (
+    ISkillsMoverProtocol,
+)
 from shared.src.governance.taxonomy_governance_request import (
     GovernanceRequest,
     GovernanceVerb,
 )
-from shared.src.governance.taxonomy_governance_response import GovernanceResponse
+from shared.src.governance.taxonomy_governance_response import (
+    GovernanceResponse,
+)
 from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceRequest,
     MaintenanceVerb,
 )
-from shared.src.maintenance.taxonomy_maintenance_response import MaintenanceResponse
+from shared.src.maintenance.taxonomy_maintenance_response import (
+    MaintenanceResponse,
+)
 from shared.src.storage.contract_storage_protocol import ISkillsArchiverProtocol
 from shared.src.storage.taxonomy_storage_request import (
     StorageRequest,
@@ -73,9 +78,9 @@ from shared.src.storage.taxonomy_storage_response import StorageResponse
 from storage.src.capabilities_skills_backup import SkillsBackup
 from storage.src.capabilities_skills_restore import SkillsRestore
 from storage.src.capabilities_skills_rollback import SkillsRollback
+from storage.src.root_storage_container import create_storage_feature
 
 __all__ = [
-    "SkillsFacade",
     "default_aggregate",
 ]
 
@@ -252,6 +257,7 @@ def _maintenance_response_to_result(
         message=mresp.message,
         root=mresp.root,
         records=mresp.records,
+        dry_run=mresp.dry_run,
     )
 
 
@@ -307,44 +313,3 @@ _STORAGE_OPS = frozenset(
 )
 
 
-class SkillsFacade:
-    """Composition root for the skills feature (read + authoring)."""
-
-    def __init__(
-        self,
-        lister: ISkillsListerProtocol | None = None,
-        reader: ISkillsReaderProtocol | None = None,
-        *,
-        linter: ISkillsLinterProtocol | None = None,
-        catalog: ISkillsCatalogProtocol | None = None,
-        discover: ISkillsDiscoverProtocol | None = None,
-        mover: ISkillsMoverProtocol | None = None,
-        archiver: ISkillsArchiverProtocol | None = None,
-        creator: ISkillsCreatorProtocol | None = None,
-        default_root: Path | None = None,
-    ) -> None:
-        root = default_root if default_root is not None else default_pack_root()
-        self._aggregate = default_aggregate(
-            lister=lister,
-            reader=reader,
-            linter=linter,
-            catalog=catalog,
-            discover=discover,
-            mover=mover,
-            archiver=archiver,
-            creator=creator,
-            default_root=root,
-        )
-
-    def execute(self, request: SkillsRequest) -> SkillsResult:
-        return self._aggregate.execute(request)
-
-    # ─── Read wrappers ───────────────────────────────────────
-    def list_skills(self) -> Sequence[SkillRecord]:
-        """Return one record per skill in the pack, sorted by name."""
-        from shared.src.design.taxonomy_design_request import SkillsRequest as _SR
-
-        result = self._aggregate.execute(
-            _SR(op=SkillsOp.LIST, query=SkillQuery(""), root=None)
-        )
-        return result.records or []

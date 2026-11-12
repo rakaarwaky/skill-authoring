@@ -21,7 +21,7 @@ class MaintenanceResponse:
 
     ``ok``/``verb``/``exit_code``/``message`` form the command contract.
     Payload fields are populated per verb: ``records`` for PRUNE/PURGE,
-    ``applied`` for ARCHIVE/RESTORE.
+    ``applied`` for ARCHIVE/RESTORE, ``dry_run`` for PRUNE/PURGE.
     """
 
     ok: bool
@@ -30,6 +30,7 @@ class MaintenanceResponse:
     message: str = ""
     records: tuple[SkillName, ...] = ()
     applied: bool = False
+    dry_run: bool = False
     root: Path | None = None
 
 

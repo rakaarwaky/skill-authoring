@@ -16,8 +16,11 @@ from capabilities_discovery_catalog import SkillsCatalog
 from capabilities_discovery_finder import SkillsDiscover
 from capabilities_discovery_lister import SkillsLister
 from capabilities_discovery_reader import SkillsPackReader
+
 from shared.src.common.utility_common_skills import default_pack_root
-from shared.src.discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
+from shared.src.discovery.contract_discovery_aggregate import (
+    ISkillsDiscoveryAggregate,
+)
 from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 
 __all__ = [

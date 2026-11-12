@@ -41,6 +41,7 @@ if TYPE_CHECKING:
         NewCategoryPlan,
         SkillCreatePlan,
     )
+    from shared.src.observability.taxonomy_observability_vo import PhraseRow
 
 
 class SkillsExitCode(IntEnum):
@@ -77,12 +78,16 @@ class SkillsResult:
     check: CatalogCheckResult | None = None
     catalog_text: str | None = None
     matches: tuple[DiscoveryMatch, ...] = ()
+    phrases_exact: tuple[PhraseRow, ...] = ()
+    phrases_stems: tuple[PhraseRow, ...] = ()
+    phrases_lines: tuple[PhraseRow, ...] = ()
     plan: MutationPlan | None = None
     outcome: MutationOutcome | None = None
     new_category: NewCategoryPlan | None = None
     create_plan: SkillCreatePlan | None = None
     warning: str | None = None
     root: Path | None = None
+    dry_run: bool = False
 
 
 __all__ = ["SkillsExitCode", "SkillsResult"]

@@ -33,9 +33,14 @@ reported an issue with `content` carrying the `SkillsResult` message.
 
 ### DS-MCP-001: Expose `sac` verbs as MCP tools, 1:1 with the CLI
 
-| Variant | Use case | Token | Value |
-|---------|----------|-------|-------|
-| 24 tools | One MCP tool per `sac` verb (list, read, lint, catalog, discover, move, archive, create, status, usage, run, pause, resume, pin, unpin, lock, unlock, restore, prune, purge, adopt, backup, rollback, ledger) | `SkillsOp` | `ISkillsAggregate.execute` |
+| Variant  | Detail                                                            |
+| -------- | ----------------------------------------------------------------- |
+| 24 tools | One MCP tool per `sac` verb (list, read, lint, catalog, discover, |
+|          | move, archive, create, status, usage, run, pause, resume, pin,    |
+|          | unpin, lock, unlock, restore, prune, purge, adopt, backup,        |
+|          | rollback, ledger)                                                 |
+|          | Token: `SkillsOp`                                                 |
+|          | Value: `ISkillsAggregate.execute`                                 |
 
 Each MCP tool maps to its `SkillsOp` via `_op_from_tool` and routes
 through `ISkillsAggregate.execute`, so the MCP path and the CLI path
@@ -63,9 +68,13 @@ spatial layout or color.
 
 ## Reference
 
-| Artifact | Purpose | Link |
-|----------|---------|------|
-| PRD | Business goals, user stories, and scope | [PRD.md](../../../../../PRD.md) |
-| Backlog | Task tracking, epics, and implementation status | [BACKLOG.md](BACKLOG.md) |
-| Roadmap | Timeline, phasing, and dependencies | [ROADMAP.md](../../../../../ROADMAP.md) |
-| Architecture | System boundaries, tech stack, and infra | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
+| Artifact     | Purpose                                           |
+| ------------ | ------------------------------------------------- |
+| PRD          | Business goals, user stories, and scope           |
+|              | [PRD.md](../../../../../PRD.md)                   |
+| Backlog      | Task tracking, epics, and implementation status   |
+|              | [BACKLOG.md](BACKLOG.md)                          |
+| Roadmap      | Timeline, phasing, and dependencies               |
+|              | [ROADMAP.md](../../../../../ROADMAP.md)           |
+| Architecture | System boundaries, tech stack, and infra          |
+|              | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |

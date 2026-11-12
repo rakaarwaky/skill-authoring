@@ -22,6 +22,7 @@ for _ns in (
 from agent_discovery_orchestrator import SkillsDiscoveryAgent
 from capabilities_discovery_catalog import SkillsCatalog
 from capabilities_discovery_finder import SkillsDiscover
+
 from shared.src.common.taxonomy_common_error import SkillsUsageError
 from shared.src.common.taxonomy_common_vo import (
     DiscoveryResult,
