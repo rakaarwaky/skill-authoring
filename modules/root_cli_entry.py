@@ -21,8 +21,20 @@ from shared.src.storage.utility_path_bootstrap import bootstrap_ns_roots
 bootstrap_ns_roots()
 
 from cli.src.surface_skills_command import cmd_skills
-from mcp.src.surface_mcp_command import SkillsMcpAdapter  # noqa: F401  (AES506 surface reachability)
+from mcp.src.surface_mcp_command import SkillsMcpAdapter
 from root_skills_container import default_aggregate
+
+__all__ = ["create_mcp_adapter", "main"]
+
+
+def create_mcp_adapter() -> SkillsMcpAdapter:
+    """Build the MCP adapter wired to the composed aggregate.
+
+    This is the entry-layer reachability seam for the mcp surface (AES506):
+    the only module that knows both the root and surface packages exist and
+    composes them at the call site.
+    """
+    return SkillsMcpAdapter(default_aggregate())
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -16,10 +16,6 @@ from shared.src.common.utility_common_skills import (
 from shared.src.governance.contract_governance_protocol import (
     ISkillsPinerProtocol,
 )
-from shared.src.governance.taxonomy_governance_constant import (
-    PIN_STATE_PINNED,
-    PIN_STATE_UNPINNED,
-)
 from shared.src.governance.taxonomy_governance_entity import PinState
 
 __all__ = ["SkillsPiner"]
