@@ -1,10 +1,13 @@
 """Skills design-domain capability contracts (AES contract layer, ABC traits).
 
-One seam per design-side capability: creator, linter, runner.
+One seam per design-side capability: creator, linter.
 Capabilities in ``modules/design/src`` implement these; the composition
 root injects them into the agent. No import of sibling domain contracts —
 design keeps its own seams.
 
+The runner capability (run/pause/resume) was moved to the maintenance
+module in PR #18; its protocol lives in
+``shared/src/maintenance/contract_maintenance_protocol.py``.
 No implementation code here — ABCs only, bodies are ``...``.
 """
 
@@ -14,7 +17,6 @@ from abc import ABC, abstractmethod
 
 from shared.src.common.taxonomy_common_vo import (
     CategoryName,
-    MutationOutcome,
     SkillName,
     SkillsRoot,
 )
@@ -82,35 +84,12 @@ class ISkillsLinterProtocol(ABC):
         ...
 
 
-class ISkillsRunnerProtocol(ABC):
-    """Runner capability: run/pause/resume lifecycle verbs."""
-
-    @abstractmethod
-    def apply_automatic_transitions(
-        self, root: SkillsRoot | None = None
-    ) -> MutationOutcome:
-        """Apply automatic lifecycle transitions across the pack."""
-        ...
-
-    @abstractmethod
-    def pause(self, root: SkillsRoot) -> MutationOutcome:
-        """Pause lifecycle transitions."""
-        ...
-
-    @abstractmethod
-    def resume(self, root: SkillsRoot) -> MutationOutcome:
-        """Resume lifecycle transitions."""
-        ...
-
-
 __all__ = [
     "ISkillsCreatorProtocol",
     "ISkillsLinterProtocol",
-    "ISkillsRunnerProtocol",
 ]
 
 _layer_symbols = {
     "ISkillsCreatorProtocol": ISkillsCreatorProtocol,
     "ISkillsLinterProtocol": ISkillsLinterProtocol,
-    "ISkillsRunnerProtocol": ISkillsRunnerProtocol,
 }
