@@ -14,15 +14,17 @@ delegated to the capabilities.
 
 **Description:**
 The feature shall move a live skill from its category directory into the
-archive directory under `_archive/`, resolving the skill's source
-directory and placing it at `_archive/<category>/<skill>/`. No filesystem
+home-based archive tree at `~/.agents/skills/.archive/`, resolving the
+skill's source directory and placing it at
+`~/.agents/skills/.archive/<category>/<skill>/`. No filesystem
 state is held by the agent; the archiver capability performs the move.
 
 #### Business Logic
 
 - The archiver shall resolve the skill's source directory under the pack
   root.
-- The archive destination shall be `_archive/<category>/<skill>/`.
+- The archive destination shall be
+  `~/.agents/skills/.archive/<category>/<skill>/`.
 - The archiver shall reject an archive whose destination already exists.
 - Every computed destination shall be asserted to remain inside the pack
   root before any write, and re-checked at apply time.
@@ -49,7 +51,7 @@ state is held by the agent; the archiver capability performs the move.
 
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
-| An existing skill | The archiver is invoked | The skill is moved under `_archive/<category>/<skill>/` |
+| An existing skill | The archiver is invoked | The skill is moved under `~/.agents/skills/.archive/<category>/<skill>/` |
 | The archive destination already exists | The archiver is invoked | A conflict error is raised and nothing is overwritten |
 | The computed destination escapes the pack root | The archiver is invoked | The operation fails closed with a containment error |
 
@@ -63,13 +65,14 @@ state is held by the agent; the archiver capability performs the move.
 
 **Description:**
 The feature shall move an archived skill from
-`_archive/<category>/<skill>/` back to its live category directory,
-re-anchoring the skill after the move.
+`~/.agents/skills/.archive/<category>/<skill>/` back to its live category
+directory, re-anchoring the skill after the move.
 
 #### Business Logic
 
-- Restore shall move an archived skill from `_archive/<category>/<skill>/`
-  back to its live category directory.
+- Restore shall move an archived skill from
+  `~/.agents/skills/.archive/<category>/<skill>/` back to its live category
+  directory.
 - Restore shall re-anchor the skill after moving it.
 
 #### Edge Cases

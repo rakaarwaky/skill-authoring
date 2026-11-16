@@ -1,8 +1,8 @@
 """Skill restore capability (AES capabilities layer).
 
-Moves a skill between the live pack and ``_archive/``: ``restore`` brings
-an archived skill back, ``archive`` moves a live skill into the archive.
-Both are the same domain (single-skill state transitions).
+Moves a skill between the live pack and ``~/.agents/skills/.archive/``:
+``restore`` brings an archived skill back, ``archive`` moves a live skill
+into the archive. Both are the same domain (single-skill state transitions).
 """
 
 from __future__ import annotations

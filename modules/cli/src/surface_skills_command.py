@@ -376,7 +376,7 @@ def _print_usage() -> None:
     print()
     info(f"{BOLD()}Mutations:{RESET()}")
     info(f"{BOLD()}sac move <name> <category> [--apply]{RESET()}  Move a skill to a category")
-    info(f"{BOLD()}sac archive <name> [--apply]{RESET()}     Archive a skill into _archive/")
+    info(f"{BOLD()}sac archive <name> [--apply]{RESET()}     Archive a skill into ~/.agents/skills/.archive/")
     info(f"{BOLD()}sac create <kind> <name> [--category C] [--apply]{RESET()}  "
          "Create a skill or category")
     print()
@@ -539,7 +539,7 @@ def _authoring_parser() -> argparse.ArgumentParser:
     sub.add_argument("category", help="Target category")
     sub.add_argument("--apply", action="store_true", help="Apply the move")
 
-    sub = subparsers.add_parser("archive", help="Archive a skill into _archive/")
+    sub = subparsers.add_parser("archive", help="Archive a skill into ~/.agents/skills/.archive/")
     sub.add_argument("skill", help="Skill name to archive")
     sub.add_argument("--apply", action="store_true", help="Apply the archive")
 

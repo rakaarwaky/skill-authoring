@@ -16,7 +16,9 @@ from shared.src.storage.contract_storage_aggregate import (
 )
 from shared.src.storage.taxonomy_storage_request import StorageRequest, StorageVerb
 from storage.src.agent_storage_orchestrator import SkillsStorageAgent
+from storage.src.capabilities_skills_archiver import SkillsArchiver
 from storage.src.capabilities_skills_exporter import SkillsExporter
+from storage.src.capabilities_skills_restore import SkillsRestore
 
 
 class _FakeVerb:
@@ -114,6 +116,122 @@ def test_agent_export_missing_skill_name() -> None:
     """UT-STORAGE-005: EXPORT without query returns usage error."""
     agent = SkillsStorageAgent(exporter=SkillsExporter())
     response = agent.execute(StorageRequest(verb=StorageVerb.EXPORT, query=""))
+    assert response.ok is False
+    assert response.exit_code == EXIT_USAGE
+    assert "Skill name required" in response.message
+
+
+def test_archiver_plan_archive_uses_home_archive_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """UT-STORAGE-006: SkillsArchiver plans archive under ~/.agents/skills/.archive/."""
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
+
+    pack_root = tmp_path / "skills"
+    skill_dir = pack_root / "test-cat" / "my-skill"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text("# My Skill\n", encoding="utf-8")
+
+    archiver = SkillsArchiver()
+    plan = archiver.plan_archive("my-skill", root=SkillsRoot(pack_root))
+
+    expected_destination = (
+        fake_home / ".agents" / "skills" / ".archive" / "test-cat" / "my-skill"
+    )
+    assert plan.destination == expected_destination
+    assert plan.kind == "archive"
+
+
+def test_archiver_and_restore_share_same_archive_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """UT-STORAGE-007: Archiver archives to and Restore restores from .agents/skills/.archive/."""
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
+
+    pack_root = tmp_path / "skills"
+    skill_dir = pack_root / "test-cat" / "my-skill"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text("# My Skill\n", encoding="utf-8")
+
+    expected_archived = (
+        fake_home / ".agents" / "skills" / ".archive" / "test-cat" / "my-skill"
+    )
+
+    archiver = SkillsArchiver()
+    restore = SkillsRestore()
+
+    # 1. Archive the skill
+    archive_res = archiver.archive("my-skill", root=SkillsRoot(pack_root))
+    assert archive_res["archived"] is True
+    assert not skill_dir.exists()
+    assert (expected_archived / "SKILL.md").exists()
+
+    # 2. Restore the skill
+    restore_res = restore.restore("my-skill", root=SkillsRoot(pack_root))
+    assert restore_res["restored"] is True
+    assert not expected_archived.exists()
+    assert (skill_dir / "SKILL.md").exists()
+
+
+def test_agent_execute_archive_and_restore(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """UT-STORAGE-008: SkillsStorageAgent routes ARCHIVE and RESTORE using .agents/skills/.archive/."""
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
+
+    pack_root = tmp_path / "skills"
+    skill_dir = pack_root / "test-cat" / "round-trip-skill"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text("# Round Trip\n", encoding="utf-8")
+
+    expected_archived = (
+        fake_home / ".agents" / "skills" / ".archive" / "test-cat" / "round-trip-skill"
+    )
+
+    agent = SkillsStorageAgent(
+        archiver=SkillsArchiver(),
+        restore=SkillsRestore(),
+        default_root=SkillsRoot(pack_root),
+    )
+
+    # 1. Execute ARCHIVE
+    arc_resp = agent.execute(
+        StorageRequest(verb=StorageVerb.ARCHIVE, query="round-trip-skill")
+    )
+    assert arc_resp.ok is True
+    assert arc_resp.verb == "archive"
+    assert not skill_dir.exists()
+    assert (expected_archived / "SKILL.md").exists()
+
+    # 2. Execute RESTORE
+    res_resp = agent.execute(
+        StorageRequest(verb=StorageVerb.RESTORE, query="round-trip-skill")
+    )
+    assert res_resp.ok is True
+    assert res_resp.verb == "restore"
+    assert not expected_archived.exists()
+    assert (skill_dir / "SKILL.md").exists()
+
+
+def test_agent_archive_missing_skill_name() -> None:
+    """UT-STORAGE-009: ARCHIVE without query returns usage error."""
+    agent = SkillsStorageAgent(archiver=SkillsArchiver())
+    response = agent.execute(StorageRequest(verb=StorageVerb.ARCHIVE, query=""))
+    assert response.ok is False
+    assert response.exit_code == EXIT_USAGE
+    assert "Skill name required" in response.message
+
+
+def test_agent_restore_missing_skill_name() -> None:
+    """UT-STORAGE-010: RESTORE without query returns usage error."""
+    agent = SkillsStorageAgent(restore=SkillsRestore())
+    response = agent.execute(StorageRequest(verb=StorageVerb.RESTORE, query=""))
     assert response.ok is False
     assert response.exit_code == EXIT_USAGE
     assert "Skill name required" in response.message

@@ -22,11 +22,16 @@ from shared.src.storage.taxonomy_storage_request import SkillsRoot
 
 
 class ISkillsArchiverProtocol(ABC):
-    """Archive capability: plan/apply an archive of a skill into ``_archive/``."""
+    """Archive capability: plan/apply an archive of a skill into ``~/.agents/skills/.archive/``."""
+
+    @abstractmethod
+    def archive(self, skill: SkillName, root: SkillsRoot | None = None) -> MutationOutcome:
+        """Archive a live skill into ~/.agents/skills/.archive/."""
+        ...
 
     @abstractmethod
     def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
-        """Resolve an archive into ``_archive/`` (pure; no writes)."""
+        """Resolve an archive into ``~/.agents/skills/.archive/`` (pure; no writes)."""
         ...
 
     @abstractmethod
@@ -44,7 +49,7 @@ class ISkillsExportProtocol(ABC):
 
 
 class ISkillsRestoreProtocol(ABC):
-    """Restore capability: archive / restore verbs."""
+    """Restore capability: archive / restore verbs for ``~/.agents/skills/.archive/``."""
 
     @abstractmethod
     def archive(self, skill: SkillName, root: SkillsRoot | None = None) -> MutationOutcome:

@@ -22,7 +22,9 @@ SkillsRoot = NewType("SkillsRoot", Path)
 class StorageVerb(Enum):
     """Consumer verbs carried by the storage aggregate's single entry point."""
 
+    ARCHIVE = "archive"
     EXPORT = "export"
+    RESTORE = "restore"
     LIST = "list"
     READ = "read"
 
