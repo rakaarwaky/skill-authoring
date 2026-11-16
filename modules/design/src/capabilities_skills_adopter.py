@@ -29,7 +29,7 @@ class SkillsAdopter(ISkillsAdopterProtocol):
         skill_dir = find_skill_dir(skill, pack_root)
         if skill_dir is None:
             raise ValueError(f"No skill directory found for: {skill}")
-        set_field(skill_dir, "created_by", "agent")
+        set_field(skill_dir, "created_by", "agent", pack_root)
         return {"skill": skill, "created_by": "agent"}
 
     # ─── Block 3: Module Helpers ───

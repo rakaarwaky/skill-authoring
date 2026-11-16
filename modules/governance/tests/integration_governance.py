@@ -33,7 +33,7 @@ def test_agent_with_piner_capability_end_to_end():
         agent.execute(
             GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("my-skill"))
         )
-        record = json.loads((pack / "cats" / "my-skill" / ".usage.json").read_text())
+        record = json.loads((pack / ".usage.json").read_text()).get("my-skill", {})
         assert record.get("pinned") is True, "piner must have set the pinned flag"
 
 

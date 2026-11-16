@@ -44,14 +44,14 @@ def test_e2e_pin_unpin_round_trip():
             GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("my-skill"))
         )
         assert result.ok, "pin should succeed"
-        record = json.loads((skill_dir / ".usage.json").read_text())
+        record = json.loads((pack / ".usage.json").read_text()).get("my-skill", {})
         assert record.get("pinned") is True
 
         result = agent.execute(
             GovernanceRequest(verb=GovernanceVerb.UNPIN, query=SkillQuery("my-skill"))
         )
         assert result.ok, "unpin should succeed"
-        record = json.loads((skill_dir / ".usage.json").read_text())
+        record = json.loads((pack / ".usage.json").read_text()).get("my-skill", {})
         assert record.get("pinned") is False
 
 
