@@ -36,7 +36,7 @@ Persona priority: **Skill Maintainer agent** first (bulk consolidation, prune, c
 - Mandatory frontmatter keys `name`, `description`, `when-to-use`, `argument-hint`.
 - The body shape: exactly one `# Title`, one `## Rules`, one `## Routing`.
 - Reference files under `references/` and optional `scripts/<file>`.
-- The safety model: `--dry-run` report-only, destructive actions to `_archive/`, rollback via snapshot SHA.
+- The safety model: `--dry-run` report-only, destructive actions to `_archive/`.
 
 ### Out of Scope
 
@@ -210,11 +210,11 @@ The shared folder carries `contract_*`, `taxonomy_*`, and `utility_*` files per 
 
 | As a | I want | So that | Priority |
 |------|--------|---------|----------|
-| Skill owner | Archive, backup, restore, rollback skills | Skill state survives destructive ops | Storage feature implements persistence verbs |
+| Skill owner | Archive, restore, export skills | Skill state survives destructive ops | Storage feature implements persistence verbs |
 
 #### Proposed Solution
 
-The storage feature implements archiver, backup, bootstrap, restore, and rollback capabilities behind `ISkillsStorageAggregate`, wired into `root_storage_container.py`. Each capability carries an FRD.md and BACKLOG.md.
+The storage feature implements archiver, restore, and exporter capabilities behind `ISkillsStorageAggregate`, wired into `root_storage_container.py`. Each capability carries an FRD.md and BACKLOG.md.
 
 #### Main User Flow
 

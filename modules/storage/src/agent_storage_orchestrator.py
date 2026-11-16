@@ -1,8 +1,7 @@
 """Storage agent (AES agent layer).
 
 Implements ``ISkillsStorageAggregate`` over the storage-side capabilities:
-archiver, backup, bootstrap, exporter, restore, rollback. Owns the ops:
-archive, restore, backup, rollback, export.
+archiver, exporter, restore. Owns the ops: archive, restore, export.
 """
 
 from __future__ import annotations
@@ -23,10 +22,8 @@ from shared.src.storage.contract_storage_aggregate import (
 )
 from shared.src.storage.contract_storage_protocol import (
     ISkillsArchiverProtocol,
-    ISkillsBackupProtocol,
     ISkillsExportProtocol,
     ISkillsRestoreProtocol,
-    ISkillsRollbackProtocol,
 )
 from shared.src.storage.taxonomy_storage_request import (
     SkillsRoot,
@@ -42,24 +39,18 @@ __all__ = [
 
 
 class SkillsStorageAgent(ISkillsStorageAggregate):
-    """Storage-side agent: archive / restore / backup / rollback / export."""
+    """Storage-side agent: archive / restore / export."""
 
     def __init__(
         self,
         archiver: ISkillsArchiverProtocol | None = None,
-        backup: ISkillsBackupProtocol | None = None,
-        bootstrap: object | None = None,
         exporter: ISkillsExportProtocol | None = None,
         restore: ISkillsRestoreProtocol | None = None,
-        rollback: ISkillsRollbackProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._archiver = archiver
-        self._backup = backup
-        self._bootstrap = bootstrap
         self._exporter = exporter
         self._restore = restore
-        self._rollback = rollback
         self._default_root = default_root
 
     # ─── Block 1: Module Declaration ────────────────────────────────────────
@@ -81,7 +72,7 @@ class SkillsStorageAgent(ISkillsStorageAggregate):
         except ValueError:
             return StorageResponse(
                 ok=False,
-                verb=StorageVerb.BOOTSTRAP.value,
+                verb=StorageVerb.EXPORT.value,
                 exit_code=EXIT_USAGE,
                 message=f"Unknown storage op: {request.verb}",
             )
@@ -185,37 +176,6 @@ class SkillsStorageAgent(ISkillsStorageAggregate):
         try:
             result = restore.restore(skill_name, root)
         except (OSError, SkillsError) as failure:
-            return StorageResponse(
-                ok=False,
-                verb=op.value,
-                exit_code=EXIT_ISSUES_FOUND,
-                message=str(failure),
-            )
-        return StorageResponse(ok=True, verb=op.value, message=str(result))
-
-    def _execute_backup(self, request: StorageRequest, op: StorageVerb) -> StorageResponse:
-        """BACKUP: create a content-addressed snapshot of the pack."""
-        backup = self._require(self._backup, "backup")
-        root = self._root(request)
-        try:
-            path = backup.create_snapshot(root)
-        except OSError as failure:
-            return StorageResponse(
-                ok=False,
-                verb=op.value,
-                exit_code=EXIT_ISSUES_FOUND,
-                message=str(failure),
-            )
-        return StorageResponse(ok=True, verb=op.value, message=str(path), root=root)
-
-    def _execute_rollback(self, request: StorageRequest, op: StorageVerb) -> StorageResponse:
-        """ROLLBACK: restore the pack tree from a stored snapshot."""
-        rollback = self._require(self._rollback, "rollback")
-        root = self._root(request)
-        snapshot_id = request.flags.get("id") or request.query
-        try:
-            result = rollback.rollback(root, snapshot_id)
-        except OSError as failure:
             return StorageResponse(
                 ok=False,
                 verb=op.value,

@@ -75,9 +75,7 @@ from shared.src.storage.taxonomy_storage_request import (
     StorageVerb,
 )
 from shared.src.storage.taxonomy_storage_response import StorageResponse
-from storage.src.capabilities_skills_backup import SkillsBackup
 from storage.src.capabilities_skills_restore import SkillsRestore
-from storage.src.capabilities_skills_rollback import SkillsRollback
 from storage.src.root_storage_container import create_storage_feature
 
 __all__ = [
@@ -95,9 +93,7 @@ def default_aggregate(
     mover: ISkillsMoverProtocol | None = None,
     archiver: ISkillsArchiverProtocol | None = None,
     creator: ISkillsCreatorProtocol | None = None,
-    backup: SkillsBackup | None = None,
     restore: SkillsRestore | None = None,
-    rollback: SkillsRollback | None = None,
     default_root: Path | None = None,
 ) -> ISkillsAggregate:
     """Return a composed agent bound to the repo's ``skills/`` pack."""
@@ -128,9 +124,7 @@ def default_aggregate(
     storage = create_storage_feature(
         root=root,
         archiver=archiver,
-        backup=backup,
         restore=restore,
-        rollback=rollback,
     )
 
     return _ComposedAggregate(
@@ -308,10 +302,8 @@ _OBSERVABILITY_OPS = frozenset({SkillsOp.LEDGER, SkillsOp.USAGE, SkillsOp.TRACES
 _STORAGE_OPS = frozenset(
     {
         SkillsOp.ARCHIVE,
-        SkillsOp.BACKUP,
         SkillsOp.EXPORT,
         SkillsOp.RESTORE,
-        SkillsOp.ROLLBACK,
     }
 )
 
