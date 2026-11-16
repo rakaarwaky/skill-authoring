@@ -27,14 +27,16 @@ CATEGORY_DESCRIPTION_FILENAME: Final = "DESCRIPTION.md"
 
 #: Category directories the walker skips.
 IGNORED_CATEGORY_DIRS: Final = frozenset(
-    {".git", ".hg", ".svn", "__pycache__", "_archive"}
+    {".git", ".hg", ".svn", "__pycache__", ".archive"}
 )
 
 # ─── Archive ───────────────────────────────────────────────────────────
 
 #: Archive directory the ``archive`` mutation moves skills into; the
 #: walker skips it (it is in ``IGNORED_CATEGORY_DIRS``).
-ARCHIVE_DIRNAME: Final = "_archive"
+#: Lives under the current user's home (``Path.home()/.agents/skills/.archive``),
+#: not inside the skills pack root.
+ARCHIVE_DIRNAME: Final = ".archive"
 
 # ─── Discovery / catalog ─────────────────────────────────────────────
 

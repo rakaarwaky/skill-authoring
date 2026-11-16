@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import tarfile
 import time
 from collections.abc import Iterable
@@ -123,7 +124,7 @@ SkillsRoot = NewType("SkillsRoot", Path)
 
 def find_skill_dir(skill: str, root: Path, in_archive: bool = False) -> Path | None:
     """Find a skill directory by name under root (optionally inside archive)."""
-    search_root = root / ARCHIVE_DIRNAME if in_archive else root
+    search_root = Path.home() / ".agents" / "skills" / ARCHIVE_DIRNAME if in_archive else root
     if not search_root.is_dir():
         return None
     matches: list[Path] = []
@@ -417,8 +418,14 @@ def _cron_referenced(pack_root: Path, skill_name: str) -> bool:
 
 
 def archive_root(skills_root: Path) -> Path:
-    """The archive tree for a skills root."""
-    return skills_root / ARCHIVE_DIRNAME
+    """The archive tree for a skills root.
+
+    Lives under the current user's home
+    (``Path.home()/.agents/skills/.archive``), not inside the skills pack
+    root. ``skills_root`` is accepted for signature compatibility but is not
+    used to locate the archive tree.
+    """
+    return Path.home() / ".agents" / "skills" / ARCHIVE_DIRNAME
 
 
 # ─── Record / transition helpers ────────────────────────────────────
@@ -449,7 +456,7 @@ def archive_skill(skill: str, pack_root: Path) -> dict:
 
     category = skill_dir.parent.name
     destination = archive_root(pack_root) / category / skill
-    _assert_within_root(destination, pack_root)
+    _assert_within_root(destination, archive_root(pack_root))
     record = read_record(skill_dir)
     prior_state = record.get("state", "active")
     now_iso_val = _now_iso()
@@ -459,7 +466,7 @@ def archive_skill(skill: str, pack_root: Path) -> dict:
         raise MutationConflictError(f"Archive slot already exists: {destination}")
     set_state(skill_dir, "archived", archived_at=now_iso_val)
     try:
-        skill_dir.replace(destination)
+        shutil.move(str(skill_dir), str(destination))
     except OSError:
         record["state"] = prior_state
         record.pop("archived_at", None)
@@ -494,7 +501,7 @@ def restore_skill(skill: str, pack_root: Path, reanchor=None) -> dict:
     record["activity_window_start"] = _now_iso()
     write_record(archived_dir, record)
     try:
-        archived_dir.replace(destination)
+        shutil.move(str(archived_dir), str(destination))
     except OSError:
         record["state"] = prior_state
         if prior_archived_at is not None:
