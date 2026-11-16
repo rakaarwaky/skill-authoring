@@ -14,26 +14,25 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# When this entry is invoked as ``modules/root_mcp_entry.py``, Python puts
-# ``modules/`` on sys.path[0], which would make `import mcp` resolve to the
-# feature dir (modules/mcp) instead of the installed mcp library. Drop it
-# here so the mcp.server / mcp.types import below lands on the installed
-# package; modules/ is re-added to sys.path after that.
+# When invoked as ``modules/root_mcp_entry.py``, Python puts ``modules/`` on
+# sys.path[0], so `import mcp` would resolve to the feature dir (modules/mcp)
+# instead of the installed mcp library. Drop it here so the mcp.server /
+# mcp.types import below lands on the installed package; modules/ is re-added
+# to sys.path after that import.
 _TOOLS_ROOT = Path(__file__).resolve().parents[1]  # .../skills/skill-authoring/tools
 _MODULES = _TOOLS_ROOT / "modules"
 _modules_on_path = str(_MODULES)
 if _modules_on_path in sys.path:
     sys.path.remove(_modules_on_path)
 
-# Import mcp.server / stdio_server from the INSTALLED mcp package.
-from mcp.server import Server as _McpServer  # noqa: E402
-from mcp.server.stdio import stdio_server as _stdio_server  # noqa: E402
+from mcp.server import Server as _McpServer
+from mcp.server.stdio import stdio_server as _stdio_server
 from mcp.types import (
     CallToolResult as _CallToolResult,
     ListToolsResult as _ListToolsResult,
     TextContent as _TextContent,
     Tool as _Tool,
-)  # noqa: E402
+)
 
 # Evict the installed mcp package from sys.modules so that re-adding modules/
 # to the path lets `from mcp.src...` (used by root_cli_entry) resolve to
@@ -46,7 +45,7 @@ for _ns in (_TOOLS_ROOT, _MODULES):
     if _ns.is_dir() and _ns_str not in sys.path:
         sys.path.insert(0, _ns_str)
 
-from shared.src.storage.utility_path_bootstrap import bootstrap_ns_roots  # noqa: E402
+from shared.src.storage.utility_path_bootstrap import bootstrap_ns_roots
 
 bootstrap_ns_roots()
 
@@ -57,7 +56,7 @@ for _src in sorted(_MODULES.glob("*/src")):
     if _ns_str not in sys.path:
         sys.path.append(_ns_str)
 
-from modules.root_cli_entry import create_mcp_adapter  # noqa: E402
+from modules.root_cli_entry import create_mcp_adapter
 
 __all__ = ["create_mcp_adapter", "main"]
 
@@ -71,7 +70,7 @@ async def _list_tools(context=None, params=None) -> _ListToolsResult:
             _Tool(
                 name=d["name"],
                 description=d.get("description", ""),
-                inputSchema={
+                input_schema={
                     "type": "object",
                     "properties": {},
                     "additionalProperties": True,
