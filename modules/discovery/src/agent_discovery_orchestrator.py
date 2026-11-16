@@ -95,7 +95,12 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
 
         try:
             if verb == DiscoveryVerb.CATALOG:
-                return handler(request, check=request.flags.get("check", "") == "1")
+                return handler(
+                    request,
+                    check=request.flags.get("check", "") == "1",
+                    build=request.flags.get("build", "1") == "1",
+                    read=request.flags.get("read", "1") == "1",
+                )
             if verb == DiscoveryVerb.DISCOVER:
                 limit_raw = request.flags.get("limit", "20") or "20"
                 try:
@@ -167,23 +172,50 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
         )
 
     def _execute_catalog(
-        self, request: DiscoveryRequest, check: bool = False
+        self,
+        request: DiscoveryRequest,
+        check: bool = False,
+        build: bool = True,
+        read: bool = True,
     ) -> DiscoveryResponse:
-        """CATALOG: build/check the catalog.json artifact."""
+        """CATALOG: build/check/read the catalog.json artifact.
+
+        Honors the tri-state build/read flags the CLI surface sends:
+        ``build`` rebuilds the artifact from the live tree, ``read``
+        returns the tracked bytes on the response. With neither flag set
+        the verb answers a read-only view (no write), which keeps the
+        read path non-destructive when a caller pins ``build=0``.
+        """
         catalog = self._require(self._catalog, "catalog")
         root = self._root(request)
         if check:
-            report = catalog.check(root)
+            check_report = catalog.check(root)
             return DiscoveryResponse(
-                ok=report.in_sync,
+                ok=check_report.in_sync,
                 verb=request.verb,
-                exit_code=0 if report.in_sync else 3,
-                catalog_check=report,
+                exit_code=0 if check_report.in_sync else 3,
+                catalog_check=check_report,
                 root=root,
             )
-        report = catalog.rebuild(root)
+        rebuild_report = catalog.rebuild(root) if build else None
+        text = catalog.read(root) if read else None
+        ok = True
+        message = ""
+        exit_code = 0
+        if read and not text:
+            # No tracked artifact: report through the same channel the CLI
+            # read renderer consumes, so the surface can print its tip.
+            ok = False
+            exit_code = 1
+            message = "catalog.json not found — run with --build first"
         return DiscoveryResponse(
-            ok=True, verb=request.verb, catalog_report=report, root=root
+            ok=ok,
+            verb=request.verb,
+            exit_code=exit_code,
+            message=message,
+            catalog_report=rebuild_report,
+            catalog_text=text,
+            root=root,
         )
 
     def _execute_discover(

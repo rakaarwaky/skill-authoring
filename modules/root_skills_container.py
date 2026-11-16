@@ -198,6 +198,7 @@ def _discovery_response_to_result(
         content=dresp.content,
         catalog=dresp.catalog_report,
         check=dresp.catalog_check,
+        catalog_text=dresp.catalog_text,
         warning=dresp.warning,
         root=dresp.root,
     )
