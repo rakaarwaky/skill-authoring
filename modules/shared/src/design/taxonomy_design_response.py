@@ -40,6 +40,7 @@ if TYPE_CHECKING:
         LintReport,
         NewCategoryPlan,
         SkillCreatePlan,
+        TelemetryRow,
     )
     from shared.src.observability.taxonomy_observability_vo import (
         MemoryReport,
@@ -74,7 +75,7 @@ class SkillsResult:
     op: SkillsOp = SkillsOp.LIST
     exit_code: int = 0
     message: str = ""
-    records: tuple[SkillRecord, ...] = ()
+    records: tuple[SkillRecord | TelemetryRow, ...] = ()
     content: SkillContent | None = None
     lint_report: LintReport | None = None
     catalog: CatalogReport | None = None

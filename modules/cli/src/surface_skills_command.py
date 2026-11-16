@@ -386,7 +386,10 @@ def _render_status(result: SkillsResult) -> int:
     info(f"[OK] status — {len(records)} state row(s)")
     if records:
         for rec in records:
-            info(f"  {rec}")
+            name = getattr(rec, "name", "unknown")
+            state = getattr(rec, "state", "active")
+            pinned = " (pinned)" if getattr(rec, "pinned", False) else ""
+            info(f"  {name}: {state}{pinned}")
     return 0
 
 
@@ -395,7 +398,11 @@ def _render_usage(result: SkillsResult) -> int:
     info(f"[OK] usage — {len(records)} skill row(s)")
     if records:
         for rec in records:
-            info(f"  {rec}")
+            name = getattr(rec, "name", "unknown")
+            views = getattr(rec, "views", 0)
+            uses = getattr(rec, "uses", 0)
+            state = getattr(rec, "state", "active")
+            info(f"  {name}: views={views} uses={uses} state={state}")
     return 0
 
 
