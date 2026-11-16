@@ -6,7 +6,7 @@ by default). Delegates the physical move and sidecar state update to
 ``SkillsRestore``.
 
 Shared helpers (``resolve_skill_dir``, ``assert_within_root``,
-``archive_root``) live in ``utility_skills_mutation`` (shared kernel)
+``archive_root``) live in ``utility_common_skills`` (AES common layer)
 so the archiver never imports a sibling capability.
 
 Every computed destination is asserted to remain inside the archive root
@@ -28,7 +28,11 @@ from shared.src.common.taxonomy_common_vo import (
     SkillName,
     SkillsRoot,
 )
-from shared.src.common.utility_common_skills import assert_within_root, resolve_skill_dir
+from shared.src.common.utility_common_skills import (
+    assert_within_root,
+    default_pack_root,
+    resolve_skill_dir,
+)
 from shared.src.maintenance.utility_lifecycle_support import archive_skill
 from shared.src.maintenance.utility_skills_mutation import archive_root
 from shared.src.storage.contract_storage_protocol import (
@@ -49,6 +53,11 @@ class SkillsArchiver(ISkillsArchiverProtocol):
         pass
 
     # ─── Block 2: Module Contract ─────────────
+    def archive(self, skill: str, root: SkillsRoot | None = None) -> dict:
+        """Archive a live skill into ~/.agents/skills/.archive/."""
+        pack_root = Path(root) if root is not None else default_pack_root()
+        return archive_skill(skill, pack_root)
+
     def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
         """Resolve an archive; the skill lands at the home-based archive tree."""
         skills_root = Path(root)

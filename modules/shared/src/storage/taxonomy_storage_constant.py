@@ -22,6 +22,12 @@ USAGE_SIDECAR_FILENAME: Final = ".usage.json"
 #: The lock file guarding the usage sidecar.
 USAGE_LOCK_FILENAME: Final = ".usage.json.lock"
 
+#: The archive directory name.
+ARCHIVE_DIRNAME: Final = ".archive"
+
+#: The relative path to the archive tree under the user's home directory.
+ARCHIVE_REL_PATH: Final = ".agents/skills/.archive"
+
 #: Standard skill-pack category directories created at bootstrap.
 CATEGORY_DIRS: Final[tuple[str, ...]] = (
     "archive",
@@ -34,6 +40,8 @@ CATEGORY_DIRS: Final[tuple[str, ...]] = (
 )
 
 __all__ = [
+    "ARCHIVE_DIRNAME",
+    "ARCHIVE_REL_PATH",
     "CATEGORY_DIRS",
     "PACK_DIRNAME",
     "PACK_MANIFEST_FILENAME",
@@ -42,6 +50,8 @@ __all__ = [
 ]
 
 _layer_symbols = {
+    "ARCHIVE_DIRNAME": ARCHIVE_DIRNAME,
+    "ARCHIVE_REL_PATH": ARCHIVE_REL_PATH,
     "CATEGORY_DIRS": CATEGORY_DIRS,
     "PACK_DIRNAME": PACK_DIRNAME,
     "PACK_MANIFEST_FILENAME": PACK_MANIFEST_FILENAME,

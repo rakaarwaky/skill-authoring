@@ -30,7 +30,8 @@ composition root.
 | move       | Move a skill to a   | `SkillsOp.MOVE`     | `ISkillsAggregate   |
 |            | category            |                     | .execute`           |
 | archive    | Archive a skill     | `SkillsOp.ARCHIVE   | `ISkillsAggregate   |
-|            | into _archive/      | `                   | .execute`           |
+|            | into archive tree   | `                   | .execute`           |
+|            | `~/.agents/skills/.archive/` |            |                    |
 | create     | Create a skill or   | `SkillsOp.CREATE`   | `ISkillsAggregate   |
 |            | category            |                     | .execute`           |
 
