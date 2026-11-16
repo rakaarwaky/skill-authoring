@@ -66,15 +66,94 @@ class SkillsMcpAdapter:
         """Dispatch an MCP tool call to the aggregate and return an MCP result."""
         tool_name = name.removeprefix("sac_")
         result = self._dispatch(tool_name, arguments)
+        rendered_text = self._render_tool_result(arguments, result)
         return {
             "ok": result.ok,
             "content": [
                 {
                     "type": "text",
-                    "text": result.message or f"{result.op}: exit {result.exit_code}",
+                    "text": rendered_text,
                 }
             ],
         }
+
+    # ── Result rendering (1:1 CLI equivalence, no ANSI codes) ──────
+
+    def _render_tool_result(self, args: dict, result: SkillsResult) -> str:
+        """Dispatch rendering on result.op; emit all payload channels."""
+        if not result.ok:
+            return result.message or f"{result.op}: exit {result.exit_code}"
+
+        if result.op == SkillsOp.LIST:
+            return self._render_list_records(result.records)
+        if result.op == SkillsOp.READ:
+            return self._render_read_content(result, args.get("skill", args.get("query", "")))
+        if result.op == SkillsOp.STATUS:
+            return self._render_status_records(result.records)
+        if result.op == SkillsOp.USAGE:
+            return self._render_usage_records(result.records)
+
+        return result.message or f"{result.op}: exit {result.exit_code}"
+
+    @staticmethod
+    def _render_list_records(records: tuple) -> str:
+        """Render skill records as a clean 2-column text table (no ANSI codes).
+
+        Matches CLI ``_cmd_list`` format: SKILL padded to 28 chars,
+        separator line, rows with truncated descriptions, optional tip
+        line, and footer count.
+        """
+        rows = list(records)
+        if not rows:
+            return "No skills in the pack yet."
+
+        lines = []
+        lines.append("SKILL".ljust(28) + "DESCRIPTION")
+        lines.append("-" * 28 + " " + "-" * 60)
+        truncated = False
+        for record in rows:
+            desc = (record.description or "").replace("\n", " ")
+            if len(desc) > 70:
+                desc = desc[:69] + "…"
+                truncated = True
+            lines.append(record.name.ljust(28) + " " + desc)
+        if truncated:
+            lines.append("Tip: sac read <name> for full content")
+        lines.append("")
+        lines.append(f"{len(rows)} skills in the pack.")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _render_read_content(result: SkillsResult, name: str) -> str:
+        """Return the raw SKILL.md content for a read operation."""
+        if result.content is not None and result.content != "":
+            return str(result.content)
+        return result.message or f"Skill not found: {name}"
+
+    @staticmethod
+    def _render_status_records(records: tuple) -> str:
+        """Render telemetry rows as lifecycle state lines (name: state (pinned))."""
+        rows = list(records)
+        lines = [f"[OK] status — {len(rows)} state row(s)"]
+        for rec in rows:
+            name = getattr(rec, "name", "unknown")
+            state = getattr(rec, "state", "active")
+            pinned = " (pinned)" if getattr(rec, "pinned", False) else ""
+            lines.append(f"  {name}: {state}{pinned}")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _render_usage_records(records: tuple) -> str:
+        """Render usage telemetry rows (name: views=N uses=N state=X)."""
+        rows = list(records)
+        lines = [f"[OK] usage — {len(rows)} skill row(s)"]
+        for rec in rows:
+            name = getattr(rec, "name", "unknown")
+            views = getattr(rec, "views", 0)
+            uses = getattr(rec, "uses", 0)
+            state = getattr(rec, "state", "active")
+            lines.append(f"  {name}: views={views} uses={uses} state={state}")
+        return "\n".join(lines)
 
     # ── Internals ──────────────────────────────────────────────────
 
