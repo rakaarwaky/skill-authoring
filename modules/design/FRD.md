@@ -2,11 +2,21 @@
 
 ## Feature Overview
 
-The design feature sits in the agent layer and is called by the surface and root
-CLI through the design aggregate contract. It orchestrates three capabilities —
-creator, linter, runner — and routes each design-side verb to the
-matching capability protocol. The agent performs no filesystem I/O; all I/O is
-delegated to the capabilities.
+    [Surface CLI] --> [SkillsDesignAgent]
+    [MCP Surface] --> [SkillsDesignAgent]
+    [Root CLI] --> [SkillsDesignAgent]
+    [SkillsDesignAgent] --> [SkillsCreator]
+    [SkillsDesignAgent] --> [SkillsLinter]
+    [SkillsDesignAgent] --> [SkillsRunner]
+
+The **design** feature sits in the agent layer and is called by the surface CLI,
+MCP surface, and root CLI through the `ISkillsDesignAggregate` contract. It
+sequences three capabilities — `SkillsCreator` (creates skills and categories),
+`SkillsLinter` (runs the 13-rule validator plus the weed report), and
+`SkillsRunner` (applies lifecycle transitions) — and exposes them through a
+single `execute` entry point that translates a `SkillsRequest` into the
+matching capability call and back into a `SkillsResult`. The agent performs no
+filesystem I/O; every write and every scan is delegated to a capability.
 
 ## Functional Requirements
 
@@ -15,26 +25,41 @@ delegated to the capabilities.
 **Description:** `SkillsCreator` shall implement `ISkillsCreatorProtocol` and
 expose `create_skill` and `create_category`. The capability plans (dry-run) or
 applies creation of a new skill SKILL.md or category folder under the skills
-root.
+root, and the design agent routes the `create` `SkillsOp` to it through
+`execute`.
 
 #### Business Logic
 
-- `create_skill` with `apply=False` returns a `SkillCreatePlan` without writing;
-  with `apply=True` it writes the SKILL.md file.
-- `create_category` with `apply=False` returns a `NewCategoryPlan` without
-  writing; with `apply=True` it creates the directory and DESCRIPTION.md.
-- Every computed destination is asserted to remain inside the skills root at
-  plan time and re-checked at apply time, so a symlink created between the two
-  phases fails closed instead of writing outside the pack.
-- The creator never imports a sibling capability; data crossing capability
-  boundaries flows through shared kernel protocols or shared kernel utilities.
+- `create_skill` with `apply=False` shall return a `SkillCreatePlan` without
+  writing.
+- `create_skill` with `apply=True` shall write the SKILL.md file under the
+  skills root.
+- `create_category` with `apply=False` shall return a `NewCategoryPlan`
+  without writing.
+- `create_category` with `apply=True` shall create the directory and the
+  category DESCRIPTION.md.
+- `execute` with `op=create` and `flags[kind]=skill` shall require
+  `flags[category]`; a missing category shall raise `SkillsUsageError` and
+  return `SkillsResult` with `USAGE_ERROR` exit code.
+- `execute` with `op=create` and `flags[kind]=category` shall call
+  `create_category` with `flags[force]` and the request `description`.
+- On `apply=False` the agent shall return `SkillsResult` with the plan in
+  `create_plan` (skill) or `new_category` (category) and no catalog rebuild.
+- On `apply=True` the agent shall rebuild the catalog through the discovery
+  catalog capability and return `SkillsResult` with both the plan and
+  `catalog` populated.
+- An `execute` call whose `op` is not a `SkillsOp` member, or is an op this
+  aggregate does not own, shall return `USAGE_ERROR` before any capability
+  runs.
 
 #### Edge Cases
 
-- A computed destination outside the skills root at apply time shall fail closed
-  and produce no write.
+- A computed destination outside the skills root at apply time shall fail
+  closed and produce no write.
 - A missing skill name shall raise an error the agent maps to a `SkillsResult`
   with `ISSUES_FOUND` exit code.
+- A `create` request with an unrecognized `flags[kind]` value shall be treated
+  as `kind=skill`.
 
 #### Technical Specification
 
@@ -71,19 +96,29 @@ root.
 
 **Description:** `SkillsLinter` shall implement `ISkillsLinterProtocol` and
 expose `lint`, running the combined 13-rule validator plus weed report in one
-pass.
+pass, and the design agent routes the `lint` `SkillsOp` to it through
+`execute`.
 
-#### Business Logic (2)
+#### Business Logic
 
-- `lint` runs the full lint over the root; optionally filters by category.
-- Returns a single `LintReport` carrying both issues and weed lines.
-- The linter never imports a sibling capability.
+- `lint` shall run the full lint over the root; optionally filter by category.
+- `lint` shall return a single `LintReport` carrying both issues and weed lines.
+- `execute` with `op=lint` shall read `flags[category]` as the optional
+  category filter and call `lint` with the resolved root.
+- The agent shall set `exit_code=CLEAN` (0) when `report.issue_count == 0`
+  and `exit_code=ISSUES_FOUND` (1) otherwise.
+- `execute` with `op=lint` shall return `SkillsResult` with `lint_report`
+  and `root` populated.
 
-#### Edge Cases (2)
+#### Edge Cases
 
-- An empty pack returns an empty report with no issues.
+- A lint request with no `flags[category]` shall run the full-pack lint with
+  no category filter.
+- A capability raising `SkillsError` shall be caught by `execute` and returned
+  as `SkillsResult` with the capability's exit code.
+- An empty pack shall return an empty report with no issues.
 
-#### Technical Specification (2)
+#### Technical Specification
 
 | Aspect         | Detail                                               |
 | -------------- | ---------------------------------------------------- |
@@ -94,7 +129,7 @@ pass.
 | **Event**      | none                                                 |
 | **Error**      | `SkillsError` subclasses; agent maps to exit codes   |
 
-#### Test (2)
+#### Test
 
 | Context              | When Action    | Then Observable Result               |
 | -------------------- | -------------- | ------------------------------------ |
@@ -103,7 +138,7 @@ pass.
 |                      |                | `categories` populated               |
 | Lint an empty pack   | `lint(root)`   | Empty report with no issues          |
 
-#### Metric (2)
+#### Metric
 
 | Target Metric              | Value   |
 | -------------------------- | ------- |
@@ -112,23 +147,28 @@ pass.
 ### FR-DESIGN-003: Runner capability contract
 
 **Description:** `SkillsRunner` shall implement `ISkillsRunnerProtocol` and
-expose `apply_automatic_transitions`, `pause`, and `resume` for lifecycle verbs.
+expose `apply_automatic_transitions`, `pause`, and `resume` for lifecycle
+verbs, and the design agent routes the `run`, `pause`, and `resume`
+`SkillsOp`s to it through `execute`.
 
-#### Business Logic (2)
+#### Business Logic
 
-- `apply_automatic_transitions` applies automatic lifecycle transitions across
-  the pack.
-- `pause` pauses lifecycle transitions; `resume` resumes them.
-- An `OSError` from the runner is caught by the agent and returned as a
+- `apply_automatic_transitions` shall apply automatic lifecycle transitions
+  across the pack.
+- `pause` shall pause lifecycle transitions; `resume` shall resume them.
+- `execute` with `op=run` shall call `apply_automatic_transitions(root)`.
+- `execute` with `op=pause` shall call `pause(root)`; `op=resume` shall call
+  `resume(root)`.
+- An `OSError` from the runner shall be caught by the agent and returned as a
   `SkillsResult` with `ISSUES_FOUND` exit code.
-- The runner never imports a sibling capability.
+- The runner shall not import a sibling capability.
 
-#### Edge Cases (2)
+#### Edge Cases
 
-- On `RUN`, `PAUSE`, or `RESUME`, an `OSError` from the runner shall be caught
-  and returned as `ISSUES_FOUND`.
+- On `run`, `pause`, or `resume`, an `OSError` from the runner shall be
+  caught and returned as `ISSUES_FOUND`.
 
-#### Technical Specification (2)
+#### Technical Specification
 
 | Aspect         | Detail                                                      |
 | -------------- | ----------------------------------------------------------- |
@@ -141,17 +181,17 @@ expose `apply_automatic_transitions`, `pause`, and `resume` for lifecycle verbs.
 | **Error**      | `OSError`, `SkillsError` subclasses; agent maps to exit     |
 |                | codes                                                       |
 
-#### Test (2)
+#### Test
 
 | Context                 | When Action             | Then Observable Result   |
 | ----------------------- | ----------------------- | ------------------------ |
-| Runner with lifecycle   | `apply_automatic_tran   | Result with              |
-| paused                  | sitions()`              | `paused=True` and        |
+| Runner lifecycle paused | `apply_automatic_tran   | Result with              |
+| sitions()`              | sitions()`              | `paused=True` and        |
 |                         |                         | empty `applied` list     |
 | Runner pause/resume     | `pause(root)` /         | Lifecycle transitions    |
 |                         | `resume(root)`          | paused then resumed      |
 
-#### Metric (2)
+#### Metric
 
 | Target Metric              | Value   |
 | -------------------------- | ------- |
@@ -172,11 +212,10 @@ expose `apply_automatic_transitions`, `pause`, and `resume` for lifecycle verbs.
 
 | Artifact       | Purpose                      | Link                         |
 | -------------- | ---------------------------- | ---------------------------- |
-| PRD            | Business goals and scope     | [PRD.md](../../../../../PR   |
-|                |                              | D.md)                        |
+| PRD            | Business goals and scope     | [PRD.md](../../../../../PRD.md) |
 | Backlog        | Task tracking and            | [BACKLOG.md](BACKLOG.md)     |
 |                | implementation status        |                              |
-| Roadmap        | Timeline, phasing, and       | [ROADMAP.md](../../../../.   |
-|                | dependencies                 | ./ROADMAP.md)                |
-| Architecture   | System boundaries, tech      | [ARCHITECTURE.md](../../..   |
-|                | stack, and infra             | /../../ARCHITECTURE.md)      |
+| Roadmap        | Timeline, phasing, and       | [ROADMAP.md](../../../../../ROADMAP.md) |
+|                | dependencies                 |                              |
+| Architecture   | System boundaries, tech      | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
+|                | stack, and infra             |                              |
