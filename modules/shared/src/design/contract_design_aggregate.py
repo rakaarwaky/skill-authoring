@@ -1,8 +1,8 @@
 """Design-domain aggregate contract (AES contract layer, ABC trait).
 
-Single entry point over the design-side capabilities:
-creator, linter, runner. The root CLI and surface call
-``execute`` with a ``SkillsRequest`` and get a ``SkillsResult`` back.
+Single entry point over the design-side capabilities: creator, linter.
+The root CLI and surface call ``execute`` with a ``SkillsRequest`` and
+get a ``SkillsResult`` back.
 """
 
 from __future__ import annotations

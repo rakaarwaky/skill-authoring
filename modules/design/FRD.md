@@ -7,16 +7,17 @@
     [Root CLI] --> [SkillsDesignAgent]
     [SkillsDesignAgent] --> [SkillsCreator]
     [SkillsDesignAgent] --> [SkillsLinter]
-    [SkillsDesignAgent] --> [SkillsRunner]
 
 The **design** feature sits in the agent layer and is called by the surface CLI,
 MCP surface, and root CLI through the `ISkillsDesignAggregate` contract. It
-sequences three capabilities — `SkillsCreator` (creates skills and categories),
-`SkillsLinter` (runs the 13-rule validator plus the weed report), and
-`SkillsRunner` (applies lifecycle transitions) — and exposes them through a
-single `execute` entry point that translates a `SkillsRequest` into the
-matching capability call and back into a `SkillsResult`. The agent performs no
-filesystem I/O; every write and every scan is delegated to a capability.
+sequences two capabilities — `SkillsCreator` (creates skills and categories)
+and `SkillsLinter` (runs the 13-rule validator plus the weed report) — and
+exposes them through a single `execute` entry point that translates a
+`SkillsRequest` into the matching capability call and back into a
+`SkillsResult`. The agent performs no filesystem I/O; every write and every
+scan is delegated to a capability. The lifecycle verbs `run`, `pause`, and
+`resume` belong to the [maintenance module](../maintenance/FRD.md) via
+`ISkillsRunnerProtocol`; the design agent does not own them.
 
 ## Functional Requirements
 
@@ -49,8 +50,8 @@ root, and the design agent routes the `create` `SkillsOp` to it through
   catalog capability and return `SkillsResult` with both the plan and
   `catalog` populated.
 - An `execute` call whose `op` is not a `SkillsOp` member, or is an op this
-  aggregate does not own, shall return `USAGE_ERROR` before any capability
-  runs.
+  aggregate does not own (for example `run`, `pause`, `resume`, `prune`),
+  shall return `USAGE_ERROR` before any capability runs.
 
 #### Edge Cases
 
@@ -137,59 +138,6 @@ pass, and the design agent routes the `lint` `SkillsOp` to it through
 |                      |                | `weed_lines`, `skills`,              |
 |                      |                | `categories` populated               |
 | Lint an empty pack   | `lint(root)`   | Empty report with no issues          |
-
-#### Metric
-
-| Target Metric              | Value   |
-| -------------------------- | ------- |
-| Capability contract pass   | 100 %   |
-
-### FR-DESIGN-003: Runner capability contract
-
-**Description:** `SkillsRunner` shall implement `ISkillsRunnerProtocol` and
-expose `apply_automatic_transitions`, `pause`, and `resume` for lifecycle
-verbs, and the design agent routes the `run`, `pause`, and `resume`
-`SkillsOp`s to it through `execute`.
-
-#### Business Logic
-
-- `apply_automatic_transitions` shall apply automatic lifecycle transitions
-  across the pack.
-- `pause` shall pause lifecycle transitions; `resume` shall resume them.
-- `execute` with `op=run` shall call `apply_automatic_transitions(root)`.
-- `execute` with `op=pause` shall call `pause(root)`; `op=resume` shall call
-  `resume(root)`.
-- An `OSError` from the runner shall be caught by the agent and returned as a
-  `SkillsResult` with `ISSUES_FOUND` exit code.
-- The runner shall not import a sibling capability.
-
-#### Edge Cases
-
-- On `run`, `pause`, or `resume`, an `OSError` from the runner shall be
-  caught and returned as `ISSUES_FOUND`.
-
-#### Technical Specification
-
-| Aspect         | Detail                                                      |
-| -------------- | ----------------------------------------------------------- |
-| **Input**      | `apply_automatic_transitions(root?)` / `pause(root)` /      |
-|                | `resume(root)`                                              |
-| **Output**     | `MutationOutcome`                                           |
-| **Protocol**   | `ISkillsRunnerProtocol`                                     |
-| **Method**     | `apply_automatic_transitions`, `pause`, `resume`            |
-| **Event**      | none                                                        |
-| **Error**      | `OSError`, `SkillsError` subclasses; agent maps to exit     |
-|                | codes                                                       |
-
-#### Test
-
-| Context                 | When Action             | Then Observable Result   |
-| ----------------------- | ----------------------- | ------------------------ |
-| Runner lifecycle paused | `apply_automatic_tran   | Result with              |
-| sitions()`              | sitions()`              | `paused=True` and        |
-|                         |                         | empty `applied` list     |
-| Runner pause/resume     | `pause(root)` /         | Lifecycle transitions    |
-|                         | `resume(root)`          | paused then resumed      |
 
 #### Metric
 

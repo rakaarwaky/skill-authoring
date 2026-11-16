@@ -29,14 +29,14 @@ SkillQuery = NewType("SkillQuery", str)
 #: Unified skill operations: read-only, authoring mutations, and lifecycle.
 #:
 #: The enum is the union of every op the aggregate dispatches; it is
-#: deliberately broader than the protocol surface. Most ops map to a
-#: method on an ``ISkills*Protocol`` in ``contract_design_protocol``;
-#: a few lifecycle verbs (RUN, PAUSE, RESUME, USAGE, STATUS) dispatch
-#: through ``ISkillsRunnerProtocol``/``ISkillsTelemetryProtocol``, and
-#: some (LEDGER, PRUNE) have no dedicated protocol seam --
-#: the runner capability owns them internally and the aggregate dispatches
-#: them without a separate capability module. Keep the enum as the
-#: authoritative op list; the protocol layer is a subset of it.
+#: deliberately broader than the design protocol surface. Design owns
+#: create and lint. Lifecycle verbs (RUN, PAUSE, RESUME) route to the
+#: maintenance aggregate via ``ISkillsRunnerProtocol`` in the maintenance
+#: contract; telemetry ops (USAGE, STATUS, LEDGER, TRACES) route through
+#: ``ISkillsTelemetryProtocol`` in the observability contract. PRUNE and
+#: the remaining lifecycle verbs are dispatched by the maintenance and
+#: observability aggregates. Keep the enum as the authoritative op list;
+#: each module's protocol layer is a subset of it.
 class SkillsOp(StrEnum):
     # Core pack operations
     LIST = "list"
