@@ -10,10 +10,10 @@
 # imports.
 set -euo pipefail
 
-# Pin the tools tree to the worktree path so the binary works even when
-# copied/installed into $XDG_BIN_HOME. The worktree is the live source of
-# truth; the main clone stays read-only.
-TOOLS_DIR="/home/raka/orca/workspaces/tools/skill-authoring-mcp-bin"
+# Point at the live main clone tools tree (bin stays committed here); the
+# launcher is also installed into $HOME/.local/bin/skill-authoring-mcp with
+# the same pinned path. The worktree used to author this has been retired.
+TOOLS_DIR="/home/raka/.agents/skills/skill-authoring/tools"
 VENV_DIR="$TOOLS_DIR/.venv"
 
 [[ -f "$VENV_DIR/bin/activate" ]] && source "$VENV_DIR/bin/activate"
