@@ -18,6 +18,7 @@ from shared.src.common.taxonomy_common_vo import (
     MutationPlan,
     SkillName,
 )
+from shared.src.storage.taxonomy_storage_constant import ARCHIVE_DIRNAME
 from shared.src.storage.taxonomy_storage_request import SkillsRoot
 
 
@@ -61,12 +62,14 @@ class ISkillsRestoreProtocol(ABC):
 
 
 __all__ = [
+    "ARCHIVE_DIRNAME",
     "ISkillsArchiverProtocol",
     "ISkillsExportProtocol",
     "ISkillsRestoreProtocol",
 ]
 
 _layer_symbols = {
+    "ARCHIVE_DIRNAME": ARCHIVE_DIRNAME,
     "ISkillsArchiverProtocol": ISkillsArchiverProtocol,
     "ISkillsExportProtocol": ISkillsExportProtocol,
     "ISkillsRestoreProtocol": ISkillsRestoreProtocol,

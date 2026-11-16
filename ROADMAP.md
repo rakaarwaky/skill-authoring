@@ -30,7 +30,7 @@ The Skill Authoring pack ships three invocation modes — `--create`, `--improve
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-004: governance
+### PR-SKILLDESIGN-004: maintenance
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
@@ -38,7 +38,7 @@ The Skill Authoring pack ships three invocation modes — `--create`, `--improve
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-005: maintenance
+### PR-SKILLDESIGN-005: mcp
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
@@ -46,7 +46,7 @@ The Skill Authoring pack ships three invocation modes — `--create`, `--improve
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-006: mcp
+### PR-SKILLDESIGN-006: observability
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
@@ -54,7 +54,7 @@ The Skill Authoring pack ships three invocation modes — `--create`, `--improve
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-007: observability
+### PR-SKILLDESIGN-007: shared
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
@@ -62,15 +62,7 @@ The Skill Authoring pack ships three invocation modes — `--create`, `--improve
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-008: shared
-
-| Aspect       | Detail                                                        |
-|--------------|---------------------------------------------------------------|
-| Priority     | P2                                                            |
-| State        | Done                                                          |
-| Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
-
-### PR-SKILLDESIGN-009: storage
+### PR-SKILLDESIGN-008: storage
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|

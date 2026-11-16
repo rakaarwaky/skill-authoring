@@ -29,6 +29,43 @@ archives — and implements `ISkillsPrunerProtocol`.
 | Risk        | None                                                   |
 | Updated     | 2026-11-16                                             |
 
+### FR-maintenance-002: Runner
+
+| Aspect      | Detail                                                 |
+| ----------- | ------------------------------------------------------ |
+| State       | Done                                                   |
+| Done        | `SkillsMaintenanceAgent.execute` routes `RUN`, `PAUSE` |
+|             | and `RESUME` to the runner capability via              |
+|             | `ISkillsRunnerProtocol`; transitions are applied,      |
+|             | paused, and resumed in one command                     |
+| In Progress | None                                                   |
+| Risk        | None                                                   |
+| Updated     | 2026-11-16                                             |
+
+### FR-maintenance-003: Piner
+
+| Aspect      | Detail                                                 |
+| ----------- | ------------------------------------------------------ |
+| State       | Done                                                   |
+| Done        | `SkillsMaintenanceAgent.execute` routes `PIN` and      |
+|             | `UNPIN` to the piner capability via `ISkillsPinerProtocol`; |
+|             | the resulting `PinState` is returned to the caller     |
+| In Progress | None                                                   |
+| Risk        | None                                                   |
+| Updated     | 2026-11-16                                             |
+
+### FR-maintenance-004: Mover
+
+| Aspect      | Detail                                                 |
+| ----------- | ------------------------------------------------------ |
+| State       | Done                                                   |
+| Done        | `SkillsMaintenanceAgent.execute` routes `MOVE` to the  |
+|             | mover capability via `ISkillsMoverProtocol`;           |
+|             | `plan_move` then `apply_move` executes the move plan   |
+| In Progress | None                                                   |
+| Risk        | None                                                   |
+| Updated     | 2026-11-16                                             |
+
 ## Reference
 
 | Artifact     | Purpose                                           |
