@@ -54,6 +54,7 @@ class DiscoveryResponse:
     content: SkillContent | None = None
     catalog_report: CatalogReport | None = None
     catalog_check: CatalogCheckResult | None = None
+    catalog_text: str | None = None
     discovery: DiscoveryResult | None = None
     warning: str | None = None
     root: Path | None = None

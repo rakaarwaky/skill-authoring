@@ -311,3 +311,81 @@ def test_show_skill_reader_returns_none_propagates_none():
     content = agent.show_skill("no-such-skill", root=DiscoveryRoot(Path("/tmp/skills")))
     assert content is None
     reader.show_skill.assert_called_once_with(DiscoveryQuery("no-such-skill"), DiscoveryRoot(Path("/tmp/skills")))
+
+
+# ─── CATALOG verb build/read flags (catalog --read regression) ──────────
+
+def test_execute_catalog_read_only_returns_catalog_text():
+    """UT-DISCOVERY-018: CATALOG read-only returns tracked bytes, no rebuild."""
+    catalog = MagicMock(spec=ISkillsCatalogProtocol)
+    catalog.read.return_value = '{"skills": []}\n'
+    agent = _agent_with(catalog=catalog)
+    result = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.CATALOG,
+            root=DiscoveryRoot(Path("/tmp/skills")),
+            flags={"build": "0", "read": "1"},
+        )
+    )
+    assert result.ok is True
+    assert result.catalog_text == '{"skills": []}\n'
+    assert result.catalog_report is None
+    catalog.rebuild.assert_not_called()
+    catalog.read.assert_called_once()
+
+
+def test_execute_catalog_read_missing_artifact_exit_1():
+    """UT-DISCOVERY-019: read-only with missing artifact returns exit 1 and the read message."""
+    catalog = MagicMock(spec=ISkillsCatalogProtocol)
+    catalog.read.return_value = ""
+    agent = _agent_with(catalog=catalog)
+    result = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.CATALOG,
+            root=DiscoveryRoot(Path("/tmp/skills")),
+            flags={"build": "0", "read": "1"},
+        )
+    )
+    assert result.ok is False
+    assert result.exit_code == 1
+    assert "catalog.json not found" in result.message
+    catalog.rebuild.assert_not_called()
+
+
+def test_execute_catalog_build_only_rebuilds_without_read():
+    """UT-DISCOVERY-020: build-only rebuilds the catalog and skips the read."""
+    catalog = MagicMock(spec=ISkillsCatalogProtocol)
+    catalog.rebuild.return_value = MagicMock()
+    agent = _agent_with(catalog=catalog)
+    result = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.CATALOG,
+            root=DiscoveryRoot(Path("/tmp/skills")),
+            flags={"build": "1", "read": "0"},
+        )
+    )
+    assert result.ok is True
+    assert result.catalog_report is not None
+    assert result.catalog_text is None
+    catalog.read.assert_not_called()
+    catalog.rebuild.assert_called_once()
+
+
+def test_execute_catalog_build_and_read_populates_both():
+    """UT-DISCOVERY-021: default (no flags) rebuilds and reads in one pass."""
+    catalog = MagicMock(spec=ISkillsCatalogProtocol)
+    catalog.rebuild.return_value = MagicMock()
+    catalog.read.return_value = '{"skills": []}\n'
+    agent = _agent_with(catalog=catalog)
+    result = agent.execute(
+        DiscoveryRequest(
+            verb=DiscoveryVerb.CATALOG,
+            root=DiscoveryRoot(Path("/tmp/skills")),
+            flags={},
+        )
+    )
+    assert result.ok is True
+    assert result.catalog_report is not None
+    assert result.catalog_text == '{"skills": []}\n'
+    catalog.rebuild.assert_called_once()
+    catalog.read.assert_called_once()
