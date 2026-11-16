@@ -85,7 +85,6 @@ FIELDS = (
     "views",
     "uses",
     "activity_window_start",
-    "locked",
 )
 
 DEFAULT_STATE = "active"
@@ -351,7 +350,6 @@ def _baseline_record() -> dict:
         "views": 0,
         "uses": 0,
         "activity_window_start": now,
-        "locked": False,
     }
 
 

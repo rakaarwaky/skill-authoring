@@ -30,7 +30,7 @@ def bench_agent_construction():
     start = time.perf_counter()
     for _ in range(iterations):
         SkillsGovernanceAgent(
-            locker=MagicMock(), piner=MagicMock(), mover=MagicMock()
+            piner=MagicMock(), mover=MagicMock()
         )
     elapsed = time.perf_counter() - start
     print(f"Agent construction x{iterations}: {elapsed:.4f}s")
@@ -49,7 +49,7 @@ def bench_agent_execute_dispatch():
     )
 
     agent = SkillsGovernanceAgent(
-        locker=MagicMock(), piner=MagicMock(), mover=MagicMock()
+        piner=MagicMock(), mover=MagicMock()
     )
     iterations = 1000
     start = time.perf_counter()
@@ -62,14 +62,12 @@ def bench_agent_execute_dispatch():
 
 def bench_capability_instantiation():
     """Benchmark: instantiate all governance capabilities."""
-    from governance.src.capabilities_skills_locker import SkillsLocker
     from governance.src.capabilities_skills_mover import SkillsMover
     from governance.src.capabilities_skills_piner import SkillsPiner
 
     iterations = 1000
     start = time.perf_counter()
     for _ in range(iterations):
-        SkillsLocker()
         SkillsPiner()
         SkillsMover()
     elapsed = time.perf_counter() - start

@@ -64,8 +64,8 @@ class SkillsPrune(ISkillsPrunerProtocol):
             record = read_record(skill_dir)
             state = record.get("state", ACTIVE)
 
-            if record.get("pinned") or record.get("locked"):
-                kept.append({"skill": name, "state": state, "reason": "pinned-or-locked"})
+            if record.get("pinned"):
+                kept.append({"skill": name, "state": state, "reason": "pinned"})
                 continue
 
             if _cron_referenced(pack_root, name):

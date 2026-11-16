@@ -119,7 +119,7 @@ The `--create` path copies `template/skill.md` (registered in `template/template
 
 #### Proposed Solution
 
-The locker/piner/mover capabilities expose lock, pin, and move verbs for skill directories. The governance feature implements `ISkillsGovernanceAggregate` and wires them into `root_governance_container.py`.
+The piner and mover capabilities expose pin, unpin, and move verbs for skill directories. The governance feature implements `ISkillsGovernanceAggregate` and wires them into `root_governance_container.py`.
 
 #### Main User Flow
 

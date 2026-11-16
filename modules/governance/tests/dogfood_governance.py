@@ -18,12 +18,10 @@ def test_dogfood_agent_builds_requests_the_surface_way():
     from governance.src.agent_governance_orchestrator import (
         SkillsGovernanceAgent,
     )
-    from governance.src.capabilities_skills_locker import SkillsLocker
     from governance.src.capabilities_skills_mover import SkillsMover
     from governance.src.capabilities_skills_piner import SkillsPiner
 
     agent = SkillsGovernanceAgent(
-        locker=SkillsLocker(),
         piner=SkillsPiner(),
         mover=SkillsMover(),
     )

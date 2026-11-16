@@ -299,10 +299,8 @@ _DISCOVERY_OPS = frozenset(
 )
 _GOVERNANCE_OPS = frozenset(
     {
-        SkillsOp.LOCK,
         SkillsOp.MOVE,
         SkillsOp.PIN,
-        SkillsOp.UNLOCK,
         SkillsOp.UNPIN,
     }
 )

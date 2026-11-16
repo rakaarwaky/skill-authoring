@@ -55,8 +55,7 @@ class SkillsMcpAdapter:
             {"name": "sac_resume", "description": "Resume automatic transitions"},
             {"name": "sac_pin", "description": "Pin a skill"},
             {"name": "sac_unpin", "description": "Unpin a skill"},
-            {"name": "sac_lock", "description": "Lock a skill"},
-            {"name": "sac_unlock", "description": "Unlock a skill"},
+
             {"name": "sac_restore", "description": "Restore an archived skill"},
             {"name": "sac_prune", "description": "Bulk archive idle skills"},
             {"name": "sac_purge", "description": "Permanently remove archived skills"},
@@ -99,8 +98,6 @@ class SkillsMcpAdapter:
             "resume": SkillsOp.RESUME,
             "pin": SkillsOp.PIN,
             "unpin": SkillsOp.UNPIN,
-            "lock": SkillsOp.LOCK,
-            "unlock": SkillsOp.UNLOCK,
             "restore": SkillsOp.RESTORE,
             "prune": SkillsOp.PRUNE,
             "purge": SkillsOp.PURGE,

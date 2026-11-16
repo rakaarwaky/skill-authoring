@@ -69,9 +69,6 @@ class SkillsRunner(ISkillsRunnerProtocol):
             if record.get("pinned", False):
                 skipped.append({"skill": name, "reason": "pinned"})
                 continue
-            if record.get("locked", False):
-                skipped.append({"skill": name, "reason": "locked"})
-                continue
             if _cron_referenced(pack_root, name):
                 skipped.append({"skill": name, "reason": "cron"})
                 continue

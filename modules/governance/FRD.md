@@ -2,18 +2,16 @@
 
 ## Feature Overview
 
-The governance feature owns the skill-lifecycle flag verbs: lock,
-unlock, pin, unpin, and move. A governance agent
-(`SkillsGovernanceAgent`) implements the governance-domain aggregate
-contract (`ISkillsGovernanceAggregate`) and routes each `SkillsOp` to
-the capability protocol that owns the verb — the locker toggles the
-`locked` sidecar flag, the piner toggles the `pinned` flag, and the
-mover plans and applies cross-category moves. The agent orchestrates
-only: it holds no I/O, no domain data, and no computation. Every
-filesystem operation happens inside a capability; the composition root
-injects the concrete capabilities into the agent through the three
-protocol seams (`ISkillsLockerProtocol`, `ISkillsPinerProtocol`,
-`ISkillsMoverProtocol`).
+The governance feature owns the skill-lifecycle flag verbs: pin,
+unpin, and move. A governance agent (`SkillsGovernanceAgent`) implements
+the governance-domain aggregate contract (`ISkillsGovernanceAggregate`)
+and routes each `SkillsOp` to the capability protocol that owns the
+verb — the piner toggles the `pinned` flag, and the mover plans and
+applies cross-category moves. The agent orchestrates only: it holds no
+I/O, no domain data, and no computation. Every filesystem operation
+happens inside a capability; the composition root injects the concrete
+capabilities into the agent through the two protocol seams
+(`ISkillsPinerProtocol`, `ISkillsMoverProtocol`).
 
 The feature is composed with the design, discovery, maintenance,
 observability, storage, and traces agents into a single
@@ -21,19 +19,16 @@ observability, storage, and traces agents into a single
 
 ## Functional Requirements
 
-### FR-GOVERNANCE-001: Locker
+### FR-GOVERNANCE-001: Pinner
 
-**Description:** Toggle the `locked` flag on a skill's sidecar record.
-A locked skill is exempt from prune and archive sweeps; an unlocked
-skill is fair game again.
+**Description:** Toggle the `pinned` flag on a skill's sidecar record.
+A pinned skill is exempt from automatic lifecycle transitions
+(archive-on-idle); an unpinned skill is subject to them.
 
 #### Business Logic
 
-- Lock sets `locked=True` in the skill's sidecar; unlock sets
-  `locked=False`.
-- The sidecar is written in place under the skill directory; no other
-  skill file is touched.
-- A missing skill directory is a usage error naming the skill.
+- Pin sets `pinned=True`; unpin sets `pinned=False`.
+- The pin flag is read by the telemetry auto-transition pass and prune sweep.
 
 #### Edge Cases
 
@@ -45,9 +40,9 @@ skill is fair game again.
 | Aspect | Detail |
 |--------|--------|
 | **Input** | skill name; optional pack-root override |
-| **Output** | `GovernanceResponse` with ok=True, verb=lock/unlock, message carrying the sidecar write result |
-| **Protocol** | `ISkillsLockerProtocol` |
-| **Method** | `lock(skill, root)` / `unlock(skill, root)` |
+| **Output** | `GovernanceResponse` with ok=True, verb=pin/unpin, message carrying the sidecar write result |
+| **Protocol** | `ISkillsPinerProtocol` |
+| **Method** | `pin(skill, root)` / `unpin(skill, root)` |
 | **Event** | — |
 | **Error** | missing skill, unwired capability → typed error |
 
@@ -55,15 +50,8 @@ skill is fair game again.
 
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
-| `sac skills lock <skill>` | The caller runs | sidecar `locked=True`, exit 0 |
-| `sac skills unlock <skill>` | The caller runs | sidecar `locked=False`, exit 0 |
-| `sac skills lock <unknown>` | The caller runs | exit 2 naming the skill |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Flag fidelity | a lock/unlock pair returns the sidecar to its original state |
+| `sac skills pin <skill>` | The caller runs | sidecar `pinned=True`, exit 0 |
+| `sac skills unpin <skill>` | The caller runs | sidecar `pinned=False`, exit 0 |
 
 ### FR-GOVERNANCE-002: Mover
 
@@ -113,41 +101,6 @@ category under the same pack root. The move is dry-run by default;
 | Target Metric | Value |
 |---------------|-------|
 | Containment invariant | no apply writes outside the pack root |
-
-### FR-GOVERNANCE-003: Pinner
-
-**Description:** Toggle the `pinned` flag on a skill's sidecar record.
-A pinned skill is exempt from automatic lifecycle transitions
-(archive-on-idle); an unpinned skill is subject to them.
-
-#### Business Logic
-
-- Pin sets `pinned=True`; unpin sets `pinned=False`.
-- The pin flag is read by the telemetry auto-transition pass; it does
-  not affect lock, move, or archive on its own.
-
-#### Edge Cases
-
-- Skill directory not found → typed error naming the skill.
-- Capability unwired → typed error before any work begins.
-
-#### Technical Specification
-
-| Aspect | Detail |
-|--------|--------|
-| **Input** | skill name; optional pack-root override |
-| **Output** | `GovernanceResponse` with ok=True, verb=pin/unpin, message carrying the sidecar write result |
-| **Protocol** | `ISkillsPinerProtocol` |
-| **Method** | `pin(skill, root)` / `unpin(skill, root)` |
-| **Event** | — |
-| **Error** | missing skill, unwired capability → typed error |
-
-#### Test
-
-| Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
-| `sac skills pin <skill>` | The caller runs | sidecar `pinned=True`, exit 0 |
-| `sac skills unpin <skill>` | The caller runs | sidecar `pinned=False`, exit 0 |
 
 ## Public Interface
 
