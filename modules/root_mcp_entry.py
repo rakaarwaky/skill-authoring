@@ -70,11 +70,8 @@ async def _list_tools(context=None, params=None) -> _ListToolsResult:
             _Tool(
                 name=d["name"],
                 description=d.get("description", ""),
-                input_schema={
-                    "type": "object",
-                    "properties": {},
-                    "additionalProperties": True,
-                },
+                input_schema=d.get("inputSchema")
+                or {"type": "object", "properties": {}, "additionalProperties": True},
             )
             for d in descriptors
         ]

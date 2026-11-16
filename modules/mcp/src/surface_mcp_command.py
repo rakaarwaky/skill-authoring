@@ -38,28 +38,267 @@ class SkillsMcpAdapter:
     # ── Tool registry ───────────────────────────────────────────────
 
     def list_tools(self) -> list[dict]:
-        """Return MCP tool descriptors, one per sac verb (20 tools)."""
-        return [
-            {"name": "sac_list", "description": "List all skills in the pack"},
-            {"name": "sac_read", "description": "Print a skill's SKILL.md"},
-            {"name": "sac_export", "description": "Export a skill folder to a single Markdown file"},
-            {"name": "sac_lint", "description": "Lint scan all skills"},
-            {"name": "sac_catalog", "description": "Build and/or print catalog.json"},
-            {"name": "sac_discover", "description": "Search the catalog"},
-            {"name": "sac_move", "description": "Move a skill to a category"},
-            {"name": "sac_archive", "description": "Archive a skill"},
-            {"name": "sac_create", "description": "Create a skill or category"},
-            {"name": "sac_status", "description": "Show per-skill lifecycle states"},
-            {"name": "sac_usage", "description": "Show usage telemetry rows"},
-            {"name": "sac_run", "description": "Run automated state transitions"},
-            {"name": "sac_pause", "description": "Pause automatic transitions"},
-            {"name": "sac_resume", "description": "Resume automatic transitions"},
-            {"name": "sac_pin", "description": "Pin a skill"},
-            {"name": "sac_unpin", "description": "Unpin a skill"},
+        """Return MCP tool descriptors, one per sac verb (19 tools).
 
-            {"name": "sac_restore", "description": "Restore an archived skill"},
-            {"name": "sac_prune", "description": "Archive idle skills and purge old archives"},
-            {"name": "sac_ledger", "description": "View or compact audit ledger"},
+        Each descriptor carries a draft-07 ``inputSchema`` so MCP clients
+        can validate arguments before they reach the aggregate.
+        """
+        return [
+            {
+                "name": "sac_list",
+                "description": "List all skills in the pack",
+                "inputSchema": {"type": "object", "properties": {}},
+            },
+            {
+                "name": "sac_read",
+                "description": "Print a skill's SKILL.md",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "skill": {"type": "string", "description": "Skill name to read"},
+                    },
+                    "required": ["skill"],
+                },
+            },
+            {
+                "name": "sac_export",
+                "description": "Export a skill folder to a single Markdown file",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "skill": {"type": "string", "description": "Skill name to export"},
+                    },
+                    "required": ["skill"],
+                },
+            },
+            {
+                "name": "sac_lint",
+                "description": "Lint scan all skills",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "category": {
+                            "type": "string",
+                            "description": "Filter lint scan by category",
+                        },
+                    },
+                },
+            },
+            {
+                "name": "sac_catalog",
+                "description": "Build and/or print catalog.json",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "check": {
+                            "type": "boolean",
+                            "description": "Check if catalog.json is in sync",
+                        },
+                    },
+                },
+            },
+            {
+                "name": "sac_discover",
+                "description": "Search the catalog",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Search query"},
+                        "limit": {
+                            "type": "integer",
+                            "default": 20,
+                            "description": "Max results to return",
+                        },
+                    },
+                    "required": ["query"],
+                },
+            },
+            {
+                "name": "sac_move",
+                "description": "Move a skill to a category",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "skill": {"type": "string", "description": "Skill name to move"},
+                        "target": {"type": "string", "description": "Target category folder"},
+                        "apply": {
+                            "type": "boolean",
+                            "description": "Execute the move instead of a dry run",
+                        },
+                    },
+                    "required": ["skill", "target"],
+                },
+            },
+            {
+                "name": "sac_archive",
+                "description": "Archive a skill",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "skill": {"type": "string", "description": "Skill name to archive"},
+                        "apply": {
+                            "type": "boolean",
+                            "description": "Execute the archive instead of a dry run",
+                        },
+                    },
+                    "required": ["skill"],
+                },
+            },
+            {
+                "name": "sac_create",
+                "description": "Create a skill or category",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "skill": {
+                            "type": "string",
+                            "description": "Skill name to create (kind=skill)",
+                        },
+                        "category": {
+                            "type": "string",
+                            "description": "Parent category folder for the new skill",
+                        },
+                        "kind": {
+                            "type": "string",
+                            "enum": ["skill", "category"],
+                            "description": "Create a skill or a bare category",
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "Skill description written into SKILL.md frontmatter",
+                        },
+                        "apply": {
+                            "type": "boolean",
+                            "description": "Write the new skill or category to disk",
+                        },
+                    },
+                    "required": ["skill", "category"],
+                },
+            },
+            {
+                "name": "sac_status",
+                "description": "Show per-skill lifecycle states",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "Optional skill name filter",
+                        },
+                    },
+                },
+            },
+            {
+                "name": "sac_usage",
+                "description": "Show usage telemetry rows",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Optional skill name filter"},
+                        "verb": {
+                            "type": "string",
+                            "enum": ["report", "seed", "reanchor"],
+                            "description": "Usage sub-verb to run",
+                        },
+                    },
+                },
+            },
+            {
+                "name": "sac_run",
+                "description": "Run automated state transitions",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "apply": {
+                            "type": "boolean",
+                            "description": "Execute state transitions",
+                        },
+                    },
+                },
+            },
+            {
+                "name": "sac_pause",
+                "description": "Pause automatic transitions",
+                "inputSchema": {"type": "object", "properties": {}},
+            },
+            {
+                "name": "sac_resume",
+                "description": "Resume automatic transitions",
+                "inputSchema": {"type": "object", "properties": {}},
+            },
+            {
+                "name": "sac_pin",
+                "description": "Pin a skill",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "skill": {"type": "string", "description": "Skill name to pin"},
+                    },
+                    "required": ["skill"],
+                },
+            },
+            {
+                "name": "sac_unpin",
+                "description": "Unpin a skill",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "skill": {"type": "string", "description": "Skill name to unpin"},
+                    },
+                    "required": ["skill"],
+                },
+            },
+            {
+                "name": "sac_restore",
+                "description": "Restore an archived skill",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "skill": {"type": "string", "description": "Skill name to restore"},
+                        "category": {
+                            "type": "string",
+                            "description": "Target category folder for the restored skill",
+                        },
+                        "apply": {
+                            "type": "boolean",
+                            "description": "Execute the restore instead of a dry run",
+                        },
+                    },
+                    "required": ["skill"],
+                },
+            },
+            {
+                "name": "sac_prune",
+                "description": "Archive idle skills and purge old archives",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "days": {
+                            "type": "integer",
+                            "description": "Archive skills idle for at least N days",
+                        },
+                        "purge_days": {
+                            "type": "integer",
+                            "description": "Purge archives older than N days",
+                        },
+                        "dry_run": {
+                            "type": "boolean",
+                            "description": "Report what would be pruned without mutating",
+                        },
+                    },
+                },
+            },
+            {
+                "name": "sac_ledger",
+                "description": "View or compact audit ledger",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "description": "Ledger action to run"},
+                        "skill": {"type": "string", "description": "Optional skill name filter"},
+                    },
+                },
+            },
         ]
 
     def execute_tool(self, name: str, arguments: dict) -> dict:
