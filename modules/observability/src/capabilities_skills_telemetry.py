@@ -11,6 +11,7 @@ from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.common.utility_common_skills import iter_skill_mds
+from shared.src.design.taxonomy_design_vo import TelemetryRow
 from shared.src.maintenance.utility_lifecycle_support import (
     DEFAULT_STATE,
     _baseline_record,
@@ -70,17 +71,31 @@ class SkillsTelemetry(ISkillsTelemetryProtocol):
 
         _with_lock(path, work)
 
-    def curated_report(self, root: SkillsRoot) -> list[dict]:
+    def curated_report(self, root: SkillsRoot) -> tuple[TelemetryRow, ...]:
         skills_root = Path(root)
         path = pack_usage_path(skills_root)
         data = _read_sidecar(path)
-        rows: list[dict] = []
+        rows: list[TelemetryRow] = []
         for skill_md in iter_skill_mds(skills_root):
             name = skill_md.parent.name
-            record = data.get(name, {})
-            rows.append(_normalize(record) if record else _baseline_record())
-        rows.sort(key=lambda item: item.get("state", ""))
-        return rows
+            rec = _normalize(data.get(name, {})) if name in data else _baseline_record()
+            rows.append(
+                TelemetryRow(
+                    name=name,
+                    state=str(rec.get("state", DEFAULT_STATE)),
+                    pinned=bool(rec.get("pinned", False)),
+                    created_by=rec.get("created_by"),
+                    created_at=rec.get("created_at"),
+                    first_seen_at=rec.get("first_seen_at"),
+                    last_activity_at=rec.get("last_activity_at"),
+                    archived_at=rec.get("archived_at"),
+                    views=int(rec.get("views", 0)),
+                    uses=int(rec.get("uses", 0)),
+                    activity_window_start=rec.get("activity_window_start"),
+                )
+            )
+        rows.sort(key=lambda r: r.name)
+        return tuple(rows)
 
     def view(self, skill: str, root: SkillsRoot) -> None:
         self._bump(skill, root, "views")
