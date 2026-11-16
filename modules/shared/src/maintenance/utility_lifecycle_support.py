@@ -39,7 +39,10 @@ from shared.src.common.taxonomy_common_error import (
     SkillNotFoundError,
     SkillsUsageError,
 )
-from shared.src.common.utility_common_skills import default_pack_root
+
+
+def default_pack_root() -> Path:
+    return Path.home() / ".agents" / "skills"
 
 __all__ = [
     "ACTIVE",
@@ -59,6 +62,7 @@ __all__ = [
     "TARBALL_NAME",
     "archive_root",
     "archive_skill",
+    "default_pack_root",
     "find_skill_dir",
     "manifest_sha256",
     "now_iso",

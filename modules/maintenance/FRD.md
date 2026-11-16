@@ -80,3 +80,174 @@ performs no filesystem I/O; the prune capability owns all I/O.
 | Unknown-op rejection rate | 100 % |
 | Unhandled exception escape rate | 0 % |
 | Direct capability call rate from outside the agent | 0 % |
+
+### FR-maintenance-002: Runner
+
+**Description:** `SkillsMaintenanceAgent.execute(request)` shall route the
+`RUN`, `PAUSE`, and `RESUME` maintenance ops to the runner capability and
+return a typed `MaintenanceResponse` to the caller. The runner capability
+applies automatic lifecycle transitions, pauses, and resumes them via
+`ISkillsRunnerProtocol`.
+
+#### Business Logic
+
+- On `RUN`, the agent shall apply automatic lifecycle transitions across the
+  pack via `apply_automatic_transitions` and return `CLEAN`.
+- On `PAUSE`, the agent shall pause lifecycle transitions via `pause` and
+  return `CLEAN`.
+- On `RESUME`, the agent shall resume lifecycle transitions via `resume` and
+  return `CLEAN`.
+- A `SkillsError` raised by the runner capability shall be caught by the agent
+  and mapped to a response carrying the error's exit code and message.
+
+#### Edge Cases
+
+- An unknown maintenance op string shall produce a response with `USAGE_ERROR`
+  exit code and a message naming the unknown op.
+- A `SkillsError` raised by the runner capability shall be caught and mapped
+  to a response with the error's exit code and message.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | `MaintenanceRequest` (verb, skill, flags, root). Source: surface / root CLI. |
+| **Output** | `MaintenanceResponse` (ok, verb, exit_code, message, records). Destination: surface / root CLI. |
+| **Protocol** | `ISkillsRunnerProtocol` |
+| **Method** | `apply_automatic_transitions`, `pause`, `resume` |
+| **Event** | None |
+| **Error** | `CLEAN` 0, `ISSUES_FOUND` 1, `USAGE_ERROR` 2 |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| A `RUN` request | `execute` with `verb=RUN` | `MaintenanceResponse` with `ok=True`, exit code `CLEAN` |
+| A `PAUSE` request | `execute` with `verb=PAUSE` | `MaintenanceResponse` with `ok=True`, exit code `CLEAN` |
+| A `RESUME` request | `execute` with `verb=RESUME` | `MaintenanceResponse` with `ok=True`, exit code `CLEAN` |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Transition apply p95 latency | 5 ms |
+| Unknown-op rejection rate | 100 % |
+| Unhandled exception escape rate | 0 % |
+
+### FR-maintenance-003: Piner
+
+**Description:** `SkillsMaintenanceAgent.execute(request)` shall route the
+`PIN` and `UNPIN` maintenance ops to the piner capability and return a typed
+`MaintenanceResponse` to the caller. The piner toggles the pinned flag via
+`ISkillsPinerProtocol` and returns the resulting `PinState`.
+
+#### Business Logic
+
+- On `PIN`, the agent shall call `pin(skill)` and return the resulting
+  `PinState` with `pinned=True`.
+- On `UNPIN`, the agent shall call `unpin(skill)` and return the resulting
+  `PinState` with `pinned=False`.
+- A `SkillsError` raised by the piner capability shall be caught by the agent
+  and mapped to a response carrying the error's exit code and message.
+
+#### Edge Cases
+
+- An unknown op string shall produce a response with `USAGE_ERROR` exit code
+  and a message naming the unknown op.
+- A `SkillsError` raised by the piner capability shall be caught and mapped
+  to a response with the error's exit code and message.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | `MaintenanceRequest` (verb, skill, flags, root). Source: surface / root CLI. |
+| **Output** | `MaintenanceResponse` (ok, verb, exit_code, message, records). Destination: surface / root CLI. |
+| **Protocol** | `ISkillsPinerProtocol` |
+| **Method** | `pin`, `unpin` |
+| **Event** | None |
+| **Error** | `CLEAN` 0, `ISSUES_FOUND` 1, `USAGE_ERROR` 2 |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| A `PIN` request | `execute` with `verb=PIN` | `MaintenanceResponse` with `ok=True`, `PinState.pinned=True` |
+| An `UNPIN` request | `execute` with `verb=UNPIN` | `MaintenanceResponse` with `ok=True`, `PinState.pinned=False` |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Pin toggle p95 latency | 5 ms |
+| Unknown-op rejection rate | 100 % |
+| Unhandled exception escape rate | 0 % |
+
+### FR-maintenance-004: Mover
+
+**Description:** `SkillsMaintenanceAgent.execute(request)` shall route the
+`MOVE` maintenance op to the mover capability and return a typed
+`MaintenanceResponse` to the caller. The mover plans and applies cross-category
+moves via `ISkillsMoverProtocol`.
+
+#### Business Logic
+
+- On `MOVE`, the agent shall call `plan_move(skill, target)` then
+  `apply_move(plan)` and return the resulting `MutationOutcome`.
+- The mover re-checks containment before executing the move plan.
+- A `SkillsError` raised by the mover capability shall be caught by the agent
+  and mapped to a response carrying the error's exit code and message.
+
+#### Edge Cases
+
+- An unknown op string shall produce a response with `USAGE_ERROR` exit code
+  and a message naming the unknown op.
+- A `SkillsError` raised by the mover capability shall be caught and mapped
+  to a response with the error's exit code and message.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | `MaintenanceRequest` (verb, skill, flags, root). Source: surface / root CLI. |
+| **Output** | `MaintenanceResponse` (ok, verb, exit_code, message, records). Destination: surface / root CLI. |
+| **Protocol** | `ISkillsMoverProtocol` |
+| **Method** | `plan_move`, `apply_move` |
+| **Event** | None |
+| **Error** | `CLEAN` 0, `ISSUES_FOUND` 1, `USAGE_ERROR` 2 |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| A `MOVE` request | `execute` with `verb=MOVE` | `MaintenanceResponse` with `ok=True`, exit code `CLEAN` |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Move plan p95 latency | 5 ms |
+| Unknown-op rejection rate | 100 % |
+| Unhandled exception escape rate | 0 % |
+
+## Public Interface
+
+| Aspect      | Detail                                                         |
+| ----------- | -------------------------------------------------------------- |
+| Agent       | `SkillsMaintenanceAgent`                                       |
+| Aggregate   | `ISkillsMaintenanceAggregate`                                  |
+| Method      | `execute`                                                      |
+| Request     | `MaintenanceRequest` (verb, skill, flags, root)                |
+| Response    | `MaintenanceResponse` (ok, verb, exit_code, message, records)  |
+
+## Reference
+
+| Artifact       | Purpose                      | Link                         |
+| -------------- | ---------------------------- | ---------------------------- |
+| PRD            | Business goals and scope     | [PRD.md](../../../../../PRD.md) |
+| Backlog        | Task tracking and            | [BACKLOG.md](BACKLOG.md)     |
+|                | implementation status        |                              |
+| Roadmap        | Timeline, phasing, and       | [ROADMAP.md](../../../../../ROADMAP.md) |
+|                | dependencies                 |                              |
+| Architecture   | System boundaries, tech      | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
+|                | stack, and infra             |                              |

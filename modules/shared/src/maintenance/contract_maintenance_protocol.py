@@ -17,8 +17,9 @@ from abc import ABC, abstractmethod
 from shared.src.common.taxonomy_common_vo import (
     MutationOutcome,
     MutationPlan,
+    SkillName,
 )
-from shared.src.governance.taxonomy_governance_entity import PinState
+from shared.src.maintenance.taxonomy_maintenance_entity import PinState
 from shared.src.maintenance.taxonomy_maintenance_constant import (
     MAINTENANCE_LOCK_FILENAME,
     MAINTENANCE_SIDECAR_FILENAME,
@@ -71,11 +72,11 @@ class ISkillsPinerProtocol(ABC):
     """Piner capability: pin/unpin verbs."""
 
     @abstractmethod
-    def pin(self, skill: str, root: SkillsRoot | None = None) -> PinState:
+    def pin(self, skill: SkillName, root: SkillsRoot | None = None) -> PinState:
         ...
 
     @abstractmethod
-    def unpin(self, skill: str, root: SkillsRoot | None = None) -> PinState:
+    def unpin(self, skill: SkillName, root: SkillsRoot | None = None) -> PinState:
         ...
 
 
@@ -84,7 +85,7 @@ class ISkillsMoverProtocol(ABC):
 
     @abstractmethod
     def plan_move(
-        self, skill: str, target: str, root: SkillsRoot
+        self, skill: SkillName, target: SkillName, root: SkillsRoot
     ) -> MutationPlan:
         """Resolve a move to another category (pure; no writes)."""
         ...

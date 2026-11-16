@@ -33,7 +33,6 @@ from shared.src.design.contract_design_protocol import (
     ISkillsLinterProtocol,
 )
 from shared.src.design.taxonomy_design_request import (
-    SkillQuery,
     SkillsOp,
     SkillsRequest,
 )

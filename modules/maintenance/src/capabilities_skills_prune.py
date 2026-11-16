@@ -63,7 +63,7 @@ class SkillsPrune(ISkillsPrunerProtocol):
         pack_root = Path(root) if root is not None else default_pack_root()
         config = load_lifecycle_config(pack_root)
 
-        # ── Pass 1: archive idle skills ──────────────────────────
+        # Pass 1: archive idle skills
         archive_after = (
             days
             if days is not None
@@ -109,7 +109,7 @@ class SkillsPrune(ISkillsPrunerProtocol):
             else:
                 kept.append({"skill": name, "state": state})
 
-        # ── Pass 2: purge old archives ───────────────────────────
+        # Pass 2: purge old archives
         purge_after = (
             purge_days
             if purge_days is not None

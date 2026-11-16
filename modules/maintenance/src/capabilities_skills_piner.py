@@ -9,14 +9,14 @@ from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.common.utility_common_skills import (
-    default_pack_root,
     find_skill_dir,
     set_field,
 )
 from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsPinerProtocol,
 )
-from shared.src.governance.taxonomy_governance_entity import PinState
+from shared.src.maintenance.taxonomy_maintenance_entity import PinState
+from shared.src.maintenance.utility_lifecycle_support import default_pack_root
 
 __all__ = ["SkillsPiner"]
 

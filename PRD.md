@@ -108,26 +108,7 @@ The `--create` path copies `template/skill.md` (registered in `template/template
 3. It identifies overlap and consolidates into one folder.
 4. Dropped duplicates move to `_archive/`; the report lists every merge.
 
-### PR-SKILLDESIGN-004: governance
-<!-- Tier P2: governance entry. -->
-
-#### User Stories
-
-| As a | I want | So that | Priority |
-|------|--------|---------|----------|
-| Skill owner | Lock, pin, and move skills | Skills can be protected and relocated | Governance capability keeps the tree stable |
-
-#### Proposed Solution
-
-The piner and mover capabilities expose pin, unpin, and move verbs for skill directories. The governance feature implements `ISkillsGovernanceAggregate` and wires them into `root_governance_container.py`.
-
-#### Main User Flow
-
-1. User invokes `--governance <pin|move>`.
-2. Skill-design reads the skill's sidecar record.
-3. It applies the requested mutation and records the new state.
-
-### PR-SKILLDESIGN-005: maintenance
+### PR-SKILLDESIGN-004: maintenance
 <!-- Tier P2: maintenance entry. -->
 
 #### User Stories
@@ -146,7 +127,7 @@ The prune capability archives idle skills past `archive_after_days` and purges a
 2. Skill-design reads each skill's sidecar record and compares last activity.
 3. It archives idle skills and reports pruned/kept lists.
 
-### PR-SKILLDESIGN-006: mcp
+### PR-SKILLDESIGN-005: mcp
 <!-- Tier P2: mcp entry. -->
 
 #### User Stories
@@ -165,7 +146,7 @@ The mcp surface exposes `surface_mcp_command.py` as the command router over the 
 2. The surface router dispatches to the matching aggregate capability.
 3. The result returns to the client over MCP.
 
-### PR-SKILLDESIGN-007: observability
+### PR-SKILLDESIGN-006: observability
 <!-- Tier P2: observability entry. -->
 
 #### User Stories
@@ -184,7 +165,7 @@ The observability feature implements ledger, telemetry, and traces capabilities 
 2. Skill-design walks `$GROK_HOME/sessions` and returns a compact scan outcome.
 3. It mines repeated phrases and writes them to the report.
 
-### PR-SKILLDESIGN-008: shared
+### PR-SKILLDESIGN-007: shared
 <!-- Tier P2: shared entry. -->
 
 #### User Stories
@@ -203,7 +184,7 @@ The shared folder carries `contract_*`, `taxonomy_*`, and `utility_*` files per 
 2. The shared module exposes only stateless pure functions and domain types.
 3. No cross-domain imports leak into shared.
 
-### PR-SKILLDESIGN-009: storage
+### PR-SKILLDESIGN-008: storage
 <!-- Tier P2: storage entry. -->
 
 #### User Stories

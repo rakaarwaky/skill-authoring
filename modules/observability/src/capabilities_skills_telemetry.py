@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import SkillsRoot
-from shared.src.common.utility_common_skills import default_pack_root, iter_skill_mds
+from shared.src.common.utility_common_skills import iter_skill_mds
 from shared.src.maintenance.utility_lifecycle_support import (
     DEFAULT_STATE,
     _baseline_record,
@@ -19,7 +19,6 @@ from shared.src.maintenance.utility_lifecycle_support import (
     _read_sidecar,
     pack_usage_path,
     _with_lock,
-    find_skill_dir,
 )
 from shared.src.maintenance.utility_skills_mutation import atomic_write_json
 from shared.src.observability.contract_observability_protocol import (

@@ -14,7 +14,6 @@ from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.common.taxonomy_common_vo import SkillName
 from shared.src.maintenance.contract_maintenance_aggregate import (
     ISkillsMaintenanceAggregate,
 )

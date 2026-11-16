@@ -30,9 +30,19 @@ class PruneCandidate:
     idle_days: int
 
 
-__all__ = ["MaintenanceRecord", "PruneCandidate"]
+@dataclass(frozen=True)
+class PinState:
+    """The pin state of a single skill."""
+
+    skill: SkillName
+    pinned: bool = False
+    pinned_at: str | None = None
+
+
+__all__ = ["MaintenanceRecord", "PruneCandidate", "PinState"]
 
 _layer_symbols = {
     "MaintenanceRecord": MaintenanceRecord,
     "PruneCandidate": PruneCandidate,
+    "PinState": PinState,
 }
