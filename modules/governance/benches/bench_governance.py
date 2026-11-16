@@ -42,10 +42,10 @@ def bench_agent_execute_dispatch():
     from governance.src.agent_governance_orchestrator import (
         SkillsGovernanceAgent,
     )
-    from shared.src.design.taxonomy_design_request import (
+    from shared.src.governance.taxonomy_governance_request import (
+        GovernanceRequest,
+        GovernanceVerb,
         SkillQuery,
-        SkillsOp,
-        SkillsRequest,
     )
 
     agent = SkillsGovernanceAgent(
@@ -54,7 +54,7 @@ def bench_agent_execute_dispatch():
     iterations = 1000
     start = time.perf_counter()
     for _ in range(iterations):
-        agent.execute(SkillsRequest(op=SkillsOp.PIN, query=SkillQuery("skill-a")))
+        agent.execute(GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("skill-a")))
     elapsed = time.perf_counter() - start
     print(f"Execute dispatch x{iterations}: {elapsed:.4f}s")
     return elapsed

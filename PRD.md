@@ -123,7 +123,7 @@ The piner and mover capabilities expose pin, unpin, and move verbs for skill dir
 
 #### Main User Flow
 
-1. User invokes `--governance <lock|pin|move>`.
+1. User invokes `--governance <pin|move>`.
 2. Skill-design reads the skill's sidecar record.
 3. It applies the requested mutation and records the new state.
 
