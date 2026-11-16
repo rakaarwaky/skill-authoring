@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # skills/skill-authoring/tools/scripts/install.sh
 #
-# Installer for the Skill Authoring pack (sac CLI).
+# Installer for the Skill Authoring pack (skill-authoring-cli + skill-authoring-mcp).
 #
-# Installs uv-managed Python venv at <repo>/.venv and a `sac` launcher
-# script into the XDG bin home ($XDG_BIN_HOME, default $HOME/.local/bin).
-# The `sac` launcher runs `modules/root_cli_entry.py` from the skill-authoring
-# tools tree with PYTHONPATH pointing at the repo modules dir.
+# Installs uv-managed Python venv at <repo>/.venv and two launcher
+# scripts into the XDG bin home ($XDG_BIN_HOME, default $HOME/.local/bin):
+#   - skill-authoring-cli: runs `modules/root_cli_entry.py`
+#   - skill-authoring-mcp: runs `modules/root_mcp_entry.py` (MCP stdio server)
 #
 # Non-interactive, idempotent, no sudo required unless --global is passed.
 # By default it also registers the pack as an MCP server in ~/.grok/config.toml
-# so Grok Build can call sac list/read/lint/create/... through stdio.
+# so Grok Build can call skill-authoring-cli verbs through stdio.
 #
 # Usage:
 #   bash scripts/install.sh             # local XDG install (default)
@@ -51,7 +51,7 @@ usage() {
   cat <<EOF
 Usage: bash scripts/install.sh [options]
 
-Installer for the Skill Authoring pack (sac CLI).
+Installer for the Skill Authoring pack (skill-authoring-cli + skill-authoring-mcp).
 
 Options:
   --local     Local XDG install at \$XDG_BIN_HOME (default \$HOME/.local/bin)
@@ -124,8 +124,8 @@ else
   info "No pyproject.toml/uv.lock in tools tree; skipping uv sync."
 fi
 
-# --- Install sac launcher ---
-step "Installing sac launcher"
+# --- Install skill-authoring-cli launcher ---
+step "Installing skill-authoring-cli launcher"
 if [[ "$MODE" == "global" ]]; then
   if [[ "$(id -u)" -ne 0 ]]; then
     warn "Global install requires root; re-running with sudo..."
@@ -136,35 +136,57 @@ if [[ "$MODE" == "global" ]]; then
 fi
 
 mkdir -p "$BIN_DIR"
-LAUNCHER="$BIN_DIR/sac"
-rm -f "$LAUNCHER"
 
 # Bake the absolute tools path into the launcher (repo convention: install.sh
-# writes ROOT="$ROOT" into its launcher). A relative walk from $BIN_DIR cannot
-# reliably reach the repo checkout, so the path is fixed at install time.
-# Every package exposes its public API under a sibling `src/` directory with
-# bare sibling imports (e.g. design/src imports capabilities_skills_* directly),
-# so every modules/*/src must be on PYTHONPATH, not just modules itself.
+# writes TOOLS_DIR="$TOOLS_DIR" into its launcher). A relative walk from
+# $BIN_DIR cannot reliably reach the repo checkout, so the path is fixed at
+# install time. Every package exposes its public API under a sibling `src/`
+# directory with bare sibling imports (e.g. design/src imports
+# capabilities_skills_* directly), so every modules/*/src must be on
+# PYTHONPATH, not just modules itself.
 SRC_DIRS=""
 for d in "$TOOLS_DIR"/modules/*/src; do
   [[ -d "$d" ]] && SRC_DIRS="$SRC_DIRS:$d"
 done
 
-cat > "$LAUNCHER" <<SAC_EOF
+# CLI launcher: skill-authoring-cli
+CLI_LAUNCHER="$BIN_DIR/skill-authoring-cli"
+rm -f "$CLI_LAUNCHER"
+cat > "$CLI_LAUNCHER" <<CLI_EOF
 #!/usr/bin/env bash
 set -euo pipefail
-# sac launcher for the Skill Authoring pack.
+# skill-authoring-cli launcher for the Skill Authoring pack.
 TOOLS_DIR="$TOOLS_DIR"
 VENV_DIR="\$TOOLS_DIR/.venv"
 [[ -f "\$VENV_DIR/bin/activate" ]] && source "\$VENV_DIR/bin/activate"
 export PYTHONPATH="\$TOOLS_DIR/modules${SRC_DIRS}\${PYTHONPATH:+:\${PYTHONPATH}}"
 exec python3 "\$TOOLS_DIR/modules/root_cli_entry.py" "\$@"
-SAC_EOF
-chmod 755 "$LAUNCHER"
-ok "sac launcher: $LAUNCHER"
+CLI_EOF
+chmod 755 "$CLI_LAUNCHER"
+ok "skill-authoring-cli launcher: $CLI_LAUNCHER"
+
+# MCP launcher: skill-authoring-mcp
+# Deliberately does NOT put $TOOLS_DIR/modules on PYTHONPATH: that would make
+# `import mcp` resolve to the feature dir (modules/mcp) instead of the
+# installed mcp library. root_mcp_entry.py imports mcp.server at its top,
+# then adds modules/ to sys.path after that — the entry owns the ordering.
+MCP_LAUNCHER="$BIN_DIR/skill-authoring-mcp"
+rm -f "$MCP_LAUNCHER"
+cat > "$MCP_LAUNCHER" <<MCP_EOF
+#!/usr/bin/env bash
+set -euo pipefail
+# skill-authoring-mcp launcher for the Skill Authoring pack.
+TOOLS_DIR="$TOOLS_DIR"
+VENV_DIR="\$TOOLS_DIR/.venv"
+[[ -f "\$VENV_DIR/bin/activate" ]] && source "\$VENV_DIR/bin/activate"
+export PYTHONPATH="\${PYTHONPATH:+\${PYTHONPATH}:}${SRC_DIRS:1}"
+exec python3 "\$TOOLS_DIR/modules/root_mcp_entry.py" "\$@"
+MCP_EOF
+chmod 755 "$MCP_LAUNCHER"
+ok "skill-authoring-mcp launcher: $MCP_LAUNCHER"
 
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-  warn "$BIN_DIR is not on your PATH — add it (e.g. export PATH=\"$BIN_DIR:\$PATH\") then run: sac lint"
+  warn "$BIN_DIR is not on your PATH — add it (e.g. export PATH=\"$BIN_DIR:\$PATH\") then run: skill-authoring-cli lint"
 fi
 
 # --- Register pack as an MCP server in ~/.grok/config.toml ---
@@ -179,25 +201,23 @@ if $INSTALL_MCP; then
     {
       echo ""
       echo "[mcp_servers.skill-authoring-tools]"
-      echo "command = \"$VENV_DIR/bin/python\""
-      echo "args = ["
-      echo "    \"$TOOLS_DIR/modules/root_mcp_entry.py\","
-      echo "]"
+      echo "command = \"skill-authoring-mcp\""
+      echo "args = []"
     } >> "$GROK_CONFIG"
     ok "MCP server entry added to $GROK_CONFIG"
   fi
 fi
 
 step "Installation complete"
-ok "Run: sac lint        (inspect the skill tree)"
-ok "Run: sac list        (list all skills)"
-ok "Run: sac read <name> (read a skill's SKILL.md)"
-ok "Run: sac --help      (see all sac commands)"
+ok "Run: skill-authoring-cli lint        (inspect the skill tree)"
+ok "Run: skill-authoring-cli list        (list all skills)"
+ok "Run: skill-authoring-cli read <name> (read a skill's SKILL.md)"
+ok "Run: skill-authoring-cli --help      (see all commands)"
 echo
 echo "Repo root:  $REPO_ROOT"
 echo "Tools tree: $TOOLS_DIR"
 echo "Venv:       $VENV_DIR"
 echo "Bin dir:    $BIN_DIR"
 if $INSTALL_MCP; then
-  echo "MCP config: $HOME/.grok/config.toml (skill-authoring-tools)"
+  echo "MCP config: $GROK_CONFIG (skill-authoring-tools)"
 fi
