@@ -5,7 +5,7 @@ scan (``lint``), the catalog builder/reader (``catalog``), the search
 (``discover``), the mutation verbs (``move``/``archive``/``create``), and the
 lifecycle verbs (``status``/``usage``/``run``/``pause``/``resume``/
 ``pin``/``unpin``/``restore``/``list-unmanaged``/
-``list-archived``/``prune``/``purge``/``adopt``/``backup``/``rollback``/
+``list-archived``/``prune``/``adopt``/``backup``/``rollback``/
 ``ledger``).
 
 The pack root is always the repository's ``skills/`` pack; there is no
@@ -75,7 +75,6 @@ _LIFECYCLE_OPS = {
     "list-unmanaged": SkillsOp.LIST_UNMANAGED,
     "list-archived": SkillsOp.LIST_ARCHIVED,
     "prune": SkillsOp.PRUNE,
-    "purge": SkillsOp.PURGE,
     "adopt": SkillsOp.ADOPT,
     "backup": SkillsOp.BACKUP,
     "rollback": SkillsOp.ROLLBACK,
@@ -127,7 +126,7 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
 
     query = getattr(namespace, "query", "") or ""
     flags: dict[str, object] = {}
-    for key in ("days", "dry_run", "apply", "id"):
+    for key in ("days", "purge_days", "dry_run", "apply", "id"):
         if hasattr(namespace, key):
             value = getattr(namespace, key)
             if value is not None:
@@ -247,8 +246,9 @@ def _lifecycle_verb_parser(sub: str) -> argparse.ArgumentParser:
     if sub in ("pin", "unpin", "restore", "adopt") or sub == "archive":
         parser.add_argument("query")
         parser.add_argument("--apply", action="store_true", default=False)
-    elif sub == "prune" or sub == "purge":
+    elif sub == "prune":
         parser.add_argument("--days", type=str, default=None)
+        parser.add_argument("--purge-days", type=str, default=None)
         parser.add_argument("--dry-run", action="store_true", default=False)
         parser.add_argument("--apply", action="store_true", default=False)
     elif sub == "rollback":
@@ -282,8 +282,6 @@ def _render_lifecycle(sub: str, op: SkillsOp, result: SkillsResult) -> int:
         return _render_list_archived(result)
     if sub == "prune":
         return _render_prune(result)
-    if sub == "purge":
-        return _render_purge(result)
     if sub == "backup":
         return _render_backup(result)
     if sub == "rollback":
@@ -360,11 +358,6 @@ def _render_prune(result: SkillsResult) -> int:
     return 0
 
 
-def _render_purge(result: SkillsResult) -> int:
-    info(f"[OK] purge — {result.message}")
-    return 0
-
-
 def _render_backup(result: SkillsResult) -> int:
     info(f"[OK] backup — {result.content or result.message}")
     return 0
@@ -420,8 +413,7 @@ def _print_usage() -> None:
     info(f"{BOLD()}sac restore <skill>{RESET()}               Restore an archived skill")
     info(f"{BOLD()}sac list-unmanaged{RESET()}                List skills without telemetry")
     info(f"{BOLD()}sac list-archived{RESET()}                 List archived skills")
-    info(f"{BOLD()}sac prune [--days N] [--apply]{RESET()}    Bulk archive idle skills")
-    info(f"{BOLD()}sac purge [--days N] [--apply]{RESET()}    Permanently remove archived skills")
+    info(f"{BOLD()}sac prune [--days N] [--purge-days N] [--apply]{RESET()}  Archive idle skills, purge old archives")
     print()
     info(f"{BOLD()}Backup & Rollback:{RESET()}")
     info(f"{BOLD()}sac backup{RESET()}                        Create a snapshot of skills pack")

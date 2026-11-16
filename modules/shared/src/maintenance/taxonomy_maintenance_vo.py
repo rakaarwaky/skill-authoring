@@ -1,6 +1,6 @@
 """Maintenance-domain value objects (AES taxonomy layer).
 
-Pure data for prune/purge decisions and maintenance result envelopes.
+Pure data for prune decisions and maintenance result envelopes.
 No imports from utility, capabilities, agent, root, or surface layers.
 """
 
@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import NewType
 
-#: Opaque identifier for a maintenance operation (prune / purge / archive / restore).
+#: Opaque identifier for a maintenance operation (prune / archive / restore).
 MaintenanceOpId = NewType("MaintenanceOpId", str)
 
 

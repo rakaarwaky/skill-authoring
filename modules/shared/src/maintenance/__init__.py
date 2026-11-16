@@ -7,7 +7,6 @@ generators.
 from shared.src.maintenance.contract_maintenance_aggregate import (
     ISkillsMaintenanceAggregate,
     ISkillsPrunerProtocol,
-    ISkillsPurgerProtocol,
 )
 from shared.src.maintenance.taxonomy_maintenance_constant import (
     MAINTENANCE_LOCK_FILENAME,
@@ -22,7 +21,6 @@ from shared.src.maintenance.taxonomy_maintenance_entity import (
 from shared.src.maintenance.taxonomy_maintenance_error import (
     MaintenanceError,
     PruneEmptyError,
-    PurgeEmptyError,
     SkillNotArchivedError,
 )
 from shared.src.maintenance.taxonomy_maintenance_request import (
@@ -62,7 +60,6 @@ __all__ = [
     "STALE",
     "ISkillsMaintenanceAggregate",
     "ISkillsPrunerProtocol",
-    "ISkillsPurgerProtocol",
     "MaintenanceError",
     "MaintenanceOpId",
     "MaintenanceRecord",
@@ -71,7 +68,6 @@ __all__ = [
     "MaintenanceVerb",
     "PruneCandidate",
     "PruneEmptyError",
-    "PurgeEmptyError",
     "SkillNotArchivedError",
     "SkillsRoot",
     "archive_skill",
@@ -99,7 +95,6 @@ _layer_symbols = {
     "PURGE_TTL_DEFAULT_DAYS": PURGE_TTL_DEFAULT_DAYS,
     "PruneCandidate": PruneCandidate,
     "PruneEmptyError": PruneEmptyError,
-    "PurgeEmptyError": PurgeEmptyError,
     "STALE": STALE,
     "SkillNotArchivedError": SkillNotArchivedError,
     "SkillsRoot": SkillsRoot,
@@ -112,6 +107,5 @@ _layer_symbols = {
     "plan_weed": plan_weed,
     "restore_skill": restore_skill,
     "ISkillsMaintenanceAggregate": ISkillsMaintenanceAggregate,
-    "ISkillsPurgerProtocol": ISkillsPurgerProtocol,
     "ISkillsPrunerProtocol": ISkillsPrunerProtocol,
 }

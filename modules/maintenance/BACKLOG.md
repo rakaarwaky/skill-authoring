@@ -4,13 +4,14 @@ FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../../../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
-Last Updated: 2026-11-09
+Last Updated: 2026-11-16
 
 ## Progress Overview
 
-The maintenance module implements the `sac skills` maintenance-side verbs:
-prune, purge. Each verb is owned by a capability that implements its protocol;
-`SkillsMaintenanceAgent` sequences the capabilities and returns a typed
+The maintenance module implements the `sac` maintenance-side verb: prune. The
+prune capability owns two passes — archive idle skills, then purge old
+archives — and implements `ISkillsPrunerProtocol`.
+`SkillsMaintenanceAgent` sequences the capability and returns a typed
 `MaintenanceResponse`.
 
 ## Backlog Status
@@ -21,21 +22,12 @@ prune, purge. Each verb is owned by a capability that implements its protocol;
 | ----------- | ------------------------------------------------------ |
 | State       | Done                                                   |
 | Done        | `SkillsMaintenanceAgent.execute` routes `PRUNE` to the |
-|             | pruner capability via `ISkillsPrunerProtocol`          |
+|             | prune capability via `ISkillsPrunerProtocol`; the      |
+|             | capability archives idle skills (>=30d) and purges     |
+|             | old archives (>=60d) in one command                  |
 | In Progress | None                                                   |
 | Risk        | None                                                   |
-| Updated     | 2026-11-10                                             |
-
-### FR-maintenance-002: Purge
-
-| Aspect      | Detail                                                 |
-| ----------- | ------------------------------------------------------ |
-| State       | Done                                                   |
-| Done        | `SkillsMaintenanceAgent.execute` routes `PURGE` to the |
-|             | purger capability via `ISkillsPurgerProtocol`          |
-| In Progress | None                                                   |
-| Risk        | None                                                   |
-| Updated     | 2026-11-10                                             |
+| Updated     | 2026-11-16                                             |
 
 ## Reference
 
