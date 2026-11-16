@@ -32,7 +32,7 @@ SkillQuery = NewType("SkillQuery", str)
 #: deliberately broader than the protocol surface. Most ops map to a
 #: method on an ``ISkills*Protocol`` in ``contract_design_protocol``;
 #: a few lifecycle verbs (RUN, PAUSE, RESUME, USAGE, STATUS) dispatch
-#: through ``ISkillsRunnerProtocol``/``ISkillsTelemetryProtocol``, and
+#: through ``ISkillsTelemetryProtocol``, and
 #: some (LEDGER, PRUNE, ADOPT) have no dedicated protocol seam --
 #: the runner capability owns them internally and the aggregate dispatches
 #: them without a separate capability module. Keep the enum as the

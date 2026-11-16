@@ -3,8 +3,8 @@
 ## Feature Overview
 
 The design feature sits in the agent layer and is called by the surface and root
-CLI through the design aggregate contract. It orchestrates four capabilities —
-creator, adopter, linter, runner — and routes each design-side verb to the
+CLI through the design aggregate contract. It orchestrates three capabilities —
+creator, adopter, linter — and routes each design-side verb to the
 matching capability protocol. The agent performs no filesystem I/O; all I/O is
 delegated to the capabilities.
 

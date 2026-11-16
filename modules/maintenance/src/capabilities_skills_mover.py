@@ -35,7 +35,7 @@ from shared.src.common.utility_common_skills import (
     resolve_skill_dir,
     validate_category_name,
 )
-from shared.src.governance.contract_governance_protocol import (
+from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsMoverProtocol,
 )
 

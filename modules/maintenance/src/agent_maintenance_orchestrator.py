@@ -1,7 +1,8 @@
 """Maintenance agent (AES agent layer).
 
-Implements ``ISkillsMaintenanceAggregate`` over the maintenance-side capability:
-prune. Owns the op: prune.
+Implements ``ISkillsMaintenanceAggregate`` over the maintenance-side capabilities:
+prune, runner, piner, mover. Owns the ops: prune, run, pause, resume,
+pin, unpin, move.
 """
 
 from __future__ import annotations
@@ -18,7 +19,10 @@ from shared.src.maintenance.contract_maintenance_aggregate import (
     ISkillsMaintenanceAggregate,
 )
 from shared.src.maintenance.contract_maintenance_protocol import (
+    ISkillsMoverProtocol,
+    ISkillsPinerProtocol,
     ISkillsPrunerProtocol,
+    ISkillsRunnerProtocol,
 )
 from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceRequest,
@@ -36,14 +40,20 @@ __all__ = [
 
 
 class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
-    """Maintenance-side agent: prune."""
+    """Maintenance-side agent: prune, run, pause, resume, pin, unpin, move."""
 
     def __init__(
         self,
         prune: ISkillsPrunerProtocol | None = None,
+        runner: ISkillsRunnerProtocol | None = None,
+        piner: ISkillsPinerProtocol | None = None,
+        mover: ISkillsMoverProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._prune = prune
+        self._runner = runner
+        self._piner = piner
+        self._mover = mover
         self._default_root = default_root
 
     # ─── Block 1: Module Declaration ────────────────────────────────────────
@@ -128,4 +138,125 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
             records=report.records,
             message=report.message,
             dry_run=dry_run,
+        )
+
+    def _execute_run(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
+        """RUN: apply automatic transitions per pass."""
+        runner = self._require(self._runner, "runner")
+        root = self._root(request)
+        try:
+            report = runner.apply_automatic_transitions(root)
+        except (OSError, ValueError) as failure:
+            return MaintenanceResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=1,
+                message=str(failure),
+            )
+        return MaintenanceResponse(ok=True, verb=op.value, message=str(report))
+
+    def _execute_pause(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
+        """PAUSE: set pause=True in config."""
+        runner = self._require(self._runner, "runner")
+        root = self._root(request)
+        try:
+            runner.pause(root)
+        except (OSError, ValueError) as failure:
+            return MaintenanceResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=1,
+                message=str(failure),
+            )
+        return MaintenanceResponse(ok=True, verb=op.value, message="lifecycle paused")
+
+    def _execute_resume(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
+        """RESUME: set pause=False in config."""
+        runner = self._require(self._runner, "runner")
+        root = self._root(request)
+        try:
+            runner.resume(root)
+        except (OSError, ValueError) as failure:
+            return MaintenanceResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=1,
+                message=str(failure),
+            )
+        return MaintenanceResponse(ok=True, verb=op.value, message="lifecycle resumed")
+
+    def _execute_pin(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
+        """PIN: set pinned=True on skill sidecar."""
+        piner = self._require(self._piner, "piner")
+        root = self._root(request)
+        skill_name = str(request.skill or "").strip()
+        if not skill_name:
+            return MaintenanceResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=1,
+                message="Skill name required",
+            )
+        try:
+            result = piner.pin(skill_name, root)
+        except (OSError, ValueError, SkillsError) as failure:
+            return MaintenanceResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=1,
+                message=str(failure),
+            )
+        return MaintenanceResponse(ok=True, verb=op.value, message=str(result))
+
+    def _execute_unpin(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
+        """UNPIN: set pinned=False on skill sidecar."""
+        piner = self._require(self._piner, "piner")
+        root = self._root(request)
+        skill_name = str(request.skill or "").strip()
+        if not skill_name:
+            return MaintenanceResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=1,
+                message="Skill name required",
+            )
+        try:
+            result = piner.unpin(skill_name, root)
+        except (OSError, ValueError, SkillsError) as failure:
+            return MaintenanceResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=1,
+                message=str(failure),
+            )
+        return MaintenanceResponse(ok=True, verb=op.value, message=str(result))
+
+    def _execute_move(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
+        """MOVE: plan/apply a move of a skill to another category."""
+        mover = self._require(self._mover, "mover")
+        root = self._root(request)
+        skill_name = str(request.skill or "").strip()
+        if not skill_name:
+            return MaintenanceResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=1,
+                message="Skill name required",
+            )
+        target = request.flags.get("target") or request.flags.get("category")
+        if not target:
+            raise SkillsUsageError("Missing --target: pass --target <category>")
+        apply_ = request.flags.get("apply", False) == "1" or request.flags.get("apply") is True
+        plan = mover.plan_move(skill_name, target, root)
+        if apply_:
+            outcome = mover.apply_move(plan)
+            return MaintenanceResponse(
+                ok=True,
+                verb=op.value,
+                message=str(outcome.message),
+            )
+        return MaintenanceResponse(
+            ok=True,
+            verb=op.value,
+            message=str(plan.kind),
         )

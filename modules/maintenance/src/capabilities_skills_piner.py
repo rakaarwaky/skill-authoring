@@ -13,7 +13,7 @@ from shared.src.common.utility_common_skills import (
     find_skill_dir,
     set_field,
 )
-from shared.src.governance.contract_governance_protocol import (
+from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsPinerProtocol,
 )
 from shared.src.governance.taxonomy_governance_entity import PinState

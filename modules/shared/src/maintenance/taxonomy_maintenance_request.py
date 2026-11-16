@@ -22,6 +22,12 @@ class MaintenanceVerb(Enum):
     PRUNE = "prune"
     ARCHIVE = "archive"
     RESTORE = "restore"
+    RUN = "run"
+    PAUSE = "pause"
+    RESUME = "resume"
+    PIN = "pin"
+    UNPIN = "unpin"
+    MOVE = "move"
 
 
 @dataclass(frozen=True)

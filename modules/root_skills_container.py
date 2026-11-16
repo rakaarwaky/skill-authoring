@@ -1,6 +1,6 @@
 """Skills-design root container (AES composition root).
 
-Wires the six module-side agents (design, discovery, storage, governance,
+Wires the five module-side agents (design, discovery, storage,
 maintenance, observability) into a single composed aggregate.
 
 The traces capability of the sibling traces app is NOT imported
@@ -20,7 +20,6 @@ from pathlib import Path
 
 from design.src.root_design_container import create_design_feature
 from discovery.src.root_discovery_container import create_discovery_feature
-from governance.src.root_governance_container import create_governance_feature
 from maintenance.src.root_maintenance_container import (
     create_maintenance_feature,
 )
@@ -52,15 +51,8 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
-from shared.src.governance.contract_governance_protocol import (
+from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsMoverProtocol,
-)
-from shared.src.governance.taxonomy_governance_request import (
-    GovernanceRequest,
-    GovernanceVerb,
-)
-from shared.src.governance.taxonomy_governance_response import (
-    GovernanceResponse,
 )
 from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceRequest,
@@ -111,12 +103,9 @@ def default_aggregate(
         lister=lister,
         reader=reader,
     )
-    governance = create_governance_feature(
-        root=root,
-        mover=mover,
-    )
     maintenance = create_maintenance_feature(
         root=root,
+        mover=mover,
     )
     observability = create_observability_feature(
         root=root,
@@ -130,7 +119,6 @@ def default_aggregate(
     return _ComposedAggregate(
         design=design,
         discovery=discovery,
-        governance=governance,
         maintenance=maintenance,
         observability=observability,
         storage=storage,
@@ -142,14 +130,12 @@ class _ComposedAggregate(ISkillsAggregate):
         self,
         design,
         discovery,
-        governance,
         maintenance,
         observability,
         storage,
     ) -> None:
         self._design = design
         self._discovery = discovery
-        self._governance = governance
         self._maintenance = maintenance
         self._observability = observability
         self._storage = storage
@@ -167,15 +153,6 @@ class _ComposedAggregate(ISkillsAggregate):
             )
             dresp = self._discovery.execute(dreq)
             result = _discovery_response_to_result(dresp, op)
-        elif op in _GOVERNANCE_OPS:
-            greq = GovernanceRequest(
-                verb=GovernanceVerb(op.value),
-                query=SkillQuery(request.query),
-                root=request.root,
-                flags=request.flags,
-            )
-            gresp = self._governance.execute(greq)
-            result = _governance_response_to_result(gresp, op)
         elif op in _MAINTENANCE_OPS:
             mreq = MaintenanceRequest(
                 verb=MaintenanceVerb(op.value),
@@ -227,20 +204,6 @@ def _discovery_response_to_result(
     )
 
 
-def _governance_response_to_result(
-    gresp: GovernanceResponse, op: SkillsOp
-) -> SkillsResult:
-    return SkillsResult(
-        ok=gresp.ok,
-        op=op,
-        exit_code=gresp.exit_code,
-        message=gresp.message,
-        root=gresp.root,
-        plan=gresp.plan,
-        outcome=gresp.outcome,
-    )
-
-
 def _maintenance_response_to_result(
     mresp: MaintenanceResponse, op: SkillsOp
 ) -> SkillsResult:
@@ -274,9 +237,6 @@ _DESIGN_OPS = frozenset(
         SkillsOp.ADOPT,
         SkillsOp.CREATE,
         SkillsOp.LINT,
-        SkillsOp.PAUSE,
-        SkillsOp.RESUME,
-        SkillsOp.RUN,
     }
 )
 _DISCOVERY_OPS = frozenset(
@@ -290,14 +250,17 @@ _DISCOVERY_OPS = frozenset(
         SkillsOp.READ,
     }
 )
-_GOVERNANCE_OPS = frozenset(
+_MAINTENANCE_OPS = frozenset(
     {
+        SkillsOp.PRUNE,
+        SkillsOp.PAUSE,
+        SkillsOp.RESUME,
+        SkillsOp.RUN,
         SkillsOp.MOVE,
         SkillsOp.PIN,
         SkillsOp.UNPIN,
     }
 )
-_MAINTENANCE_OPS = frozenset({SkillsOp.PRUNE})
 _OBSERVABILITY_OPS = frozenset({SkillsOp.LEDGER, SkillsOp.USAGE, SkillsOp.TRACES})
 _STORAGE_OPS = frozenset(
     {
@@ -306,5 +269,3 @@ _STORAGE_OPS = frozenset(
         SkillsOp.RESTORE,
     }
 )
-
-
