@@ -26,6 +26,7 @@ Skill Authoring is the skill-authoring skill that keeps the skill tree clean, co
 |---------|---------|
 | `sac list` | List all skills in the pack |
 | `sac read <name>` | Print a skill's `SKILL.md` |
+| `sac export <namaskill>` | Export skill folder into a single Markdown document |
 | `sac lint [--category NAME]` | Lint scan all skills, optionally filter by category |
 | `sac catalog [--build] [--read] [--check]` | Build and/or read `catalog.json`; `--check` verifies drift |
 | `sac discover <query>` | Search the catalog |

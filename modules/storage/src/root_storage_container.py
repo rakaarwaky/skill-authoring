@@ -1,8 +1,8 @@
 """Storage composition root (AES root layer).
 
-Wires the storage-side capabilities (archiver, backup, restore, rollback)
-into the storage orchestrator and exposes the ``ISkillsStorageAggregate``
-contract to the surface and entry layers.
+Wires the storage-side capabilities (archiver, backup, bootstrap, exporter,
+restore, rollback) into the storage orchestrator and exposes the
+``ISkillsStorageAggregate`` contract to the surface and entry layers.
 
 Wiring only: no business logic, no orchestration policy, no technical
 parsing, no UI behaviour — those live in capabilities / agent / surface.
@@ -16,6 +16,7 @@ from agent_storage_orchestrator import SkillsStorageAgent
 from capabilities_skills_archiver import SkillsArchiver
 from capabilities_skills_backup import SkillsBackup
 from capabilities_skills_bootstrap import SkillsBootstrap
+from capabilities_skills_exporter import SkillsExporter
 from capabilities_skills_restore import SkillsRestore
 from capabilities_skills_rollback import SkillsRollback
 from shared.src.common.utility_common_skills import default_pack_root
@@ -37,6 +38,7 @@ class StorageContainer:
         archiver: SkillsArchiver | None = None,
         backup: SkillsBackup | None = None,
         bootstrap: SkillsBootstrap | None = None,
+        exporter: SkillsExporter | None = None,
         restore: SkillsRestore | None = None,
         rollback: SkillsRollback | None = None,
         default_root: Path | None = None,
@@ -45,11 +47,14 @@ class StorageContainer:
         self._archiver = archiver or SkillsArchiver()
         self._backup = backup or SkillsBackup()
         self._bootstrap = bootstrap or SkillsBootstrap()
+        self._exporter = exporter or SkillsExporter()
         self._restore = restore or SkillsRestore()
         self._rollback = rollback or SkillsRollback(backup=self._backup)
         self._orchestrator = SkillsStorageAgent(
             archiver=self._archiver,
             backup=self._backup,
+            bootstrap=self._bootstrap,
+            exporter=self._exporter,
             restore=self._restore,
             rollback=self._rollback,
             default_root=root,
@@ -66,6 +71,8 @@ def create_storage_feature(
     *,
     archiver: SkillsArchiver | None = None,
     backup: SkillsBackup | None = None,
+    bootstrap: SkillsBootstrap | None = None,
+    exporter: SkillsExporter | None = None,
     restore: SkillsRestore | None = None,
     rollback: SkillsRollback | None = None,
 ) -> ISkillsStorageAggregate:
@@ -77,6 +84,8 @@ def create_storage_feature(
     return StorageContainer(
         archiver=archiver,
         backup=backup,
+        bootstrap=bootstrap,
+        exporter=exporter,
         restore=restore,
         rollback=rollback,
         default_root=root,

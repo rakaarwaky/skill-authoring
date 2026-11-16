@@ -1,7 +1,7 @@
 """Storage-domain capability contracts (AES contract layer, ABC traits).
 
 One seam per storage-side capability: bootstrap, archiver, backup,
-restore, rollback. Capabilities implement these;
+exporter, restore, rollback. Capabilities implement these;
 the composition root injects them into the agent. No import of
 sibling domain contracts — storage keeps its own seams.
 
@@ -69,6 +69,14 @@ class ISkillsBackupProtocol(ABC):
         ...
 
 
+class ISkillsExportProtocol(ABC):
+    """Export capability: export a skill folder to a single Markdown file."""
+
+    @abstractmethod
+    def export(self, skill: SkillName, root: SkillsRoot | None = None) -> Path:
+        ...
+
+
 class ISkillsRestoreProtocol(ABC):
     """Restore capability: archive / restore verbs."""
 
@@ -93,6 +101,7 @@ __all__ = [
     "ISkillsArchiverProtocol",
     "ISkillsBackupProtocol",
     "ISkillsBootstrapProtocol",
+    "ISkillsExportProtocol",
     "ISkillsRestoreProtocol",
     "ISkillsRollbackProtocol",
 ]
@@ -101,6 +110,7 @@ _layer_symbols = {
     "ISkillsArchiverProtocol": ISkillsArchiverProtocol,
     "ISkillsBackupProtocol": ISkillsBackupProtocol,
     "ISkillsBootstrapProtocol": ISkillsBootstrapProtocol,
+    "ISkillsExportProtocol": ISkillsExportProtocol,
     "ISkillsRestoreProtocol": ISkillsRestoreProtocol,
     "ISkillsRollbackProtocol": ISkillsRollbackProtocol,
 }

@@ -23,6 +23,7 @@ class StorageVerb(Enum):
     """Consumer verbs carried by the storage aggregate's single entry point."""
 
     BOOTSTRAP = "bootstrap"
+    EXPORT = "export"
     LIST = "list"
     READ = "read"
 

@@ -103,6 +103,8 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_list(rest, aggregate)
     if sub == "read":
         return _cmd_read(rest, aggregate)
+    if sub == "export":
+        return _cmd_export(rest, aggregate)
     if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
     if sub == "phrases":
@@ -386,6 +388,7 @@ def _print_usage() -> None:
     info(f"{BOLD()}Discovery:{RESET()}")
     info(f"{BOLD()}sac list{RESET()}                          List all skills in the pack")
     info(f"{BOLD()}sac read <name>{RESET()}                   Print a skill's SKILL.md")
+    info(f"{BOLD()}sac export <name>{RESET()}                 Export skill into single Markdown file")
     info(f"{BOLD()}sac lint [--category NAME]{RESET()}        Lint scan all skills (optionally filter by category)")
     info(f"{BOLD()}sac catalog [--build] [--read]{RESET()}    Build and/or print catalog.json")
     info(f"{BOLD()}sac discover <query>{RESET()}             Search the catalog")
@@ -480,6 +483,22 @@ def _cmd_read(args: list[str], aggregate: ISkillsAggregate) -> int:
         err("Skill not found")
         return 1
     print(result.content)
+    return 0
+
+
+def _cmd_export(args: list[str], aggregate: ISkillsAggregate) -> int:
+    """Export a skill folder to a single Markdown file."""
+    if _has_help(args) or not args:
+        info("Usage: sac export <namaskill>")
+        return 0
+    name = args[0]
+    result = aggregate.execute(
+        SkillsRequest(op=SkillsOp.EXPORT, query=SkillQuery(name))
+    )
+    if not result.ok:
+        err(result.message or f"Failed to export skill: {name}")
+        return result.exit_code or 1
+    info(f"[OK] export — {result.message}")
     return 0
 
 

@@ -4,12 +4,12 @@ FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../../../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
-Last Updated: 2026-11-09
+Last Updated: 2026-11-16
 
 ## Progress Overview
 
 The storage module implements the storage-side verbs: archive, restore,
-backup, rollback. Each verb is owned by a capability that implements its
+backup, rollback, export. Each verb is owned by a capability that implements its
 protocol; `SkillsStorageAgent` sequences the capabilities and returns a
 typed `StorageResponse`.
 
@@ -77,6 +77,19 @@ root.
 
 `SkillsBootstrap` implements bootstrap; standard category directories
 and pack sidecar are created.
+
+### FR-storage-006: Export a skill pack to a single Markdown document
+
+| Aspect      | Detail      |
+| ----------- | ----------- |
+| State       | Done        |
+| Done        | Wired       |
+| In Progress | None        |
+| Risk        | None        |
+| Updated     | 2026-11-16  |
+
+`SkillsExporter` implements export; skill folder is concatenated into a
+single Markdown file at `.export/<namaskill>.md`.
 
 ## Reference
 
