@@ -10,7 +10,6 @@ from abc import ABC, abstractmethod
 
 from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsPrunerProtocol,
-    ISkillsPurgerProtocol,
 )
 from shared.src.maintenance.taxonomy_maintenance_entity import (
     MaintenanceRecord,
@@ -31,7 +30,6 @@ from shared.src.maintenance.taxonomy_maintenance_vo import MaintenanceOpId
 __all__ = [
     "ISkillsMaintenanceAggregate",
     "ISkillsPrunerProtocol",
-    "ISkillsPurgerProtocol",
     "MaintenanceError",
     "MaintenanceOpId",
     "MaintenanceRecord",
@@ -50,7 +48,6 @@ class ISkillsMaintenanceAggregate(ABC):
 
 _layer_symbols = {
     "ISkillsMaintenanceAggregate": ISkillsMaintenanceAggregate,
-    "ISkillsPurgerProtocol": ISkillsPurgerProtocol,
     "ISkillsPrunerProtocol": ISkillsPrunerProtocol,
     "MaintenanceError": MaintenanceError,
     "MaintenanceOpId": MaintenanceOpId,

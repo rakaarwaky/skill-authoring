@@ -1,7 +1,7 @@
 """Maintenance-domain utility functions — stateless, pure, domain-agnostic.
 
 Module-level functions only — no classes, no state. Used by the prune,
-purge, archive, and restore capabilities across the maintenance feature.
+archive, and restore capabilities across the maintenance feature.
 """
 
 from __future__ import annotations
@@ -15,8 +15,8 @@ def default_prune_ttl_days() -> int:
 
 
 def default_purge_ttl_days() -> int:
-    """Return the default idle TTL (days) before an archived skill is purged."""
-    return 90
+    """Return the default TTL (days) before an archived skill is purged."""
+    return 60
 
 
 def maintenance_sidecar_path(skills_root: Path) -> Path:

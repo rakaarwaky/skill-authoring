@@ -1,6 +1,6 @@
 """Maintenance-domain errors (AES taxonomy layer).
 
-Typed errors used by the prune, purge, archive, and restore capabilities.
+Typed errors used by the prune, archive, and restore capabilities.
 All errors extend ``SkillsError`` from the common layer.
 
 No I/O, no imports from capabilities, agent, surface, root, or contract layers.
@@ -23,27 +23,21 @@ class MaintenanceError(SkillsError):
 
 
 class SkillNotArchivedError(SkillsUsageError):
-    """The skill is not archived and cannot be purged."""
+    """The skill is not archived and cannot be restored."""
 
 
 class PruneEmptyError(SkillsUsageError):
     """No idle skills matched the prune criteria."""
 
 
-class PurgeEmptyError(SkillsUsageError):
-    """No archived skills matched the purge criteria."""
-
-
 __all__ = [
     "MaintenanceError",
     "PruneEmptyError",
-    "PurgeEmptyError",
     "SkillNotArchivedError",
 ]
 
 _layer_symbols = {
     "MaintenanceError": MaintenanceError,
     "PruneEmptyError": PruneEmptyError,
-    "PurgeEmptyError": PurgeEmptyError,
     "SkillNotArchivedError": SkillNotArchivedError,
 }

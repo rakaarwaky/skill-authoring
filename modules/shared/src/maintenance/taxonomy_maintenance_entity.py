@@ -1,6 +1,6 @@
 """Maintenance-domain entities (AES taxonomy layer).
 
-Identity-bearing domain records produced by prune, purge, archive, and
+Identity-bearing domain records produced by prune, archive, and
 restore capabilities. Pure data: no I/O, no imports from utility,
 capabilities, agent, root, or surface layers.
 """
