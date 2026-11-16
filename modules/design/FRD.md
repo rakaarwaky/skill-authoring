@@ -23,7 +23,7 @@ scan is delegated to a capability. The lifecycle verbs `run`, `pause`, and
 
 ## Functional Requirements
 
-### FR-DESIGN-001: Creator 
+### FR-DESIGN-001: Creator
 
 **Description:** `SkillsCreator` shall implement `ISkillsCreatorProtocol` and
 expose `create_skill` and `create_category`. The capability plans (dry-run) or
@@ -67,29 +67,23 @@ as `kind=skill`.
 #### Technical Specification
 
 
-| Aspect       | Detail                                                    |
-| ------------ | --------------------------------------------------------- |
-| **Input**    | `create_skill` / `create_category` arguments per protocol |
-| **Output**   | `SkillCreatePlan` / `NewCategoryPlan`                     |
-| **Protocol** | `ISkillsCreatorProtocol`                                  |
-| **Method**   | `create_skill`, `create_category`                         |
-| **Event**    | none                                                      |
-| **Error**    | `OSError`, `SkillsError` subclasses; agent maps to exit   |
-|              | codes                                                     |
+| Aspect       | Detail                                                        |
+| ------------ | ------------------------------------------------------------- |
+| **Input**    | `create_skill` / `create_category` arguments per protocol     |
+| **Output**   | `SkillCreatePlan` / `NewCategoryPlan`                         |
+| **Protocol** | `ISkillsCreatorProtocol`                                      |
+| **Method**   | `create_skill`, `create_category`                             |
+| **Event**    | none                                                          |
+| **Error**    | `OSError`, `SkillsError` subclasses; agent maps to exit codes |
 
 
 #### Test
 
 
-| Context           | When Action                                     | Then Observable Result |
-| ----------------- | ----------------------------------------------- | ---------------------- |
-| Creator plan with | `create_skill(apply=F |` SkillCreatePlan\` with |                        |
-| apply=False       | alse) `|`apply=False\`; no                      |                        |
-|                   |                                                 | filesystem write       |
-|                   |                                                 | occurs                 |
-| Creator plan with | \`create\_skill(apply=T                         | SKILL.md file is       |
-| apply=True        | rue)\`                                          | written under the      |
-|                   |                                                 | skills root            |
+| Context                         | When Action                       | Then Observable Result                                 |
+| ------------------------------- | --------------------------------- | ------------------------------------------------------ |
+| Creator plan with `apply=False` | `create_skill` with `apply=False` | `SkillCreatePlan` returned; no filesystem write occurs |
+| Creator plan with `apply=True`  | `create_skill` with `apply=True`  | SKILL.md written under the skills root                 |
 
 
 #### Metric
@@ -101,7 +95,7 @@ as `kind=skill`.
 | Capability contract pass | 100 % |
 
 
-### FR-DESIGN-002: Linter 
+### FR-DESIGN-002: Linter
 
 **Description:** `SkillsLinter` shall implement `ISkillsLinterProtocol` and
 expose `lint`, running the combined 13-rule validator plus weed report in one
@@ -162,25 +156,21 @@ as `SkillsResult` with the capability's exit code.
 ## Public Interface
 
 
-| Aspect    | Detail                                                   |
-| --------- | -------------------------------------------------------- |
-| Agent     | `SkillsDesignAgent`                                      |
-| Aggregate | `ISkillsDesignAggregate`                                 |
-| Method    | `execute`                                                |
-| Request   | `SkillsRequest` (op, query, flags, apply, root)          |
-| Response  | `SkillsResult` (ok, op, exit\_code, message, op-specific |
-|           | fields)                                                  |
+| Aspect    | Detail                                                           |
+| --------- | ---------------------------------------------------------------- |
+| Agent     | `SkillsDesignAgent`                                              |
+| Aggregate | `ISkillsDesignAggregate`                                         |
+| Method    | `execute`                                                        |
+| Request   | `SkillsRequest` (op, query, flags, apply, root)                  |
+| Response  | `SkillsResult` (ok, op, exit\_code, message, op-specific fields) |
 
 
 ## Reference
 
 
-| Artifact     | Purpose                  | Link                                              |
-| ------------ | ------------------------ | ------------------------------------------------- |
-| PRD          | Business goals and scope | [PRD.md](../../../../../PRD.md)                   |
-| Backlog      | Task tracking and        | [BACKLOG.md](BACKLOG.md)                          |
-|              | implementation status    |                                                   |
-| Roadmap      | Timeline, phasing, and   | [ROADMAP.md](../../../../../ROADMAP.md)           |
-|              | dependencies             |                                                   |
-| Architecture | System boundaries, tech  | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
-|              | stack, and infra         |                                                   |
+| Artifact     | Purpose                           | Link                                              |
+| ------------ | --------------------------------- | ------------------------------------------------- |
+| PRD          | Business goals and scope          | [PRD.md](../../../../../PRD.md)                   |
+| Backlog      | Task tracking and implementation  | [BACKLOG.md](BACKLOG.md)                          |
+| Roadmap      | Timeline, phasing, and dependencies | [ROADMAP.md](../../../../../ROADMAP.md)           |
+| Architecture | System boundaries, tech stack, infra | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
