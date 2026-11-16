@@ -54,7 +54,8 @@ sequences the capabilities and returns a typed `SkillsResult`.
 | ------------- | ------------------------------------------------------------ |
 | State         | Done                                                         |
 | Done          | `SkillsRunner` implements `ISkillsRunnerProtocol` with       |
-|               | `apply_automatic_transitions`, `pause`, `resume`             |
+|               | `apply_automatic_transitions`, `pause`, `resume` (moved to   |
+|               | maintenance module)                                          |
 | In Progress   | None                                                         |
 | Risk          | None                                                         |
 | Updated       | 2026-11-10                                                   |

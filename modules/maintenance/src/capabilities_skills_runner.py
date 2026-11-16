@@ -15,7 +15,7 @@ from shared.src.common.utility_common_skills import (
     default_pack_root,
     iter_skill_mds,
 )
-from shared.src.design.contract_design_protocol import (
+from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsRunnerProtocol,
 )
 from shared.src.design.taxonomy_design_constant import LIFECYCLE_STATES

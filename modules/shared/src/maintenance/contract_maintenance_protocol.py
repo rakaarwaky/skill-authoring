@@ -1,9 +1,11 @@
 """Maintenance-domain capability contracts (AES contract layer, ABC traits).
 
-One seam for the maintenance-side capability: prune. The prune
-capability owns both archive-idle and purge-old-archive passes; the
-composition root injects it into the agent. No import of sibling domain
-contracts — maintenance keeps its own seams.
+One seam per maintenance-side capability: prune, runner, piner, mover.
+The prune capability owns both archive-idle and purge-old-archive passes;
+the runner capability owns lifecycle transitions and pause/resume; the
+piner toggles the pinned flag; the mover plans and applies cross-category
+moves. The composition root injects them into the agent. No import of
+sibling domain contracts — maintenance keeps its own seams.
 
 No implementation code here — ABCs only, bodies are ``...``.
 """
@@ -12,6 +14,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from shared.src.common.taxonomy_common_vo import (
+    MutationOutcome,
+    MutationPlan,
+)
+from shared.src.governance.taxonomy_governance_entity import PinState
 from shared.src.maintenance.taxonomy_maintenance_constant import (
     MAINTENANCE_LOCK_FILENAME,
     MAINTENANCE_SIDECAR_FILENAME,
@@ -39,12 +46,67 @@ class ISkillsPrunerProtocol(ABC):
         ...
 
 
+class ISkillsRunnerProtocol(ABC):
+    """Runner capability: run/pause/resume lifecycle verbs."""
+
+    @abstractmethod
+    def apply_automatic_transitions(
+        self, root: SkillsRoot | None = None
+    ) -> MutationOutcome:
+        """Apply automatic lifecycle transitions across the pack."""
+        ...
+
+    @abstractmethod
+    def pause(self, root: SkillsRoot) -> MutationOutcome:
+        """Pause lifecycle transitions."""
+        ...
+
+    @abstractmethod
+    def resume(self, root: SkillsRoot) -> MutationOutcome:
+        """Resume lifecycle transitions."""
+        ...
+
+
+class ISkillsPinerProtocol(ABC):
+    """Piner capability: pin/unpin verbs."""
+
+    @abstractmethod
+    def pin(self, skill: str, root: SkillsRoot | None = None) -> PinState:
+        ...
+
+    @abstractmethod
+    def unpin(self, skill: str, root: SkillsRoot | None = None) -> PinState:
+        ...
+
+
+class ISkillsMoverProtocol(ABC):
+    """Mover capability: move a skill between categories."""
+
+    @abstractmethod
+    def plan_move(
+        self, skill: str, target: str, root: SkillsRoot
+    ) -> MutationPlan:
+        """Resolve a move to another category (pure; no writes)."""
+        ...
+
+    @abstractmethod
+    def apply_move(self, plan: MutationPlan) -> MutationOutcome:
+        """Execute a move plan; re-checks containment first."""
+        ...
+
+
 __all__ = [
+    "ISkillsMoverProtocol",
+    "ISkillsPinerProtocol",
     "ISkillsPrunerProtocol",
+    "ISkillsRunnerProtocol",
 ]
 
 _layer_symbols = {
+    "ISkillsMoverProtocol": ISkillsMoverProtocol,
+    "ISkillsPinerProtocol": ISkillsPinerProtocol,
     "ISkillsPrunerProtocol": ISkillsPrunerProtocol,
+    "ISkillsRunnerProtocol": ISkillsRunnerProtocol,
     "MAINTENANCE_LOCK_FILENAME": MAINTENANCE_LOCK_FILENAME,
     "MAINTENANCE_SIDECAR_FILENAME": MAINTENANCE_SIDECAR_FILENAME,
     "PRUNE_TTL_DEFAULT_DAYS": PRUNE_TTL_DEFAULT_DAYS,

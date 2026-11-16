@@ -38,7 +38,6 @@ from shared.src.design.contract_design_protocol import (
     ISkillsAdopterProtocol,
     ISkillsCreatorProtocol,
     ISkillsLinterProtocol,
-    ISkillsRunnerProtocol,
 )
 from shared.src.design.taxonomy_design_entity import (
     Issue,
@@ -80,7 +79,6 @@ __all__ = [
     "ISkillsAggregate",
     "ISkillsCreatorProtocol",
     "ISkillsLinterProtocol",
-    "ISkillsRunnerProtocol",
     "Issue",
     "LintReport",
     "MutationOutcome",
@@ -120,7 +118,6 @@ _layer_symbols = {
     "ISkillsAggregate": ISkillsAggregate,
     "ISkillsCreatorProtocol": ISkillsCreatorProtocol,
     "ISkillsLinterProtocol": ISkillsLinterProtocol,
-    "ISkillsRunnerProtocol": ISkillsRunnerProtocol,
     "Issue": Issue,
     "LintReport": LintReport,
     "MutationOutcome": MutationOutcome,
