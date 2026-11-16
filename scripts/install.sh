@@ -185,8 +185,16 @@ MCP_EOF
 chmod 755 "$MCP_LAUNCHER"
 ok "skill-authoring-mcp launcher: $MCP_LAUNCHER"
 
+# Short aliases: sac -> skill-authoring-cli, sam -> skill-authoring-mcp.
+SAC_ALIAS="$BIN_DIR/sac"
+SAM_ALIAS="$BIN_DIR/sam"
+rm -f "$SAC_ALIAS" "$SAM_ALIAS"
+ln -sf skill-authoring-cli "$SAC_ALIAS"
+ln -sf skill-authoring-mcp "$SAM_ALIAS"
+ok "aliases: sac -> skill-authoring-cli, sam -> skill-authoring-mcp ($BIN_DIR)"
+
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-  warn "$BIN_DIR is not on your PATH — add it (e.g. export PATH=\"$BIN_DIR:\$PATH\") then run: skill-authoring-cli lint"
+  warn "$BIN_DIR is not on your PATH — add it (e.g. export PATH=\"$BIN_DIR:\$PATH\") then run: sac lint"
 fi
 
 # --- Register pack as an MCP server in ~/.grok/config.toml ---
