@@ -385,11 +385,6 @@ def _render_ledger(result: SkillsResult) -> int:
 
 def _print_usage() -> None:
     banner()
-    info(f"{BOLD()}Modes (agent-level):{RESET()}")
-    info("  --create  ->  sac create skill|category")
-    info("  --improve ->  sac lint -> sac read -> edit -> sac catalog")
-    info("  --prune   ->  sac discover -> sac move|archive")
-    print()
     info(f"{BOLD()}Discovery:{RESET()}")
     info(f"{BOLD()}sac list{RESET()}                          List all skills in the pack")
     info(f"{BOLD()}sac read <name>{RESET()}                   Print a skill's SKILL.md")
