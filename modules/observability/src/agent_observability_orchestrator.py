@@ -76,7 +76,7 @@ class ObservabilityAgent(IObservabilityAggregate):
         except ValueError:
             return SkillsResult(
                 ok=False,
-                op=SkillsOp.PHRASES,
+                op=SkillsOp.USAGE,
                 exit_code=SkillsExitCode.USAGE_ERROR,
                 message=f"Unknown observability op: {request.op}",
             )

@@ -5,7 +5,7 @@ scan (``lint``), the catalog builder/reader (``catalog``), the search
 (``discover``), the mutation verbs (``move``/``archive``/``create``), and the
 lifecycle verbs (``status``/``usage``/``run``/``pause``/``resume``/
 ``pin``/``unpin``/``restore``/``list-unmanaged``/
-``list-archived``/``prune``/``purge``/``adopt``/``backup``/``rollback``/
+``list-archived``/``prune``/``purge``/``adopt``/
 ``ledger``).
 
 The pack root is always the repository's ``skills/`` pack; there is no
@@ -77,8 +77,6 @@ _LIFECYCLE_OPS = {
     "prune": SkillsOp.PRUNE,
     "purge": SkillsOp.PURGE,
     "adopt": SkillsOp.ADOPT,
-    "backup": SkillsOp.BACKUP,
-    "rollback": SkillsOp.ROLLBACK,
     "ledger": SkillsOp.LEDGER,
 }
 
@@ -251,8 +249,6 @@ def _lifecycle_verb_parser(sub: str) -> argparse.ArgumentParser:
         parser.add_argument("--days", type=str, default=None)
         parser.add_argument("--dry-run", action="store_true", default=False)
         parser.add_argument("--apply", action="store_true", default=False)
-    elif sub == "rollback":
-        parser.add_argument("--id", type=str, default=None)
     return parser
 
 
@@ -284,10 +280,6 @@ def _render_lifecycle(sub: str, op: SkillsOp, result: SkillsResult) -> int:
         return _render_prune(result)
     if sub == "purge":
         return _render_purge(result)
-    if sub == "backup":
-        return _render_backup(result)
-    if sub == "rollback":
-        return _render_rollback(result)
     if sub == "ledger":
         return _render_ledger(result)
 
@@ -365,16 +357,6 @@ def _render_purge(result: SkillsResult) -> int:
     return 0
 
 
-def _render_backup(result: SkillsResult) -> int:
-    info(f"[OK] backup — {result.content or result.message}")
-    return 0
-
-
-def _render_rollback(result: SkillsResult) -> int:
-    info(f"[OK] rollback — {result.message}")
-    return 0
-
-
 def _render_ledger(result: SkillsResult) -> int:
     records = result.records or ()
     info(f"[OK] ledger — {len(records)} record(s)")
@@ -423,9 +405,6 @@ def _print_usage() -> None:
     info(f"{BOLD()}sac prune [--days N] [--apply]{RESET()}    Bulk archive idle skills")
     info(f"{BOLD()}sac purge [--days N] [--apply]{RESET()}    Permanently remove archived skills")
     print()
-    info(f"{BOLD()}Backup & Rollback:{RESET()}")
-    info(f"{BOLD()}sac backup{RESET()}                        Create a snapshot of skills pack")
-    info(f"{BOLD()}sac rollback [--id ID]{RESET()}            Restore from snapshot")
     info(f"{BOLD()}sac ledger{RESET()}                        View or compact audit ledger")
     print()
     info(f"{BOLD()}Note:{RESET()} move/archive/create are dry-run by default; pass --apply to write.")

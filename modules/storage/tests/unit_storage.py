@@ -19,10 +19,14 @@ from storage.src.agent_storage_orchestrator import SkillsStorageAgent
 from storage.src.capabilities_skills_exporter import SkillsExporter
 
 
-def test_unknown_verb_raises_keyerror() -> None:
+class _FakeVerb:
+    value = "no-such-op"
+
+
+def test_unknown_handler_raises_keyerror() -> None:
     agent = SkillsStorageAgent()
     try:
-        agent._handler_for(StorageVerb.BOOTSTRAP)
+        agent._handler_for(_FakeVerb())
     except KeyError:
         return
     raise AssertionError("expected KeyError for unknown storage verb")

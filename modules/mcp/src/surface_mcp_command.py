@@ -38,7 +38,7 @@ class SkillsMcpAdapter:
     # ── Tool registry ───────────────────────────────────────────────
 
     def list_tools(self) -> list[dict]:
-        """Return MCP tool descriptors, one per sac verb (24 tools)."""
+        """Return MCP tool descriptors, one per sac verb (20 tools)."""
         return [
             {"name": "sac_list", "description": "List all skills in the pack"},
             {"name": "sac_read", "description": "Print a skill's SKILL.md"},
@@ -61,8 +61,6 @@ class SkillsMcpAdapter:
             {"name": "sac_prune", "description": "Bulk archive idle skills"},
             {"name": "sac_purge", "description": "Permanently remove archived skills"},
             {"name": "sac_adopt", "description": "Mark skill as agent-managed"},
-            {"name": "sac_backup", "description": "Create a snapshot of the skills pack"},
-            {"name": "sac_rollback", "description": "Restore from snapshot"},
             {"name": "sac_ledger", "description": "View or compact audit ledger"},
         ]
 
@@ -104,8 +102,6 @@ class SkillsMcpAdapter:
             "prune": SkillsOp.PRUNE,
             "purge": SkillsOp.PURGE,
             "adopt": SkillsOp.ADOPT,
-            "backup": SkillsOp.BACKUP,
-            "rollback": SkillsOp.ROLLBACK,
             "ledger": SkillsOp.LEDGER,
         }
         try:
@@ -155,8 +151,6 @@ class SkillsMcpAdapter:
             for key in ("days", "dry_run"):
                 if args.get(key) is not None:
                     flags[key] = str(args[key])
-        if tool == "rollback" and args.get("id"):
-            flags["id"] = args["id"]
         return flags
 
 

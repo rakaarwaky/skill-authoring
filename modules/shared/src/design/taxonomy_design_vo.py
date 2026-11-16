@@ -344,8 +344,6 @@ class LifecycleConfig:
     stale_after_days: int = 14
     archive_after_days: int = 30
     consolidate: bool = False
-    backup_enabled: bool = True
-    backup_keep: int = 2
     archive_ttl_days: int = 30
     pause: bool = False
 

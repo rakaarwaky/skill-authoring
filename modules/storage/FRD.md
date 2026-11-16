@@ -3,10 +3,10 @@
 ## Feature Overview
 
 The storage feature sits in the agent layer and is called by the surface
-and root CLI through the storage aggregate contract. It orchestrates six
-capabilities — archiver, backup, bootstrap, exporter, restore, rollback —
-and routes each storage op to the matching capability. The agent performs
-no filesystem I/O; all I/O is delegated to the capabilities.
+and root CLI through the storage aggregate contract. It orchestrates three
+capabilities — archiver, exporter, restore — and routes each storage op to
+the matching capability. The agent performs no filesystem I/O; all I/O is
+delegated to the capabilities.
 
 ## Functional Requirements
 
@@ -59,98 +59,7 @@ state is held by the agent; the archiver capability performs the move.
 |---------------|-------|
 | Archive containment violation rate | 0 % |
 
-### FR-storage-002: Create a backup snapshot
-
-**Description:**
-The feature shall create a content-addressed snapshot of the pack under
-`.lifecycle_backups/<timestamp>/`, containing a gzipped tarball and a
-manifest file, and prune old snapshots beyond the configured keep count.
-
-#### Business Logic
-
-- The snapshot shall be written under `.lifecycle_backups/<timestamp>/`.
-- The snapshot shall contain a gzipped tarball and a manifest file.
-- Every file in the pack shall be hashed (sha256) and recorded in the
-  manifest with path, sha256, and size.
-- Pruning shall remove the oldest snapshots beyond the configured keep
-  count, respecting any excluded snapshot names.
-
-#### Edge Cases
-
-- A missing pack root shall raise `SkillsRootError`.
-- A tarball extraction path that escapes the target directory shall fail
-  closed.
-
-#### Technical Specification
-
-| Aspect | Detail |
-|--------|--------|
-| **Input** | root (pack root) |
-| **Output** | Snapshot directory path |
-| **Protocol** | ISkillsBackupProtocol |
-| **Method** | create_snapshot, prune_old_snapshots |
-| **Event** | None |
-| **Error** | OSError, SkillsRootError |
-
-#### Test
-
-| Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
-| A valid pack root | The backup capability is invoked | A snapshot directory is created |
-| There are more snapshots than the keep count | Pruning runs | The oldest snapshots are removed and the kept count remains |
-| The pack root is missing | The backup capability is invoked | `SkillsRootError` is raised |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Snapshot creation failure rate | 0 % |
-
-### FR-storage-003: Bootstrap a skill pack root
-
-**Description:**
-The feature shall initialize a skill pack root by creating the standard
-category directories and writing the pack sidecar used by every verb.
-
-#### Business Logic
-
-- Bootstrap shall create the standard category directories under the pack
-  root.
-- Bootstrap shall write the pack sidecar used by every verb.
-- Bootstrap shall not fail when the root already exists.
-
-#### Edge Cases
-
-- A missing root shall be created if possible.
-- Existing category directories shall be left in place.
-- No root given shall use the default pack root.
-
-#### Technical Specification
-
-| Aspect | Detail |
-|--------|--------|
-| **Input** | root (pack root or None) |
-| **Output** | StorageResponse |
-| **Protocol** | ISkillsBootstrapProtocol |
-| **Method** | bootstrap |
-| **Event** | None |
-| **Error** | OSError |
-
-#### Test
-
-| Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
-| No pack root exists | Bootstrap is invoked | Category directories and sidecar are created |
-| The pack root already exists | Bootstrap is invoked | Existing directories are left in place |
-| No root is given | Bootstrap is invoked | The default pack root is used |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Bootstrap idempotency rate | 100 % |
-
-### FR-storage-004: Restore an archived skill
+### FR-storage-002: Restore an archived skill
 
 **Description:**
 The feature shall move an archived skill from
@@ -194,55 +103,7 @@ re-anchoring the skill after the move.
 |---------------|-------|
 | Restore success rate | 100 % |
 
-### FR-storage-005: Rollback the pack tree
-
-**Description:**
-The feature shall restore the pack tree from a stored snapshot, staging
-the live tree before extraction so the operation is reversible.
-
-#### Business Logic
-
-- Rollback shall extract the snapshot identified by id (or the latest if
-  id is None) over the live tree.
-- Rollback shall move the current live tree to a staging directory before
-  extraction so it can be recovered on failure.
-- Rollback shall reject a snapshot id containing path separators or `..`.
-
-#### Edge Cases
-
-- No snapshots available shall raise `SkillsUsageError`.
-- An invalid or escaping snapshot id shall raise `SkillsUsageError`.
-- A failed extraction shall restore the staged tree and raise
-  `MutationConflictError`.
-
-#### Technical Specification
-
-| Aspect | Detail |
-|--------|--------|
-| **Input** | root, id_ (snapshot id or None) |
-| **Output** | dict with snapshot, staging, restored |
-| **Protocol** | ISkillsRollbackProtocol |
-| **Method** | rollback |
-| **Event** | None |
-| **Error** | OSError, SkillsUsageError, MutationConflictError |
-
-#### Test
-
-| Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
-| No snapshots exist | Rollback is invoked | `SkillsUsageError` is raised |
-| A valid snapshot id | Rollback is invoked | The tree is restored and `restored=True` is returned |
-| An escaping snapshot id | Rollback is invoked | `SkillsUsageError` is raised |
-| Extraction fails | Rollback is invoked | The staged tree is restored and `MutationConflictError` is raised |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Rollback success rate | 100 % |
-| Failed-rollback tree recovery rate | 100 % |
-
-### FR-storage-006: Export a skill pack to a single Markdown document
+### FR-storage-003: Export a skill pack to a single Markdown document
 
 **Description:**
 The feature shall export a skill folder into a single Markdown document

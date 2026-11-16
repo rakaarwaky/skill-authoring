@@ -74,12 +74,10 @@ Skill Authoring is the skill-authoring skill that keeps the skill tree clean, co
 | `sac prune [--days N] [--apply]` | Bulk archive idle skills |
 | `sac purge [--days N] [--apply]` | Permanently remove archived skills |
 
-### Backup & Rollback
+### Ledger
 
 | Command | Purpose |
 |---------|---------|
-| `sac backup` | Create a snapshot of skills pack |
-| `sac rollback [--id ID]` | Restore from snapshot |
 | `sac ledger` | View or compact audit ledger |
 
 Every command is a plain `sac <verb> [flags]` subcommand; run `sac` with no args for the usage banner. Exit codes: `0` clean, `1` issues found, `2` usage error, `3` catalog drift.
