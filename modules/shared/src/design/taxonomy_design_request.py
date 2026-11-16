@@ -57,8 +57,6 @@ class SkillsOp(StrEnum):
     RESUME = "resume"
     PIN = "pin"
     UNPIN = "unpin"
-    LOCK = "lock"
-    UNLOCK = "unlock"
     RESTORE = "restore"
     PRUNE = "prune"
     PURGE = "purge"

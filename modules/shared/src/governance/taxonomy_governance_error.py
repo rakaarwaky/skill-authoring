@@ -23,16 +23,8 @@ class GovernanceError(SkillsError):
         super().__init__(message, exit_code=exit_code)
 
 
-class SkillAlreadyLockedError(SkillsUsageError):
-    """The skill is already locked."""
-
-
 class SkillAlreadyPinnedError(SkillsUsageError):
     """The skill is already pinned."""
-
-
-class SkillNotLockedError(SkillsUsageError):
-    """The skill is not currently locked."""
 
 
 class SkillNotPinnedError(SkillsUsageError):
@@ -41,16 +33,12 @@ class SkillNotPinnedError(SkillsUsageError):
 
 __all__ = [
     "GovernanceError",
-    "SkillAlreadyLockedError",
     "SkillAlreadyPinnedError",
-    "SkillNotLockedError",
     "SkillNotPinnedError",
 ]
 
 _layer_symbols = {
     "GovernanceError": GovernanceError,
-    "SkillAlreadyLockedError": SkillAlreadyLockedError,
     "SkillAlreadyPinnedError": SkillAlreadyPinnedError,
-    "SkillNotLockedError": SkillNotLockedError,
     "SkillNotPinnedError": SkillNotPinnedError,
 }

@@ -4,7 +4,7 @@ Agent-oriented commands: read-only discovery (``list``/``read``), the lint
 scan (``lint``), the catalog builder/reader (``catalog``), the search
 (``discover``), the mutation verbs (``move``/``archive``/``create``), and the
 lifecycle verbs (``status``/``usage``/``run``/``pause``/``resume``/
-``pin``/``unpin``/``lock``/``unlock``/``restore``/``list-unmanaged``/
+``pin``/``unpin``/``restore``/``list-unmanaged``/
 ``list-archived``/``prune``/``purge``/``adopt``/``backup``/``rollback``/
 ``ledger``).
 
@@ -71,8 +71,6 @@ _LIFECYCLE_OPS = {
     "resume": SkillsOp.RESUME,
     "pin": SkillsOp.PIN,
     "unpin": SkillsOp.UNPIN,
-    "lock": SkillsOp.LOCK,
-    "unlock": SkillsOp.UNLOCK,
     "restore": SkillsOp.RESTORE,
     "list-unmanaged": SkillsOp.LIST_UNMANAGED,
     "list-archived": SkillsOp.LIST_ARCHIVED,
@@ -244,7 +242,7 @@ def _render_phrases(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
 def _lifecycle_verb_parser(sub: str) -> argparse.ArgumentParser:
     """Build the argparse parser for one lifecycle verb."""
     parser = argparse.ArgumentParser(prog=f"sac {sub}", add_help=True)
-    if sub in ("pin", "unpin", "lock", "unlock", "restore", "adopt") or sub == "archive":
+    if sub in ("pin", "unpin", "restore", "adopt") or sub == "archive":
         parser.add_argument("query")
         parser.add_argument("--apply", action="store_true", default=False)
     elif sub == "prune" or sub == "purge":
@@ -272,7 +270,7 @@ def _render_lifecycle(sub: str, op: SkillsOp, result: SkillsResult) -> int:
         return _render_run(result)
     if sub in ("pause", "resume"):
         return _render_pause_resume(op, result)
-    if sub in ("pin", "unpin", "lock", "unlock", "adopt"):
+    if sub in ("pin", "unpin", "adopt"):
         return _render_bool(sub, result)
     if sub == "restore":
         return _render_archive_restore(op, result)
@@ -412,8 +410,7 @@ def _print_usage() -> None:
     info(f"{BOLD()}sac resume{RESET()}                        Resume automatic transitions")
     info(f"{BOLD()}sac pin <skill>{RESET()}                   Pin a skill in active state")
     info(f"{BOLD()}sac unpin <skill>{RESET()}                 Unpin a skill")
-    info(f"{BOLD()}sac lock <skill>{RESET()}                  Lock a skill from mutation")
-    info(f"{BOLD()}sac unlock <skill>{RESET()}                Unlock a skill")
+
     info(f"{BOLD()}sac adopt <skill>{RESET()}                 Mark skill as agent-managed")
     print()
     info(f"{BOLD()}Archive & Restore:{RESET()}")

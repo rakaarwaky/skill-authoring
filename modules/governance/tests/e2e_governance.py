@@ -21,20 +21,18 @@ def _make_agent(pack: Path):
     from governance.src.agent_governance_orchestrator import (
         SkillsGovernanceAgent,
     )
-    from governance.src.capabilities_skills_locker import SkillsLocker
     from governance.src.capabilities_skills_mover import SkillsMover
     from governance.src.capabilities_skills_piner import SkillsPiner
 
     return SkillsGovernanceAgent(
-        locker=SkillsLocker(),
         piner=SkillsPiner(),
         mover=SkillsMover(),
         default_root=str(pack),
     )
 
 
-def test_e2e_lock_unlock_round_trip():
-    """E2E-GOVERNANCE-001: lock + unlock returns the sidecar to its original state."""
+def test_e2e_pin_unpin_round_trip():
+    """E2E-GOVERNANCE-001: pin + unpin returns the sidecar to its original state."""
     with tempfile.TemporaryDirectory() as d:
         pack = Path(d) / "cats"
         skill_dir = pack / "my-skill"
@@ -43,18 +41,18 @@ def test_e2e_lock_unlock_round_trip():
 
         agent = _make_agent(pack)
         result = agent.execute(
-            GovernanceRequest(verb=GovernanceVerb.LOCK, query=SkillQuery("my-skill"))
+            GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("my-skill"))
         )
-        assert result.ok, "lock should succeed"
+        assert result.ok, "pin should succeed"
         record = json.loads((skill_dir / ".usage.json").read_text())
-        assert record.get("locked") is True
+        assert record.get("pinned") is True
 
         result = agent.execute(
-            GovernanceRequest(verb=GovernanceVerb.UNLOCK, query=SkillQuery("my-skill"))
+            GovernanceRequest(verb=GovernanceVerb.UNPIN, query=SkillQuery("my-skill"))
         )
-        assert result.ok, "unlock should succeed"
+        assert result.ok, "unpin should succeed"
         record = json.loads((skill_dir / ".usage.json").read_text())
-        assert record.get("locked") is False
+        assert record.get("pinned") is False
 
 
 def test_e2e_move_to_existing_category():
@@ -80,12 +78,12 @@ def test_e2e_move_to_existing_category():
 
 
 def test_e2e_unknown_skill_returns_issues_found():
-    """E2E-GOVERNANCE-003: locking a non-existent skill reports a failure result."""
+    """E2E-GOVERNANCE-003: pinning a non-existent skill reports a failure result."""
     with tempfile.TemporaryDirectory() as d:
         pack = Path(d)
         agent = _make_agent(pack)
         result = agent.execute(
-            GovernanceRequest(verb=GovernanceVerb.LOCK, query=SkillQuery("no-such-skill"))
+            GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("no-such-skill"))
         )
         assert result.ok is False
         assert result.exit_code == 1

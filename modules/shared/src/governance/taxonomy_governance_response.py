@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from shared.src.governance.taxonomy_governance_entity import LockState, PinState
+from shared.src.governance.taxonomy_governance_entity import PinState
 
 if TYPE_CHECKING:
     from shared.src.common.taxonomy_common_vo import (
@@ -27,15 +27,14 @@ class GovernanceResponse:
     """Response to a governance aggregate request.
 
     ``ok``/``verb``/``exit_code``/``message`` form the command contract.
-    Payload fields are populated per verb: ``lock_state`` for LOCK/UNLOCK,
-    ``pin_state`` for PIN/UNPIN, ``plan`` and ``outcome`` for MOVE.
+    Payload fields are populated per verb: ``pin_state`` for PIN/UNPIN,
+    ``plan`` and ``outcome`` for MOVE.
     """
 
     ok: bool
     verb: str
     exit_code: int = 0
     message: str = ""
-    lock_state: LockState | None = None
     pin_state: PinState | None = None
     plan: MutationPlan | None = None
     outcome: MutationOutcome | None = None

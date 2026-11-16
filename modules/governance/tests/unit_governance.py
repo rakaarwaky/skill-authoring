@@ -15,37 +15,33 @@ def _agent():
         SkillsGovernanceAgent,
     )
 
-    locker = MagicMock()
     piner = MagicMock()
     mover = MagicMock()
-    return SkillsGovernanceAgent(locker=locker, piner=piner, mover=mover), (
-        locker,
+    return SkillsGovernanceAgent(piner=piner, mover=mover), (
         piner,
         mover,
     )
 
 
 def test_agent_routes_pin_to_piner():
-    """UT-GOVERNANCE-001: a PIN request reaches the piner, not the locker."""
-    agent, (locker, piner, _mover) = _agent()
+    """UT-GOVERNANCE-001: a PIN request reaches the piner."""
+    agent, (piner, _mover) = _agent()
     req = GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("skill-a"))
     agent.execute(req)
     assert piner.pin.called, "PIN must reach the piner"
-    assert not locker.lock.called, "PIN must not touch the locker"
 
 
-def test_agent_routes_lock_to_locker():
-    """UT-GOVERNANCE-002: a LOCK request reaches the locker, not the piner."""
-    agent, (locker, piner, _mover) = _agent()
-    req = GovernanceRequest(verb=GovernanceVerb.LOCK, query=SkillQuery("skill-a"))
+def test_agent_routes_unpin_to_piner():
+    """UT-GOVERNANCE-002: an UNPIN request reaches the piner."""
+    agent, (piner, _mover) = _agent()
+    req = GovernanceRequest(verb=GovernanceVerb.UNPIN, query=SkillQuery("skill-a"))
     agent.execute(req)
-    assert locker.lock.called, "LOCK must reach the locker"
-    assert not piner.pin.called, "LOCK must not touch the piner"
+    assert piner.unpin.called, "UNPIN must reach the piner"
 
 
 def test_agent_routes_move_to_mover():
     """UT-GOVERNANCE-003: a MOVE request reaches the mover."""
-    agent, (_locker, _piner, mover) = _agent()
+    agent, (_piner, mover) = _agent()
     req = GovernanceRequest(
         verb=GovernanceVerb.MOVE, query=SkillQuery("skill-a"), flags={"target": "cat"}
     )
@@ -71,7 +67,7 @@ def test_agent_missing_capability_raises():
     )
     from shared.src.common.taxonomy_common_error import SkillsRootError
 
-    agent = SkillsGovernanceAgent(locker=None, piner=None, mover=None)
+    agent = SkillsGovernanceAgent(piner=None, mover=None)
     req = GovernanceRequest(verb=GovernanceVerb.PIN, query=SkillQuery("skill-a"))
     try:
         # Bypass execute()'s SkillsError catch so we can assert the

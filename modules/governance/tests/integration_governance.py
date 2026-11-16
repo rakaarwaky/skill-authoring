@@ -19,26 +19,8 @@ def _make_pack(tmp: Path, category: str, skill: str) -> Path:
     return tmp
 
 
-def test_agent_with_locker_capability_end_to_end():
-    """IT-GOVERNANCE-001: agent + real locker toggles the locked sidecar flag."""
-    from governance.src.agent_governance_orchestrator import (
-        SkillsGovernanceAgent,
-    )
-    from governance.src.capabilities_skills_locker import SkillsLocker
-
-    with tempfile.TemporaryDirectory() as d:
-        pack = Path(d)
-        _make_pack(pack, "cats", "my-skill")
-        agent = SkillsGovernanceAgent(locker=SkillsLocker(), default_root=str(pack))
-        agent.execute(
-            GovernanceRequest(verb=GovernanceVerb.LOCK, query=SkillQuery("my-skill"))
-        )
-        record = json.loads((pack / "cats" / "my-skill" / ".usage.json").read_text())
-        assert record.get("locked") is True, "locker must have set the locked flag"
-
-
 def test_agent_with_piner_capability_end_to_end():
-    """IT-GOVERNANCE-002: agent + real piner toggles the pinned sidecar flag."""
+    """IT-GOVERNANCE-001: agent + real piner toggles the pinned sidecar flag."""
     from governance.src.agent_governance_orchestrator import (
         SkillsGovernanceAgent,
     )
@@ -56,7 +38,7 @@ def test_agent_with_piner_capability_end_to_end():
 
 
 def test_mover_plan_move_is_pure_and_apply_move_writes():
-    """IT-GOVERNANCE-003: mover.plan_move is pure, apply_move writes the move."""
+    """IT-GOVERNANCE-002: mover.plan_move is pure, apply_move writes the move."""
     from governance.src.capabilities_skills_mover import SkillsMover
 
     with tempfile.TemporaryDirectory() as d:
@@ -74,7 +56,7 @@ def test_mover_plan_move_is_pure_and_apply_move_writes():
 
 
 def test_mover_move_into_same_category_is_a_noop():
-    """IT-GOVERNANCE-004: moving a skill into its own category is a no-op plan."""
+    """IT-GOVERNANCE-003: moving a skill into its own category is a no-op plan."""
     from governance.src.capabilities_skills_mover import SkillsMover
 
     with tempfile.TemporaryDirectory() as d:

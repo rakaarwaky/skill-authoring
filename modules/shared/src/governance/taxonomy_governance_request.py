@@ -23,8 +23,6 @@ SkillQuery = NewType("SkillQuery", str)
 class GovernanceVerb(Enum):
     """Consumer verbs carried by the governance aggregate's single entry point."""
 
-    LOCK = "lock"
-    UNLOCK = "unlock"
     PIN = "pin"
     UNPIN = "unpin"
     MOVE = "move"

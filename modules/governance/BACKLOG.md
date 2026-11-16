@@ -9,32 +9,19 @@ Last Updated: 2026-11-08
 ## Progress Overview
 
 `skills/skill-authoring/tools/modules/governance` owns the
-skill-lifecycle flag verbs: lock / unlock (locker capability),
-pin / unpin (piner capability), and move (mover capability). The
-governance agent (`agent_governance_orchestrator.py`) implements
+skill-lifecycle flag verbs: pin / unpin (piner capability) and
+move (mover capability). The governance agent
+(`agent_governance_orchestrator.py`) implements
 `ISkillsGovernanceAggregate` (contract now home-kept in
 `shared/src/governance/contract_governance_aggregate.py`), routes each
 `SkillsOp` to the owning capability protocol
-(`ISkillsLockerProtocol`, `ISkillsPinerProtocol`,
-`ISkillsMoverProtocol`), and orchestrates only: no I/O, no domain
-data, no computation inside the agent (AES405). All three feature
-requirements are implemented.
+(`ISkillsPinerProtocol`, `ISkillsMoverProtocol`), and orchestrates
+only: no I/O, no domain data, no computation inside the agent (AES405).
+Both feature requirements are implemented.
 
 ## Backlog Status
 
-### FR-GOVERNANCE-001: Lock and unlock a skill
-
-| Aspect      | Detail                                                        |
-|-------------|---------------------------------------------------------------|
-| State       | Done                                                          |
-| Done        | `capabilities_skills_locker.py` implements                    |
-|             | `ISkillsLockerProtocol`; lock/unlock verbs write the `locked` |
-|             | sidecar flag in place.                                        |
-| In Progress | None                                                          |
-| Risk        | None                                                          |
-| Updated     | 2026-11-08                                                    |
-
-### FR-GOVERNANCE-002: Pin and unpin a skill
+### FR-GOVERNANCE-001: Pin and unpin a skill
 
 | Aspect      | Detail                                                     |
 |-------------|------------------------------------------------------------|
@@ -46,7 +33,7 @@ requirements are implemented.
 | Risk        | None                                                       |
 | Updated     | 2026-11-08                                                 |
 
-### FR-GOVERNANCE-003: Move a skill to another category
+### FR-GOVERNANCE-002: Move a skill to another category
 
 | Aspect      | Detail                                                    |
 |-------------|-----------------------------------------------------------|

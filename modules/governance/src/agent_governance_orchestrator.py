@@ -1,7 +1,7 @@
 """Governance agent (AES agent layer).
 
 Implements ``ISkillsGovernanceAggregate`` over the governance-side capabilities:
-locker, piner, mover. Owns the ops: lock, unlock, pin, unpin, move.
+piner, mover. Owns the ops: pin, unpin, move.
 """
 
 from __future__ import annotations
@@ -23,7 +23,6 @@ from shared.src.governance.contract_governance_aggregate import (
     ISkillsGovernanceAggregate,
 )
 from shared.src.governance.contract_governance_protocol import (
-    ISkillsLockerProtocol,
     ISkillsMoverProtocol,
     ISkillsPinerProtocol,
 )
@@ -42,16 +41,14 @@ __all__ = [
 
 
 class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
-    """Governance-side agent: lock / unlock / pin / unpin / move."""
+    """Governance-side agent: pin / unpin / move."""
 
     def __init__(
         self,
-        locker: ISkillsLockerProtocol | None = None,
         piner: ISkillsPinerProtocol | None = None,
         mover: ISkillsMoverProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
-        self._locker = locker
         self._piner = piner
         self._mover = mover
         self._default_root = default_root
@@ -104,7 +101,7 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
         except ValueError:
             return GovernanceResponse(
                 ok=False,
-                verb=GovernanceVerb.LOCK.value,
+                verb=GovernanceVerb.PIN.value,
                 exit_code=EXIT_USAGE,
                 message=f"Unknown governance op: {request.verb}",
             )
@@ -174,16 +171,6 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
             message=str(plan.kind),
         )
 
-    def _execute_lock(self, request: GovernanceRequest, op: GovernanceVerb) -> GovernanceResponse:
-        """LOCK: set locked=True on skill sidecar."""
-        locker = self._require(self._locker, "locker")
-        return self._mutate_skill(request, op, locker, "lock", "locked", True)
-
-    def _execute_unlock(self, request: GovernanceRequest, op: GovernanceVerb) -> GovernanceResponse:
-        """UNLOCK: set locked=False on skill sidecar."""
-        locker = self._require(self._locker, "locker")
-        return self._mutate_skill(request, op, locker, "unlock", "locked", False)
-
     def _execute_pin(self, request: GovernanceRequest, op: GovernanceVerb) -> GovernanceResponse:
         """PIN: set pinned=True on skill sidecar."""
         piner = self._require(self._piner, "piner")
@@ -198,7 +185,7 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
         """Governance agent does not expose show_skill."""
         return GovernanceResponse(
             ok=False,
-            verb=GovernanceVerb.LOCK.value,
+            verb=GovernanceVerb.PIN.value,
             exit_code=EXIT_USAGE,
             message=f"governance agent does not expose show_skill for {name}",
         )

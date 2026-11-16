@@ -3,15 +3,13 @@ from __future__ import annotations
 
 
 def test_protocol_classes_exist():
-    """CP-GOVERNANCE-001: the three governance protocol classes exist and are ABCs."""
+    """CP-GOVERNANCE-001: the two governance protocol classes exist and are ABCs."""
     from shared.src.governance.contract_governance_protocol import (
-        ISkillsLockerProtocol,
         ISkillsMoverProtocol,
         ISkillsPinerProtocol,
     )
 
     for protocol in (
-        ISkillsLockerProtocol,
         ISkillsMoverProtocol,
         ISkillsPinerProtocol,
     ):
@@ -46,15 +44,12 @@ def test_agent_implements_aggregate_contract():
 
 def test_capabilities_implement_their_protocols():
     """CP-GOVERNANCE-004: each governance capability subclasses its protocol."""
-    from governance.src.capabilities_skills_locker import SkillsLocker
     from governance.src.capabilities_skills_mover import SkillsMover
     from governance.src.capabilities_skills_piner import SkillsPiner
     from shared.src.governance.contract_governance_protocol import (
-        ISkillsLockerProtocol,
         ISkillsMoverProtocol,
         ISkillsPinerProtocol,
     )
 
-    assert issubclass(SkillsLocker, ISkillsLockerProtocol)
     assert issubclass(SkillsMover, ISkillsMoverProtocol)
     assert issubclass(SkillsPiner, ISkillsPinerProtocol)

@@ -37,7 +37,7 @@ reported an issue with `content` carrying the `SkillsResult` message.
 | -------- | ----------------------------------------------------------------- |
 | 24 tools | One MCP tool per `sac` verb (list, read, lint, catalog, discover, |
 |          | move, archive, create, status, usage, run, pause, resume, pin,    |
-|          | unpin, lock, unlock, restore, prune, purge, adopt, backup,        |
+|          | unpin, restore, prune, purge, adopt, backup,                      |
 |          | rollback, ledger)                                                 |
 |          | Token: `SkillsOp`                                                 |
 |          | Value: `ISkillsAggregate.execute`                                 |

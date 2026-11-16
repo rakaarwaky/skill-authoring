@@ -17,12 +17,11 @@ def test_import_governance_agent():
 
 
 def test_import_governance_capabilities():
-    """SM-GOVERNANCE-003: the three governance capabilities can be imported."""
-    from governance.src.capabilities_skills_locker import SkillsLocker
+    """SM-GOVERNANCE-003: the two governance capabilities can be imported."""
     from governance.src.capabilities_skills_mover import SkillsMover
     from governance.src.capabilities_skills_piner import SkillsPiner
 
-    for cap in (SkillsLocker(), SkillsMover(), SkillsPiner()):
+    for cap in (SkillsMover(), SkillsPiner()):
         assert cap is not None
 
 
@@ -32,5 +31,5 @@ def test_agent_constructs_with_none_capabilities():
         SkillsGovernanceAgent,
     )
 
-    agent = SkillsGovernanceAgent(locker=None, piner=None, mover=None)
+    agent = SkillsGovernanceAgent(piner=None, mover=None)
     assert agent is not None

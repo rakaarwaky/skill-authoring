@@ -17,26 +17,12 @@ from shared.src.common.taxonomy_common_vo import (
     MutationPlan,
     SkillName,
 )
-from shared.src.governance.taxonomy_governance_entity import LockState, PinState
+from shared.src.governance.taxonomy_governance_entity import PinState
 from shared.src.governance.taxonomy_governance_error import (
     GovernanceError,
-    SkillAlreadyLockedError,
     SkillAlreadyPinnedError,
-    SkillNotLockedError,
     SkillNotPinnedError,
 )
-
-
-class ISkillsLockerProtocol(ABC):
-    """Locker capability: lock/unlock verbs."""
-
-    @abstractmethod
-    def lock(self, skill: SkillName, root: Path | None = None) -> LockState:
-        ...
-
-    @abstractmethod
-    def unlock(self, skill: SkillName, root: Path | None = None) -> LockState:
-        ...
 
 
 class ISkillsPinerProtocol(ABC):
@@ -68,20 +54,15 @@ class ISkillsMoverProtocol(ABC):
 
 
 __all__ = [
-    "ISkillsLockerProtocol",
     "ISkillsMoverProtocol",
     "ISkillsPinerProtocol",
 ]
 
 _layer_symbols = {
-    "ISkillsLockerProtocol": ISkillsLockerProtocol,
     "ISkillsMoverProtocol": ISkillsMoverProtocol,
     "ISkillsPinerProtocol": ISkillsPinerProtocol,
     "GovernanceError": GovernanceError,
-    "SkillAlreadyLockedError": SkillAlreadyLockedError,
     "SkillAlreadyPinnedError": SkillAlreadyPinnedError,
-    "SkillNotLockedError": SkillNotLockedError,
     "SkillNotPinnedError": SkillNotPinnedError,
-    "LockState": LockState,
     "PinState": PinState,
 }
