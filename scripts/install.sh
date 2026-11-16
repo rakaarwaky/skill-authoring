@@ -181,7 +181,7 @@ if $INSTALL_MCP; then
       echo "[mcp_servers.skill-authoring-tools]"
       echo "command = \"$VENV_DIR/bin/python\""
       echo "args = ["
-      echo "    \"$TOOLS_DIR/modules/mcp/src/surface_mcp_stdio_server.py\","
+      echo "    \"$TOOLS_DIR/modules/root_mcp_entry.py\","
       echo "]"
     } >> "$GROK_CONFIG"
     ok "MCP server entry added to $GROK_CONFIG"
