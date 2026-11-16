@@ -129,8 +129,14 @@ def validate_category_name(name: str) -> None:
 
 
 def default_pack_root() -> Path:
-    """Return the default pack root path (repo root resolved via marker discovery)."""
-    return find_repo_root()
+    """Return the default pack root path.
+
+    The skill pack lives at ``$HOME/.agents/skills`` on every host, not at
+    the repo root where the CLI code itself sits. ``find_repo_root`` walked
+    up from this module and landed in ``skill-authoring/tools/``, which has
+    no ``SKILL.md`` files, so every verb reported an empty pack.
+    """
+    return Path.home() / ".agents" / "skills"
 
 
 def iter_skill_mds(pack_root: Path) -> list[Path]:
