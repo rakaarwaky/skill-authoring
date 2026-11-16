@@ -39,8 +39,48 @@ class PhrasesReport:
     repeated_instruction_lines: tuple[PhraseRow, ...] = ()
 
 
+@dataclass(frozen=True)
+class MemoryTopicRow:
+    """One memory topic that matched a loaded skill or phrase stem."""
+
+    workspace: str
+    title: str
+    path: str
+    skill_names: tuple[str, ...] = ()
+    quoted_lines: tuple[str, ...] = ()
+    updated_at: str = ""
+    matched_section: str | None = None
+
+
+@dataclass(frozen=True)
+class MemoryObservationRow:
+    """One memory observation (_inbox) that carries a learn/stale/friction signal."""
+
+    type: str
+    quoted: str
+    workspace: str = ""
+    created_at: int = 0
+    topic_hint: str = ""
+    session_id: str = ""
+
+
+@dataclass(frozen=True)
+class MemoryReport:
+    """Deterministic memory-v2 signals for one trace run."""
+
+    topics: tuple[MemoryTopicRow, ...] = ()
+    observations: tuple[MemoryObservationRow, ...] = ()
+    keep_list: tuple[str, ...] = ()
+    since_last: bool = False
+    watermark: str = ""
+    generated_at: str = ""
+
+
 __all__ = [
     "GrokHome",
+    "MemoryObservationRow",
+    "MemoryReport",
+    "MemoryTopicRow",
     "PhraseRow",
     "PhrasesReport",
     "TraceRunDir",
@@ -48,6 +88,9 @@ __all__ = [
 
 _layer_symbols = {
     "GrokHome": GrokHome,
+    "MemoryObservationRow": MemoryObservationRow,
+    "MemoryReport": MemoryReport,
+    "MemoryTopicRow": MemoryTopicRow,
     "PhraseRow": PhraseRow,
     "PhrasesReport": PhrasesReport,
     "TraceRunDir": TraceRunDir,

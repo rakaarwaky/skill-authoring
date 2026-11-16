@@ -38,6 +38,48 @@ def test_phrases_result_has_phrases_fields() -> None:
     assert r.phrases_lines == ()
 
 
+def test_memory_report_roundtrips_via_skills_result() -> None:
+    """UT-OBSERVABILITY-003: SkillsResult carries the memory report payload."""
+    from shared.src.design.taxonomy_design_request import SkillsOp
+    from shared.src.design.taxonomy_design_response import SkillsResult
+    from shared.src.observability.taxonomy_observability_vo import (
+        MemoryObservationRow,
+        MemoryReport,
+        MemoryTopicRow,
+    )
+
+    report = MemoryReport(
+        topics=(
+            MemoryTopicRow(
+                workspace="global",
+                title="orca worktree conventions",
+                path="/home/raka/.grok/memory-v2/global/topics/orca-worktree-conventions.md",
+                skill_names=("skill-traces", "skill-authoring"),
+                quoted_lines=("skill-traces reads memory topics",),
+                matched_section="learn",
+            ),
+        ),
+        observations=(
+            MemoryObservationRow(
+                type="stale",
+                quoted="skill-improve step-5-verifiy does not exist",
+                workspace="skill-authoring-cdc4148d",
+            ),
+        ),
+        keep_list=("skill-traces",),
+    )
+
+    r = SkillsResult(
+        ok=True,
+        op=SkillsOp.TRACES,
+        memory=report,
+    )
+    assert r.memory is report
+    assert r.memory.topics[0].skill_names == ("skill-traces", "skill-authoring")
+    assert r.memory.observations[0].type == "stale"
+    assert r.memory.keep_list == ("skill-traces",)
+
+
 def test_execute_tool_empty_message_fallback() -> None:
     """UT-OBSERVABILITY-002: MCP execute_tool returns a meaningful fallback string."""
     from mcp.src.surface_mcp_command import SkillsMcpAdapter

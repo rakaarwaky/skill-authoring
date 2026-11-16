@@ -23,6 +23,7 @@ if TYPE_CHECKING:
         ScanResult,
     )
     from shared.src.observability.taxonomy_observability_vo import (
+        MemoryReport,
         PhraseRow,
     )
 
@@ -54,6 +55,7 @@ class ObservabilityResult:
     phrases_stems: tuple[PhraseRow, ...] = ()
     phrases_lines: tuple[PhraseRow, ...] = ()
     scan_summary: ScanResult | None = None
+    memory: MemoryReport | None = None
 
 
 __all__ = ["ObservabilityExitCode", "ObservabilityResult"]

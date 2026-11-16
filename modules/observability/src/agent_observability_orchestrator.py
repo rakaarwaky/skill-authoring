@@ -151,16 +151,45 @@ class ObservabilityAgent(IObservabilityAggregate):
     def _execute_traces(
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
-        """TRACES: route on ``flags['traces_action']`` (only 'phrases' today)."""
+        """TRACES: route on ``flags['traces_action']`` ('phrases' or 'memory')."""
         traces_action = request.flags.get("traces_action", "")
-        if traces_action != "phrases":
-            return SkillsResult(
-                ok=False,
-                op=op,
-                exit_code=SkillsExitCode.USAGE_ERROR,
-                message=f"Unknown traces action: {traces_action or '(none)'}",
-            )
-        return self._execute_phrases(request, op)
+        if traces_action == "memory":
+            return self._execute_memory(request, op)
+        if traces_action == "phrases":
+            return self._execute_phrases(request, op)
+        return SkillsResult(
+            ok=False,
+            op=op,
+            exit_code=SkillsExitCode.USAGE_ERROR,
+            message=f"Unknown traces action: {traces_action or '(none)'}",
+        )
+
+    def _execute_memory(
+        self, request: SkillsRequest, op: SkillsOp
+    ) -> SkillsResult:
+        """MEMORY: mine repeated signals from memory-v2."""
+        scan = self._require(self._scan, "scan")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "") or ""
+        if not run_dir:
+            run_dir = tempfile.mkdtemp(prefix="sac-memory-")
+            request.flags["run_dir"] = run_dir
+
+        report = scan.scan_memory(
+            grok_home,
+            run_dir,
+            since_last=request.flags.get("since_last", "0") == "1",
+            days=int(request.flags.get("days", "0")),
+        )
+
+        return SkillsResult(
+            ok=True,
+            op=op,
+            exit_code=SkillsExitCode.CLEAN,
+            message=f"Memory mined → {run_dir}",
+            memory=report,
+            root=self._root(request),
+        )
 
     def _execute_phrases(
         self, request: SkillsRequest, op: SkillsOp

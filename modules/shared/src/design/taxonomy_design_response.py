@@ -41,7 +41,10 @@ if TYPE_CHECKING:
         NewCategoryPlan,
         SkillCreatePlan,
     )
-    from shared.src.observability.taxonomy_observability_vo import PhraseRow
+    from shared.src.observability.taxonomy_observability_vo import (
+        MemoryReport,
+        PhraseRow,
+    )
 
 
 class SkillsExitCode(IntEnum):
@@ -81,6 +84,7 @@ class SkillsResult:
     phrases_exact: tuple[PhraseRow, ...] = ()
     phrases_stems: tuple[PhraseRow, ...] = ()
     phrases_lines: tuple[PhraseRow, ...] = ()
+    memory: MemoryReport | None = None
     plan: MutationPlan | None = None
     outcome: MutationOutcome | None = None
     new_category: NewCategoryPlan | None = None

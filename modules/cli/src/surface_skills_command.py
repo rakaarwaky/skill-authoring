@@ -105,6 +105,8 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_authoring(sub, rest, aggregate)
     if sub == "phrases":
         return _cmd_phrases(rest, aggregate)
+    if sub == "memory":
+        return _cmd_memory(rest, aggregate)
     if sub in _LIFECYCLE_OPS:
         return _cmd_lifecycle(sub, rest, aggregate)
     err(f"Unknown skills subcommand: {sub}")
@@ -234,6 +236,102 @@ def _render_phrases(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
             info(f"  [{r.sessions} sessions / {r.occurrences} occurrences] {r.phrase}")
     if not exact and not stems and not lines:
         info("  No repeated phrases found.")
+    return 0
+
+
+def _cmd_memory(rest: list[str], aggregate: ISkillsAggregate) -> int:
+    """Route ``sac memory`` to the traces agent; render memory-v2 signals."""
+    parser = argparse.ArgumentParser(prog="sac memory", add_help=True)
+    parser.add_argument("--grok-home", metavar="DIR", default="", help="$GROK_HOME directory")
+    parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to write memory.json into")
+    parser.add_argument("--days", type=str, default="0", help="Only keep memory items within N days")
+    parser.add_argument("--since-last", action="store_true", default=False, help="Skip items processed in a prior run")
+    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON")
+    try:
+        namespace = parser.parse_args(rest)
+    except SystemExit as exit_exc:
+        return int(exit_exc.code or 0)
+
+    run_dir = getattr(namespace, "run_dir", "") or ""
+    flags: dict[str, object] = {
+        "traces_action": "memory",
+        "grok_home": getattr(namespace, "grok_home", "") or "",
+        "run_dir": run_dir,
+        "days": str(getattr(namespace, "days", "0") or "0"),
+        "since_last": "1" if getattr(namespace, "since_last", False) else "0",
+    }
+    request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
+    result = aggregate.execute(request)
+
+    return _render_memory(result, getattr(namespace, "json", False), run_dir)
+
+
+def _render_memory(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
+    """Render a memory result and return its exit code."""
+    if not result.ok:
+        err(result.message)
+        return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
+
+    memory = result.memory
+    if memory is None:
+        info("[OK] memory — memory.json written")
+        return 0
+
+    if json_mode:
+        import json as _json
+
+        print(
+            _json.dumps(
+                {
+                    "run_dir": run_dir,
+                    "topics": [
+                        {
+                            "workspace": t.workspace,
+                            "title": t.title,
+                            "path": t.path,
+                            "skill_names": list(t.skill_names),
+                            "quoted_lines": list(t.quoted_lines),
+                            "updated_at": t.updated_at,
+                            "matched_section": t.matched_section,
+                        }
+                        for t in memory.topics
+                    ],
+                    "observations": [
+                        {
+                            "type": o.type,
+                            "quoted": o.quoted,
+                            "workspace": o.workspace,
+                            "created_at": o.created_at,
+                            "topic_hint": o.topic_hint,
+                            "session_id": o.session_id,
+                        }
+                        for o in memory.observations
+                    ],
+                    "keep_list": list(memory.keep_list),
+                    "since_last": memory.since_last,
+                    "watermark": memory.watermark,
+                    "generated_at": memory.generated_at,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return 0
+
+    info(f"[OK] memory — {result.message}")
+    info(f"  topics: {len(memory.topics)}")
+    info(f"  observations: {len(memory.observations)}")
+    info(f"  keep-list: {len(memory.keep_list)} skill(s)")
+    if memory.topics:
+        info("  topic rows:")
+        for t in memory.topics:
+            info(f"    [{t.workspace}] {t.title}")
+    if memory.keep_list:
+        info("  keep-list skills:")
+        for s in memory.keep_list:
+            info(f"    {s}")
+    if not memory.topics and not memory.observations:
+        info("  No memory-v2 signals found.")
     return 0
 
 
@@ -372,6 +470,10 @@ def _print_usage() -> None:
          "Mine repeated user prompts from session traces")
     info(f"{BOLD()}sac phrases [--since-last] [--min-turns N] [--limit N]{RESET()}      "
          "[--min-sessions N] [--json]")
+    info(f"{BOLD()}sac memory [--grok-home DIR] [--run-dir DIR] [--days N]{RESET()}     "
+         "Mine memory-v2 topics & observations")
+    info(f"{BOLD()}sac memory [--since-last][--json]{RESET()}                          "
+         "reuse the prior run's watermark")
     print()
     info(f"{BOLD()}Mutations:{RESET()}")
     info(f"{BOLD()}sac move <name> <category> [--apply]{RESET()}  Move a skill to a category")
