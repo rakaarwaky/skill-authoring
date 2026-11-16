@@ -11,9 +11,7 @@ Last Updated: 2026-11-17
 The design module implements the `sac skills` design-side verbs: create and
 lint. Each verb is owned by a capability that implements its protocol;
 `SkillsDesignAgent` sequences the capabilities and returns a typed
-`SkillsResult`. Lifecycle verbs (`run`, `pause`, `resume`) belong to the
-maintenance module via `ISkillsRunnerProtocol` and are tracked in
-[maintenance/BACKLOG.md](../maintenance/BACKLOG.md).
+`SkillsResult`. 
 
 ## Backlog Status
 
