@@ -18,4 +18,3 @@ def bench_maintenance_dispatch() -> None:
     """Time op dispatch through the maintenance agent."""
     agent = SkillsMaintenanceAgent()
     _ = agent.execute(MaintenanceRequest(verb=MaintenanceVerb.PRUNE, query=""))
-    _ = agent.execute(MaintenanceRequest(verb=MaintenanceVerb.PURGE, query=""))

@@ -20,8 +20,8 @@ class MaintenanceResponse:
     """Response to a maintenance aggregate request.
 
     ``ok``/``verb``/``exit_code``/``message`` form the command contract.
-    Payload fields are populated per verb: ``records`` for PRUNE/PURGE,
-    ``applied`` for ARCHIVE/RESTORE, ``dry_run`` for PRUNE/PURGE.
+    Payload fields are populated per verb: ``records`` for PRUNE (archived
+    and purged names), ``applied`` for ARCHIVE/RESTORE, ``dry_run`` for PRUNE.
     """
 
     ok: bool

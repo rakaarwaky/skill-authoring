@@ -20,7 +20,6 @@ class MaintenanceVerb(Enum):
     """Consumer verbs carried by the maintenance aggregate's single entry point."""
 
     PRUNE = "prune"
-    PURGE = "purge"
     ARCHIVE = "archive"
     RESTORE = "restore"
 

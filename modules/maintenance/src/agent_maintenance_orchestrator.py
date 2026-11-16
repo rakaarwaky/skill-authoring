@@ -1,7 +1,7 @@
 """Maintenance agent (AES agent layer).
 
-Implements ``ISkillsMaintenanceAggregate`` over the maintenance-side capabilities:
-prune, purge. Owns the ops: prune, purge.
+Implements ``ISkillsMaintenanceAggregate`` over the maintenance-side capability:
+prune. Owns the op: prune.
 """
 
 from __future__ import annotations
@@ -19,7 +19,6 @@ from shared.src.maintenance.contract_maintenance_aggregate import (
 )
 from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsPrunerProtocol,
-    ISkillsPurgerProtocol,
 )
 from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceRequest,
@@ -37,16 +36,14 @@ __all__ = [
 
 
 class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
-    """Maintenance-side agent: prune / purge."""
+    """Maintenance-side agent: prune."""
 
     def __init__(
         self,
         prune: ISkillsPrunerProtocol | None = None,
-        purge: ISkillsPurgerProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._prune = prune
-        self._purge = purge
         self._default_root = default_root
 
     # ─── Block 1: Module Declaration ────────────────────────────────────────
@@ -104,15 +101,20 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
 
     # ─── Block 3: Module Helpers ────────────────────────────────
     def _execute_prune(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
-        """PRUNE: bulk-archive idle skills past a days threshold."""
+        """PRUNE: archive idle skills, then purge archived skills past their TTL."""
         prune = self._require(self._prune, "prune")
         root = self._root(request)
         days = int(request.flags["days"]) if "days" in request.flags else None
+        purge_days = (
+            int(request.flags["purge_days"]) if "purge_days" in request.flags else None
+        )
         dry_run = bool(
             request.flags.get("dry_run", False) or request.flags.get("dry-run", False)
         )
         try:
-            report = prune.prune(root=root, days=days, dry_run=dry_run)
+            report = prune.prune(
+                root=root, days=days, purge_days=purge_days, dry_run=dry_run
+            )
         except (OSError, ValueError) as failure:
             return MaintenanceResponse(
                 ok=False,
@@ -123,27 +125,7 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
         return MaintenanceResponse(
             ok=True,
             verb=op.value,
-            records=tuple(SkillName(p["skill"]) for p in report.get("pruned", ())),
-            message=str(report),
+            records=report.records,
+            message=report.message,
             dry_run=dry_run,
         )
-
-    def _execute_purge(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
-        """PURGE: delete archived skills past TTL or a named skill."""
-        purge = self._require(self._purge, "purge")
-        root = self._root(request)
-        query = str(request.skill or "").strip()
-        skill_name = query if query and query != "None" else None
-        dry_run = bool(
-            request.flags.get("dry_run", False) or request.flags.get("dry-run", False)
-        )
-        try:
-            result = purge.purge(skill=skill_name, root=root, dry_run=dry_run)
-        except (OSError, ValueError) as failure:
-            return MaintenanceResponse(
-                ok=False,
-                verb=op.value,
-                exit_code=1,
-                message=str(failure),
-            )
-        return MaintenanceResponse(ok=True, verb=op.value, message=str(result), dry_run=dry_run)

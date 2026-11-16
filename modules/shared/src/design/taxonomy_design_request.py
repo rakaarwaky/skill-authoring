@@ -33,7 +33,7 @@ SkillQuery = NewType("SkillQuery", str)
 #: method on an ``ISkills*Protocol`` in ``contract_design_protocol``;
 #: a few lifecycle verbs (RUN, PAUSE, RESUME, USAGE, STATUS) dispatch
 #: through ``ISkillsRunnerProtocol``/``ISkillsTelemetryProtocol``, and
-#: some (LEDGER, PRUNE, PURGE, ADOPT) have no dedicated protocol seam --
+#: some (LEDGER, PRUNE, ADOPT) have no dedicated protocol seam --
 #: the runner capability owns them internally and the aggregate dispatches
 #: them without a separate capability module. Keep the enum as the
 #: authoritative op list; the protocol layer is a subset of it.
@@ -59,7 +59,6 @@ class SkillsOp(StrEnum):
     UNPIN = "unpin"
     RESTORE = "restore"
     PRUNE = "prune"
-    PURGE = "purge"
     ADOPT = "adopt"
     LEDGER = "ledger"
     TRACES = "traces"

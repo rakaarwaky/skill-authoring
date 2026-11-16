@@ -71,8 +71,7 @@ Skill Authoring is the skill-authoring skill that keeps the skill tree clean, co
 | `sac restore <skill>` | Restore an archived skill |
 | `sac list-unmanaged` | List skills without telemetry |
 | `sac list-archived` | List archived skills |
-| `sac prune [--days N] [--apply]` | Bulk archive idle skills |
-| `sac purge [--days N] [--apply]` | Permanently remove archived skills |
+| `sac prune [--days N] [--purge-days N] [--apply]` | Archive idle skills, purge old archives |
 
 ### Ledger
 

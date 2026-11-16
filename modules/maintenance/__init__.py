@@ -7,12 +7,10 @@ duplication between the barrel and the modules.
 
 from .src.agent_maintenance_orchestrator import SkillsMaintenanceAgent
 from .src.capabilities_skills_prune import SkillsPrune
-from .src.capabilities_skills_purge import SkillsPurge
 
-__all__ = ["SkillsMaintenanceAgent", "SkillsPrune", "SkillsPurge"]
+__all__ = ["SkillsMaintenanceAgent", "SkillsPrune"]
 
 _layer_symbols = {
     "SkillsMaintenanceAgent": SkillsMaintenanceAgent,
     "SkillsPrune": SkillsPrune,
-    "SkillsPurge": SkillsPurge,
 }

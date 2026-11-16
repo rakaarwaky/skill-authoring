@@ -134,11 +134,11 @@ The piner and mover capabilities expose pin, unpin, and move verbs for skill dir
 
 | As a | I want | So that | Priority |
 |------|--------|---------|----------|
-| Skill owner | Prune idle skills past a TTL | The pack stops retaining dead skills | Maintenance feature auto-archives idle skills |
+| Skill owner | Prune idle skills past a TTL | The pack stops retaining dead skills | Maintenance feature auto-archives idle skills and purges old archives in one `sac prune` |
 
 #### Proposed Solution
 
-The prune/purge capabilities archive idle skills past `archive_after_days` and purge archived skills past `archive_ttl_days`. The maintenance feature implements `ISkillsMaintenanceAggregate` and wires them into `root_maintenance_container.py`.
+The prune capability archives idle skills past `archive_after_days` and purges archived skills past `archive_ttl_days` in one command. The maintenance feature implements `ISkillsMaintenanceAggregate` and wires it into `root_maintenance_container.py`.
 
 #### Main User Flow
 
