@@ -41,24 +41,8 @@ def test_linter_category_filter_matches_only_in_scope() -> None:
     assert result.exit_code == SkillsExitCode.CLEAN
 
 
-def test_mutate_skill_valueerror_becomes_usage_error() -> None:
-    """UT-DESIGN-002: ValueError from adopter becomes a controlled SkillsResult exit 2."""
-
-    class BadAdopter:
-        def adopt(self, skill, root=None):
-            raise ValueError("no skill directory found for: " + skill)
-
-    agent = SkillsDesignAgent(adopter=BadAdopter())
-    result = agent.execute(
-        SkillsRequest(op=SkillsOp.ADOPT, query="missing-skill")
-    )
-    assert result.ok is False
-    assert result.exit_code == SkillsExitCode.USAGE_ERROR
-    assert "missing-skill" in result.message
-
-
 def test_creator_path_traversal_rejected() -> None:
-    """UT-DESIGN-003: create_skill refuses to write outside the skills root."""
+    """UT-DESIGN-002: create_skill refuses to write outside the skills root."""
     import tempfile
     from pathlib import Path
 
@@ -86,7 +70,7 @@ def test_creator_path_traversal_rejected() -> None:
 
 
 def test_creator_inside_root_writes_ok() -> None:
-    """UT-DESIGN-004: create_skill writes inside the skills root when apply=True."""
+    """UT-DESIGN-003: create_skill writes inside the skills root when apply=True."""
     import tempfile
     from pathlib import Path
 

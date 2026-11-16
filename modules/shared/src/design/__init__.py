@@ -35,7 +35,6 @@ from shared.src.common.taxonomy_common_vo import (
 )
 from shared.src.design.contract_design_aggregate import ISkillsAggregate
 from shared.src.design.contract_design_protocol import (
-    ISkillsAdopterProtocol,
     ISkillsCreatorProtocol,
     ISkillsLinterProtocol,
 )
@@ -75,7 +74,6 @@ __all__ = [
     "CategorySummary",
     "DiscoveryMatch",
     "DiscoveryResult",
-    "ISkillsAdopterProtocol",
     "ISkillsAggregate",
     "ISkillsCreatorProtocol",
     "ISkillsLinterProtocol",
@@ -114,7 +112,6 @@ _layer_symbols = {
     "DiscoveryMatch": DiscoveryMatch,
     "DiscoveryResult": DiscoveryResult,
     "IGNORED_CATEGORY_DIRS": IGNORED_CATEGORY_DIRS,
-    "ISkillsAdopterProtocol": ISkillsAdopterProtocol,
     "ISkillsAggregate": ISkillsAggregate,
     "ISkillsCreatorProtocol": ISkillsCreatorProtocol,
     "ISkillsLinterProtocol": ISkillsLinterProtocol,

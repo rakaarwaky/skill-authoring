@@ -5,7 +5,7 @@ scan (``lint``), the catalog builder/reader (``catalog``), the search
 (``discover``), the mutation verbs (``move``/``archive``/``create``), and the
 lifecycle verbs (``status``/``usage``/``run``/``pause``/``resume``/
 ``pin``/``unpin``/``restore``/``list-unmanaged``/
-``list-archived``/``prune``/``adopt``/
+``list-archived``/``prune``/
 ``ledger``).
 
 The pack root is always the repository's ``skills/`` pack; there is no
@@ -75,7 +75,6 @@ _LIFECYCLE_OPS = {
     "list-unmanaged": SkillsOp.LIST_UNMANAGED,
     "list-archived": SkillsOp.LIST_ARCHIVED,
     "prune": SkillsOp.PRUNE,
-    "adopt": SkillsOp.ADOPT,
     "ledger": SkillsOp.LEDGER,
 }
 
@@ -241,7 +240,7 @@ def _render_phrases(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
 def _lifecycle_verb_parser(sub: str) -> argparse.ArgumentParser:
     """Build the argparse parser for one lifecycle verb."""
     parser = argparse.ArgumentParser(prog=f"sac {sub}", add_help=True)
-    if sub in ("pin", "unpin", "restore", "adopt") or sub == "archive":
+    if sub in ("pin", "unpin", "restore") or sub == "archive":
         parser.add_argument("query")
         parser.add_argument("--apply", action="store_true", default=False)
     elif sub == "prune":
@@ -268,7 +267,7 @@ def _render_lifecycle(sub: str, op: SkillsOp, result: SkillsResult) -> int:
         return _render_run(result)
     if sub in ("pause", "resume"):
         return _render_pause_resume(op, result)
-    if sub in ("pin", "unpin", "adopt"):
+    if sub in ("pin", "unpin"):
         return _render_bool(sub, result)
     if sub == "restore":
         return _render_archive_restore(op, result)
@@ -389,7 +388,6 @@ def _print_usage() -> None:
     info(f"{BOLD()}sac pin <skill>{RESET()}                   Pin a skill in active state")
     info(f"{BOLD()}sac unpin <skill>{RESET()}                 Unpin a skill")
 
-    info(f"{BOLD()}sac adopt <skill>{RESET()}                 Mark skill as agent-managed")
     print()
     info(f"{BOLD()}Archive & Restore:{RESET()}")
     info(f"{BOLD()}sac restore <skill>{RESET()}               Restore an archived skill")
