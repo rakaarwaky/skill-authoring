@@ -39,6 +39,7 @@ from shared.src.common.taxonomy_common_error import (
     SkillNotFoundError,
     SkillsUsageError,
 )
+from shared.src.common.utility_common_skills import default_pack_root
 
 __all__ = [
     "ACTIVE",
@@ -65,6 +66,8 @@ __all__ = [
     "restore_skill",
     "tar_data_filter",
     "write_record",
+    "pack_usage_path",
+    "delete_record",
 ]
 
 # ── Lifecycle constants (local to maintenance, not shared with siblings) ─
@@ -328,6 +331,19 @@ def _usage_path(skill_dir: Path) -> Path:
     return skill_dir / ".usage.json"
 
 
+def pack_usage_path(pack_root: Path | None = None) -> Path:
+    """Return the centralized usage sidecar path for *pack_root*."""
+    return (pack_root if pack_root is not None else default_pack_root()) / ".usage.json"
+
+
+def _read_central_usage(path: Path) -> dict[str, dict]:
+    return _read_sidecar(path)
+
+
+def _write_central_usage(path: Path, data: dict[str, dict]) -> None:
+    _atomic_write_json(path, data)
+
+
 def _read_sidecar(path: Path) -> dict:
     if not path.is_file():
         return {}
@@ -431,20 +447,62 @@ def archive_root(skills_root: Path) -> Path:
 # ─── Record / transition helpers ────────────────────────────────────
 
 
-def read_record(skill_dir: Path) -> dict:
-    return _read_sidecar(_usage_path(skill_dir))
+def read_record(skill_dir: Path, pack_root: Path | None = None) -> dict:
+    """Read a skill's record from the centralized ``.usage.json``."""
+    skill_name = skill_dir.name
+    path = pack_usage_path(pack_root)
+    data = _read_central_usage(path)
+    return data.get(skill_name, {})
 
 
-def write_record(skill_dir: Path, record: dict) -> None:
-    _atomic_write_json(_usage_path(skill_dir), record)
+def write_record(
+    skill_dir: Path, record: dict, pack_root: Path | None = None
+) -> None:
+    """Write a skill's record into the centralized ``.usage.json``."""
+    skill_name = skill_dir.name
+    path = pack_usage_path(pack_root)
+
+    def work() -> None:
+        data = _read_sidecar(path)
+        data[skill_name] = record
+        _atomic_write_json(path, data)
+
+    _with_lock(path, work)
 
 
-def set_state(skill_dir: Path, state: str, archived_at: str | None = None) -> None:
-    record = read_record(skill_dir)
-    record["state"] = state
-    if archived_at is not None:
-        record["archived_at"] = archived_at
-    write_record(skill_dir, record)
+def delete_record(skill_dir: Path, pack_root: Path | None = None) -> None:
+    """Remove a skill's record from the centralized ``.usage.json``."""
+    skill_name = skill_dir.name
+    path = pack_usage_path(pack_root)
+
+    def work() -> None:
+        data = _read_sidecar(path)
+        data.pop(skill_name, None)
+        _atomic_write_json(path, data)
+
+    _with_lock(path, work)
+
+
+def set_state(
+    skill_dir: Path,
+    state: str,
+    archived_at: str | None = None,
+    pack_root: Path | None = None,
+) -> None:
+    """Set *state* on a skill's record in the centralized ``.usage.json``."""
+    skill_name = skill_dir.name
+    path = pack_usage_path(pack_root)
+
+    def work() -> None:
+        data = _read_sidecar(path)
+        record = data.get(skill_name, {})
+        record["state"] = state
+        if archived_at is not None:
+            record["archived_at"] = archived_at
+        data[skill_name] = record
+        _atomic_write_json(path, data)
+
+    _with_lock(path, work)
 
 
 def archive_skill(skill: str, pack_root: Path) -> dict:
@@ -457,20 +515,20 @@ def archive_skill(skill: str, pack_root: Path) -> dict:
     category = skill_dir.parent.name
     destination = archive_root(pack_root) / category / skill
     _assert_within_root(destination, archive_root(pack_root))
-    record = read_record(skill_dir)
+    record = read_record(skill_dir, pack_root)
     prior_state = record.get("state", "active")
     now_iso_val = _now_iso()
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         raise MutationConflictError(f"Archive slot already exists: {destination}")
-    set_state(skill_dir, "archived", archived_at=now_iso_val)
+    set_state(skill_dir, "archived", archived_at=now_iso_val, pack_root=pack_root)
     try:
         shutil.move(str(skill_dir), str(destination))
     except OSError:
         record["state"] = prior_state
         record.pop("archived_at", None)
-        write_record(skill_dir, record)
+        write_record(skill_dir, record, pack_root)
         raise MutationConflictError(
             f"Archive of {skill} failed mid-transaction; rolled back."
         ) from None
@@ -488,7 +546,7 @@ def restore_skill(skill: str, pack_root: Path, reanchor=None) -> dict:
     category = archived_dir.parent.name
     destination = pack_root / category / skill
     _assert_within_root(destination, pack_root)
-    record = read_record(archived_dir)
+    record = read_record(archived_dir, pack_root)
     prior_state = record.get("state", "archived")
     prior_archived_at = record.get("archived_at")
 
@@ -499,8 +557,14 @@ def restore_skill(skill: str, pack_root: Path, reanchor=None) -> dict:
     record["state"] = "active"
     record.pop("archived_at", None)
     record["activity_window_start"] = _now_iso()
-    write_record(archived_dir, record)
+    write_record(archived_dir, record, pack_root)
     try:
+        shutil.move(str(archived_dir), str(destination))
+    except OSError:
+        record["state"] = prior_state
+        if prior_archived_at is not None:
+            record["archived_at"] = prior_archived_at
+        write_record(archived_dir, record, pack_root)
         shutil.move(str(archived_dir), str(destination))
     except OSError:
         record["state"] = prior_state

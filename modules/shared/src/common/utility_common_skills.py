@@ -14,6 +14,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+try:
+    import fcntl as _fcntl
+except ImportError:  # pragma: no cover - POSIX only
+    _fcntl = None
+
 from shared.src.common.taxonomy_common_constant import (
     ARCHIVE_DIRNAME,
     IGNORED_CATEGORY_DIRS,
@@ -87,11 +92,33 @@ def find_skill_dir(skill: str, root: Path, in_archive: bool = False) -> Path | N
     return min(matches) if matches else None
 
 
-def set_field(skill_dir: Path, field: str, value: object) -> None:
-    """Set a single field on a skill's sidecar record."""
-    record = _read_sidecar(skill_dir / ".usage.json")
-    record[field] = value
-    _write_sidecar(skill_dir / ".usage.json", record)
+def set_field(
+    skill_dir: Path,
+    field: str,
+    value: object,
+    pack_root: Path | None = None,
+) -> None:
+    """Set a single field on a skill's record in the centralized ``.usage.json``."""
+    skill_name = skill_dir.name
+    path = (pack_root if pack_root is not None else default_pack_root()) / ".usage.json"
+
+    def work() -> None:
+        data = _read_sidecar(path)
+        data.setdefault(skill_name, {})[field] = value
+        _write_sidecar(path, data)
+
+    try:
+        handle = path.with_name(path.name + ".lock").open("a+", encoding="utf-8")
+    except OSError:
+        work()
+        return
+    try:
+        if _fcntl is not None:
+            _fcntl.flock(handle.fileno(), _fcntl.LOCK_EX)
+            work()
+            _fcntl.flock(handle.fileno(), _fcntl.LOCK_UN)
+    finally:
+        handle.close()
 
 
 def resolve_skill_dir(skill_ref: str, skills_root: Path) -> Path:

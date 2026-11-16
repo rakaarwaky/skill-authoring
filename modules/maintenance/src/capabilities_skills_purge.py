@@ -22,6 +22,7 @@ from shared.src.maintenance.contract_maintenance_protocol import (
 from shared.src.maintenance.taxonomy_maintenance_request import SkillsRoot
 from shared.src.maintenance.utility_lifecycle_support import (
     _parse_iso,
+    delete_record,
     find_skill_dir,
     read_record,
 )
@@ -53,6 +54,7 @@ class SkillsPurge(ISkillsPurgerProtocol):
                 return {"skill": skill, "purged": False, "reason": "not-found-in-archive"}
             if not dry_run:
                 shutil.rmtree(skill_dir)
+                delete_record(skill_dir, pack_root)
             return {"skill": skill, "purged": True, "dry_run": dry_run}
 
         ttl_days = getattr(config, "archive_ttl_days", 0) or default_purge_ttl_days()

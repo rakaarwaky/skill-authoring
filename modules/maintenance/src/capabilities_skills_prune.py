@@ -24,6 +24,7 @@ from shared.src.maintenance.utility_lifecycle_support import (
     _cron_referenced,
     _parse_iso,
     archive_skill,
+    delete_record,
     read_record,
 )
 from shared.src.maintenance.utility_maintenance_core import (
@@ -61,7 +62,7 @@ class SkillsPrune(ISkillsPrunerProtocol):
         for skill_md in iter_skill_mds(pack_root):
             skill_dir = skill_md.parent
             name = skill_dir.name
-            record = read_record(skill_dir)
+            record = read_record(skill_dir, pack_root)
             state = record.get("state", ACTIVE)
 
             if record.get("pinned"):

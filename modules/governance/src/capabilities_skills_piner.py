@@ -31,7 +31,7 @@ class SkillsPiner(ISkillsPinerProtocol):
         skill_dir = find_skill_dir(skill, pack_root)
         if skill_dir is None:
             raise ValueError(f"No skill directory found for: {skill}")
-        set_field(skill_dir, "pinned", True)
+        set_field(skill_dir, "pinned", True, pack_root)
         return PinState(skill=skill, pinned=True)
 
     def unpin(self, skill: str, root: SkillsRoot | None = None) -> PinState:
@@ -39,6 +39,6 @@ class SkillsPiner(ISkillsPinerProtocol):
         skill_dir = find_skill_dir(skill, pack_root)
         if skill_dir is None:
             raise ValueError(f"No skill directory found for: {skill}")
-        set_field(skill_dir, "pinned", False)
+        set_field(skill_dir, "pinned", False, pack_root)
         return PinState(skill=skill, pinned=False)
 # ─── Block 3: Module Helpers ─────────

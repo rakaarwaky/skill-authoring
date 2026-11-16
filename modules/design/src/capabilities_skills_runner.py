@@ -31,11 +31,13 @@ from shared.src.maintenance.utility_lifecycle_support import (
     _now_iso,
     _parse_iso,
     _read_sidecar,
-    _usage_path,
+    pack_usage_path,
     _with_lock,
     find_skill_dir,
 )
-from shared.src.maintenance.utility_skills_mutation import atomic_write_json
+from shared.src.maintenance.utility_skills_mutation import (
+    atomic_write_json as _atomic_write_json,
+)
 
 __all__ = ["SkillsRunner"]
 
@@ -56,11 +58,13 @@ class SkillsRunner(ISkillsRunnerProtocol):
         applied: list[dict] = []
         skipped: list[dict] = []
         counts: dict[str, int] = {state: 0 for state in LIFECYCLE_STATES}
+        path = pack_usage_path(pack_root)
 
         for skill_md in iter_skill_mds(pack_root):
             name = skill_md.parent.name
             self._seed_record_if_missing(name, pack_root)
-            record = _read_sidecar(_usage_path(skill_md.parent))
+            data = _read_sidecar(path)
+            record = data.get(name, {})
             state = record.get("state", ACTIVE)
             if state not in LIFECYCLE_STATES:
                 state = ACTIVE
@@ -118,37 +122,35 @@ class SkillsRunner(ISkillsRunnerProtocol):
         return {"paused": False}
 
     def _seed_record_if_missing(self, skill: str, pack_root: Path) -> None:
-        skill_dir = find_skill_dir(skill, pack_root)
-        if skill_dir is None:
-            return
-        path = _usage_path(skill_dir)
+        path = pack_usage_path(pack_root)
 
         def work() -> None:
-            if _read_sidecar(path):
+            data = _read_sidecar(path)
+            if skill in data:
                 return
+            data[skill] = _baseline_record()
             try:
-                atomic_write_json(path, _baseline_record())
+                _atomic_write_json(path, data)
             except OSError:
                 pass
 
         _with_lock(path, work)
 
     def _reanchor_clock(self, skill: str, pack_root: Path) -> None:
-        skill_dir = find_skill_dir(skill, pack_root)
-        if skill_dir is None:
-            return
-        path = _usage_path(skill_dir)
+        path = pack_usage_path(pack_root)
 
         def work() -> None:
-            record = _read_sidecar(path)
+            data = _read_sidecar(path)
+            record = data.get(skill, {})
             record = _normalize(record) if record else _baseline_record()
             now = _now_iso()
             record["last_activity_at"] = now
             record["activity_window_start"] = now
             if not record.get("pinned", False):
                 record["state"] = DEFAULT_STATE
+            data[skill] = record
             try:
-                atomic_write_json(path, record)
+                _atomic_write_json(path, data)
             except OSError:
                 pass
 
@@ -163,18 +165,17 @@ class SkillsRunner(ISkillsRunnerProtocol):
         *,
         archived_at: str | None = None,
     ) -> None:
-        skill_dir = find_skill_dir(skill, pack_root)
-        if skill_dir is None:
-            return
-        path = _usage_path(skill_dir)
+        path = pack_usage_path(pack_root)
 
         def work() -> None:
-            record = _read_sidecar(path)
+            data = _read_sidecar(path)
+            record = data.get(skill, {})
             record["state"] = state
             if archived_at is not None:
                 record["archived_at"] = archived_at
+            data[skill] = record
             try:
-                atomic_write_json(path, record)
+                _atomic_write_json(path, data)
             except OSError:
                 pass
 
