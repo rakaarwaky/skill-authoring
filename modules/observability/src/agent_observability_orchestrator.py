@@ -148,6 +148,19 @@ class ObservabilityAgent(IObservabilityAggregate):
         report = telemetry.curated_report(root)
         return SkillsResult(ok=True, op=op, records=report, root=root)
 
+    def _execute_status(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """STATUS: inspect lifecycle state for all skills in the pack."""
+        telemetry = self._require(self._telemetry, "telemetry")
+        root = self._root(request)
+        report = telemetry.curated_report(root)
+        return SkillsResult(
+            ok=True,
+            op=op,
+            exit_code=SkillsExitCode.CLEAN,
+            records=report,
+            root=root,
+        )
+
     def _execute_traces(
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:

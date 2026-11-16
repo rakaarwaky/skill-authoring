@@ -260,7 +260,9 @@ _MAINTENANCE_OPS = frozenset(
         SkillsOp.UNPIN,
     }
 )
-_OBSERVABILITY_OPS = frozenset({SkillsOp.LEDGER, SkillsOp.USAGE, SkillsOp.TRACES})
+_OBSERVABILITY_OPS = frozenset(
+    {SkillsOp.LEDGER, SkillsOp.USAGE, SkillsOp.TRACES, SkillsOp.STATUS}
+)
 _STORAGE_OPS = frozenset(
     {
         SkillsOp.ARCHIVE,
