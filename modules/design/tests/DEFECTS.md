@@ -3,7 +3,7 @@
 | # | ID | Summary | Severity | Assigned | Status |
 |---|----|---------|----------|----------|--------|
 | 1 | DESIGN-001 | `SkillsCreator.create_skill()` skipped `assert_within_root`, enabling path traversal via `../` in `category` or `skill`. | High | design | fixed |
-| 2 | DESIGN-002 | `SkillsDesignAgent._mutate_skill()` caught only `(OSError, SkillsError)`, letting plain `ValueError` from the adopter/locker/piner escape as an unhandled traceback instead of a controlled `SkillsResult` exit code 2. | High | design | fixed |
+| 2 | DESIGN-002 | `SkillsDesignAgent._mutate_skill()` caught only `(OSError, SkillsError)`, letting plain `ValueError` from a mutation capability escape as an unhandled traceback instead of a controlled `SkillsResult` exit code 2. | High | design | fixed |
 | 3 | DESIGN-003 | `_execute_lint()` derived exit code from `report.unfiltered_issue_count` instead of `report.issue_count`, so exit code and rendered output disagreed under `--category`. | Medium | design | fixed |
 | 4 | DESIGN-004 | `_execute_run()` assigned `report.get("applied", ())` (a `list[dict]`) to `SkillsResult.records` typed `tuple[SkillRecord, ...]`, a typed-contract violation. | Medium | design | fixed |
 
@@ -28,7 +28,7 @@
 ## DESIGN-002 — `_mutate_skill` missing `ValueError` catch
 
 **Reproduction steps:**
-1. Call the design agent for an op whose capability raises `ValueError` (e.g. `SkillsAdopter.adopt()` on a missing skill).
+1. Call the design agent for an op whose mutation capability raises `ValueError`.
 2. Observe whether `ValueError` escapes `execute()`.
 
 **Expected:** Controlled `SkillsResult` with `ok=False`, `exit_code=2`, message naming the failure.

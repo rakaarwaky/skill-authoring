@@ -59,7 +59,6 @@ class SkillsMcpAdapter:
 
             {"name": "sac_restore", "description": "Restore an archived skill"},
             {"name": "sac_prune", "description": "Archive idle skills and purge old archives"},
-            {"name": "sac_adopt", "description": "Mark skill as agent-managed"},
             {"name": "sac_ledger", "description": "View or compact audit ledger"},
         ]
 
@@ -99,7 +98,6 @@ class SkillsMcpAdapter:
             "unpin": SkillsOp.UNPIN,
             "restore": SkillsOp.RESTORE,
             "prune": SkillsOp.PRUNE,
-            "adopt": SkillsOp.ADOPT,
             "ledger": SkillsOp.LEDGER,
         }
         try:

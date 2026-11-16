@@ -41,7 +41,7 @@ def main(argv: list[str] | None = None) -> int:
     """Entry point for ``sac <verb> [flags]``."""
     args = argv if argv is not None else sys.argv[1:]
     if not args:
-        print("Usage: sac <list|read|export|lint|catalog|discover|move|archive|create|status|usage|run|pause|resume|pin|unpin|restore|list-unmanaged|list-archived|prune|adopt|ledger> [flags]", file=sys.stderr)
+        print("Usage: sac <list|read|export|lint|catalog|discover|move|archive|create|status|usage|run|pause|resume|pin|unpin|restore|list-unmanaged|list-archived|prune|ledger> [flags]", file=sys.stderr)
         return 2
     aggregate = default_aggregate()
     return cmd_skills(args, aggregate)

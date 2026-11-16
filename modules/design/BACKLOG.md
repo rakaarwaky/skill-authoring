@@ -9,7 +9,7 @@ Last Updated: 2026-11-10
 ## Progress Overview
 
 The design module implements the `sac skills` design-side verbs:
-create, adopt, lint, run, pause, resume. Each verb is owned by a
+create, lint, run, pause, resume. Each verb is owned by a
 capability that implements its protocol; `SkillsDesignAgent`
 sequences the capabilities and returns a typed `SkillsResult`.
 
@@ -26,18 +26,7 @@ sequences the capabilities and returns a typed `SkillsResult`.
 | Risk          | None                                                         |
 | Updated       | 2026-11-10                                                   |
 
-### FR-DESIGN-002: Adopter capability contract
-
-| Aspect        | Detail                                                       |
-| ------------- | ------------------------------------------------------------ |
-| State         | Done                                                         |
-| Done          | `SkillsAdopter` implements `ISkillsAdopterProtocol` with     |
-|               | `adopt`                                                      |
-| In Progress   | None                                                         |
-| Risk          | None                                                         |
-| Updated       | 2026-11-10                                                   |
-
-### FR-DESIGN-003: Linter capability contract
+### FR-DESIGN-002: Linter capability contract
 
 | Aspect        | Detail                                                       |
 | ------------- | ------------------------------------------------------------ |
@@ -48,7 +37,7 @@ sequences the capabilities and returns a typed `SkillsResult`.
 | Risk          | None                                                         |
 | Updated       | 2026-11-10                                                   |
 
-### FR-DESIGN-004: Runner capability contract
+### FR-DESIGN-003: Runner capability contract
 
 | Aspect        | Detail                                                       |
 | ------------- | ------------------------------------------------------------ |
