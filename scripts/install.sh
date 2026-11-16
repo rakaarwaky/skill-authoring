@@ -9,11 +9,14 @@
 # tools tree with PYTHONPATH pointing at the repo modules dir.
 #
 # Non-interactive, idempotent, no sudo required unless --global is passed.
+# By default it also registers the pack as an MCP server in ~/.grok/config.toml
+# so Grok Build can call sac list/read/lint/create/... through stdio.
 #
 # Usage:
 #   bash scripts/install.sh             # local XDG install (default)
 #   bash scripts/install.sh --global    # system-wide install (/usr/local/bin, sudo)
 #   bash scripts/install.sh --check     # dry-run: verify prerequisites only
+#   bash scripts/install.sh --no-mcp    # skip ~/.grok/config.toml MCP registration
 #   bash scripts/install.sh --help      # show usage
 set -euo pipefail
 
@@ -33,6 +36,9 @@ VENV_DIR="$TOOLS_DIR/.venv"
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 MODE="local"
 CHECK_ONLY=false
+INSTALL_MCP=true
+MCP_ARG=""
+if ! $INSTALL_MCP; then MCP_ARG="--no-mcp"; fi
 
 info()  { printf "[INFO]  %s\n" "$*"; }
 ok()    { printf "[ OK ]  %s\n" "$*"; }
@@ -51,11 +57,13 @@ Options:
   --local     Local XDG install at \$XDG_BIN_HOME (default \$HOME/.local/bin)
   --global    System-wide install at /usr/local/bin (requires root/sudo)
   --check     Dry-run: verify prerequisites only, no changes
+  --no-mcp    Skip writing the MCP server entry to ~/.grok/config.toml
   -h, --help  Show this help
 
 Examples:
-  bash scripts/install.sh            # local XDG install
+  bash scripts/install.sh            # local XDG install + MCP registration
   bash scripts/install.sh --global   # system-wide install
+  bash scripts/install.sh --no-mcp   # local install without MCP registration
   bash scripts/install.sh --check    # verify prerequisites only
 EOF
   exit 0
@@ -66,6 +74,7 @@ for arg in "$@"; do
     --local) MODE="local" ;;
     --global) MODE="global" ;;
     --check) CHECK_ONLY=true ;;
+    --no-mcp) INSTALL_MCP=false ;;
     -h|--help) usage ;;
     *) die "Unknown option: $arg (use -h for help)" ;;
   esac
@@ -120,7 +129,7 @@ step "Installing sac launcher"
 if [[ "$MODE" == "global" ]]; then
   if [[ "$(id -u)" -ne 0 ]]; then
     warn "Global install requires root; re-running with sudo..."
-    sudo bash "$SCRIPT_DIR/install.sh" --global ${CHECK_ONLY:+--check}
+    sudo bash "$SCRIPT_DIR/install.sh" --global ${CHECK_ONLY:+--check} ${MCP_ARG:+$MCP_ARG}
     exit $?
   fi
   BIN_DIR="/usr/local/bin"
@@ -158,12 +167,37 @@ if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
   warn "$BIN_DIR is not on your PATH — add it (e.g. export PATH=\"$BIN_DIR:\$PATH\") then run: sac lint"
 fi
 
+# --- Register pack as an MCP server in ~/.grok/config.toml ---
+if $INSTALL_MCP; then
+  step "Registering skill-authoring-tools MCP server"
+  GROK_CONFIG="$HOME/.grok/config.toml"
+  if [[ ! -f "$GROK_CONFIG" ]]; then
+    warn "$GROK_CONFIG not found — skipping MCP registration"
+  elif grep -q '^\[mcp_servers.skill-authoring-tools\]' "$GROK_CONFIG"; then
+    ok "MCP server entry already present in $GROK_CONFIG"
+  else
+    {
+      echo ""
+      echo "[mcp_servers.skill-authoring-tools]"
+      echo "command = \"$VENV_DIR/bin/python\""
+      echo "args = ["
+      echo "    \"$TOOLS_DIR/modules/mcp/src/surface_mcp_stdio_server.py\","
+      echo "]"
+    } >> "$GROK_CONFIG"
+    ok "MCP server entry added to $GROK_CONFIG"
+  fi
+fi
+
 step "Installation complete"
 ok "Run: sac lint        (inspect the skill tree)"
 ok "Run: sac list        (list all skills)"
 ok "Run: sac read <name> (read a skill's SKILL.md)"
+ok "Run: sac --help      (see all sac commands)"
 echo
 echo "Repo root:  $REPO_ROOT"
 echo "Tools tree: $TOOLS_DIR"
 echo "Venv:       $VENV_DIR"
 echo "Bin dir:    $BIN_DIR"
+if $INSTALL_MCP; then
+  echo "MCP config: $HOME/.grok/config.toml (skill-authoring-tools)"
+fi
