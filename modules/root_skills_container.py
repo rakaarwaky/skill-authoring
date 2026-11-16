@@ -271,7 +271,6 @@ def _storage_response_to_result(
 
 _DESIGN_OPS = frozenset(
     {
-        SkillsOp.ADOPT,
         SkillsOp.CREATE,
         SkillsOp.LINT,
         SkillsOp.PAUSE,

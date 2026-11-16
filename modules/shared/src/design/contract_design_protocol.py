@@ -1,6 +1,6 @@
 """Skills design-domain capability contracts (AES contract layer, ABC traits).
 
-One seam per design-side capability: adopter, creator, linter, runner.
+One seam per design-side capability: creator, linter, runner.
 Capabilities in ``modules/design/src`` implement these; the composition
 root injects them into the agent. No import of sibling domain contracts —
 design keeps its own seams.
@@ -23,17 +23,6 @@ from shared.src.design.taxonomy_design_vo import (
     NewCategoryPlan,
     SkillCreatePlan,
 )
-
-
-class ISkillsAdopterProtocol(ABC):
-    """Adopter capability: adopt verb."""
-
-    @abstractmethod
-    def adopt(
-        self, skill: SkillName, root: SkillsRoot | None = None
-    ) -> MutationOutcome:
-        """Mark *skill* as agent-managed (``created_by="agent"``)."""
-        ...
 
 
 class ISkillsCreatorProtocol(ABC):
@@ -115,14 +104,12 @@ class ISkillsRunnerProtocol(ABC):
 
 
 __all__ = [
-    "ISkillsAdopterProtocol",
     "ISkillsCreatorProtocol",
     "ISkillsLinterProtocol",
     "ISkillsRunnerProtocol",
 ]
 
 _layer_symbols = {
-    "ISkillsAdopterProtocol": ISkillsAdopterProtocol,
     "ISkillsCreatorProtocol": ISkillsCreatorProtocol,
     "ISkillsLinterProtocol": ISkillsLinterProtocol,
     "ISkillsRunnerProtocol": ISkillsRunnerProtocol,

@@ -1,8 +1,8 @@
 """Design agent (AES agent layer).
 
 Implements ``ISkillsDesignAggregate`` over the design-side capabilities:
-creator, adopter, linter, runner. Owns the ops: create, adopt, lint, run,
-pause, resume. The agent is the only layer allowed to sequence capabilities.
+creator, linter, runner. Owns the ops: create, lint, run, pause, resume.
+The agent is the only layer allowed to sequence capabilities.
 """
 
 from __future__ import annotations
@@ -17,7 +17,6 @@ from shared.src.common.taxonomy_common_error import (
 )
 from shared.src.design.contract_design_aggregate import ISkillsDesignAggregate
 from shared.src.design.contract_design_protocol import (
-    ISkillsAdopterProtocol,
     ISkillsCreatorProtocol,
     ISkillsLinterProtocol,
     ISkillsRunnerProtocol,
@@ -42,19 +41,17 @@ __all__ = [
 
 
 class SkillsDesignAgent(ISkillsDesignAggregate):
-    """Design-side agent: create / adopt / lint / run / pause / resume."""
+    """Design-side agent: create / lint / run / pause / resume."""
 
     def __init__(
         self,
         creator: ISkillsCreatorProtocol | None = None,
-        adopter: ISkillsAdopterProtocol | None = None,
         linter: ISkillsLinterProtocol | None = None,
         runner: ISkillsRunnerProtocol | None = None,
         catalog: ISkillsCatalogProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._creator = creator
-        self._adopter = adopter
         self._linter = linter
         self._runner = runner
         self._catalog = catalog
@@ -220,11 +217,6 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
         return SkillsResult(
             ok=True, op=op, create_plan=plan, catalog=catalog_result, root=root
         )
-
-    def _execute_adopt(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """ADOPT: mark skill as agent-managed (created_by="agent")."""
-        adopter = self._require(self._adopter, "adopter")
-        return self._mutate_skill(request, op, adopter, "adopt", "created_by", "agent")
 
     def _execute_run(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """RUN: apply automatic transitions per pass."""

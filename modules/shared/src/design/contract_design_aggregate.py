@@ -1,7 +1,7 @@
 """Design-domain aggregate contract (AES contract layer, ABC trait).
 
 Single entry point over the design-side capabilities:
-creator, adopter, linter, runner. The root CLI and surface call
+creator, linter, runner. The root CLI and surface call
 ``execute`` with a ``SkillsRequest`` and get a ``SkillsResult`` back.
 """
 
