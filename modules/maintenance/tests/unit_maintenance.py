@@ -15,6 +15,7 @@ from shared.src.maintenance.taxonomy_maintenance_request import (
 from shared.src.maintenance.taxonomy_maintenance_response import (
     MaintenanceResponse,
 )
+from shared.src.maintenance.utility_skills_mutation import archive_root
 
 
 def test_unknown_verb_returns_usage_error() -> None:
@@ -36,7 +37,7 @@ def test_prune_report_includes_dry_run_flag() -> None:
     prune = SkillsPrune()
     with tempfile.TemporaryDirectory() as tmp:
         pack_root = Path(tmp)
-        (pack_root / "_archive").mkdir()
+        archive_root(pack_root).mkdir(parents=True, exist_ok=True)
         report = prune.prune(root=pack_root, days=1, dry_run=True)
         assert report["dry_run"] is True
 
@@ -54,15 +55,17 @@ def test_purge_propagates_oserror_instead_of_swallowing() -> None:
     purge = SkillsPurge()
     with tempfile.TemporaryDirectory() as tmp:
         pack_root = Path(tmp)
-        archived = pack_root / "_archive" / "stale-skill"
-        archived.mkdir(parents=True)
+        archived = archive_root(pack_root) / "testcat" / "stale-skill"
+        archived.mkdir(parents=True, exist_ok=True)
         (archived / "SKILL.md").write_text("---\nname: stale-skill\n---\n", encoding="utf-8")
-        # Make the directory read-only so rmtree fails.
-        archived.chmod(0o000)
+        # Make the parent directory read-only so rmtree cannot unlink the directory.
+        archived.parent.chmod(0o555)
         try:
             purge.purge(skill="stale-skill", root=pack_root, dry_run=False)
         except OSError:
             return
         finally:
-            archived.chmod(0o755)
+            archived.parent.chmod(0o755)
+            import shutil
+            shutil.rmtree(archive_root(pack_root) / "testcat", ignore_errors=True)
     raise AssertionError("expected OSError from rmtree without ignore_errors=True")

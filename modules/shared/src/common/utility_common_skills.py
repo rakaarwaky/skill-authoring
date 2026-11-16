@@ -77,7 +77,7 @@ def assert_within_root(path: Path, root: Path) -> None:
 
 def find_skill_dir(skill: str, root: Path, in_archive: bool = False) -> Path | None:
     """Find a skill directory by name under root (optionally inside archive)."""
-    search_root = root / ARCHIVE_DIRNAME if in_archive else root
+    search_root = Path.home() / ".agents" / "skills" / ARCHIVE_DIRNAME if in_archive else root
     if not search_root.is_dir():
         return None
     matches: list[Path] = []

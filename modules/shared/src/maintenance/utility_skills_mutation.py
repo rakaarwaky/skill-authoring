@@ -259,8 +259,14 @@ def _yaml_quote(value: object) -> str:
 
 
 def archive_root(skills_root: Path) -> Path:
-    """The archive tree for a skills root."""
-    return skills_root / ARCHIVE_DIRNAME
+    """The archive tree for a skills root.
+
+    Lives under the current user's home
+    (``Path.home()/.agents/skills/.archive``), not inside the skills pack
+    root, so ``skills_root`` is accepted for signature compatibility but is
+    not used to locate the archive tree.
+    """
+    return Path.home() / ".agents" / "skills" / ARCHIVE_DIRNAME
 
 
 def write_category_description(

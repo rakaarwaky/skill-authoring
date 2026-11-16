@@ -1,16 +1,17 @@
 """Skills archiver capability (AES capabilities layer).
 
 Implements ``ISkillsArchiverProtocol``: plan/apply an archive of a skill
-into ``_archive/`` (dry-run by default). Delegates the physical move and
-sidecar state update to ``SkillsRestore``.
+into the home-based archive tree (``~/.agents/skills/.archive/``) (dry-run
+by default). Delegates the physical move and sidecar state update to
+``SkillsRestore``.
 
 Shared helpers (``resolve_skill_dir``, ``assert_within_root``,
 ``archive_root``) live in ``utility_skills_mutation`` (shared kernel)
 so the archiver never imports a sibling capability.
 
-Every computed destination is asserted to remain inside the skills root
+Every computed destination is asserted to remain inside the archive root
 at plan time **and** re-checked at apply time, so a symlink created
-between the two fails closed instead of writing outside the pack.
+between the two fails closed instead of writing outside the archive tree.
 """
 
 from __future__ import annotations
@@ -38,7 +39,7 @@ __all__ = ["SkillsArchiver"]
 
 # ─── Block 1: Module Declaration ──────────────
 class SkillsArchiver(ISkillsArchiverProtocol):
-    """Plans and applies an archive of a skill into ``_archive/``.
+    """Plans and applies an archive of a skill into ``~/.agents/skills/.archive/``.
 
     Archive state and path containment come from the shared kernel, so
     the archiver never imports a sibling capability.
@@ -49,7 +50,7 @@ class SkillsArchiver(ISkillsArchiverProtocol):
 
     # ─── Block 2: Module Contract ─────────────
     def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
-        """Resolve an archive; the skill lands at ``_archive/<cat>/<skill>/``."""
+        """Resolve an archive; the skill lands at the home-based archive tree."""
         skills_root = Path(root)
         source = resolve_skill_dir(skill, skills_root)
         category = source.parent.name
@@ -60,7 +61,7 @@ class SkillsArchiver(ISkillsArchiverProtocol):
                 f"Archive destination already exists: {destination}"
             )
 
-        assert_within_root(destination, skills_root)
+        assert_within_root(destination, archive_root(skills_root))
 
         return MutationPlan(
             kind="archive",
@@ -76,7 +77,7 @@ class SkillsArchiver(ISkillsArchiverProtocol):
             raise SkillsUsageError("Archive plan is missing its paths")
 
         # Fail-closed containment guard before we hand off to lifecycle.
-        assert_within_root(plan.destination, root)
+        assert_within_root(plan.destination, archive_root(root))
 
         skill_name = plan.source.name
         archive_skill(skill_name, root)
