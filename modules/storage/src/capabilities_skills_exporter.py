@@ -1,7 +1,7 @@
 """Skills exporter capability (AES capabilities layer).
 
 Exports a skill folder into a single Markdown document saved at
-``.export/<namaskill>.md`` under the pack root. Implements
+``~/.agents/skills/.export/<namaskill>.md``. Implements
 ``ISkillsExportProtocol`` from ``shared/src/storage/contract_storage_protocol.py``.
 """
 
@@ -11,7 +11,6 @@ from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import SkillName, SkillsRoot
 from shared.src.common.utility_common_skills import (
-    assert_within_root,
     default_pack_root,
     resolve_skill_dir,
 )
@@ -36,8 +35,7 @@ class SkillsExporter(ISkillsExportProtocol):
         skill_dir = resolve_skill_dir(str(skill), skills_root)
         skill_name = skill_dir.name
 
-        export_dir = skills_root / ".export"
-        assert_within_root(export_dir, skills_root)
+        export_dir = Path.home() / ".agents" / "skills" / ".export"
         export_dir.mkdir(parents=True, exist_ok=True)
 
         target_files = self._collect_skill_files(skill_dir)
@@ -51,7 +49,6 @@ class SkillsExporter(ISkillsExportProtocol):
 
         out_content = "\n".join(sections)
         out_file = export_dir / f"{skill_name}.md"
-        assert_within_root(out_file, skills_root)
         out_file.write_text(out_content, encoding="utf-8")
         return out_file
 

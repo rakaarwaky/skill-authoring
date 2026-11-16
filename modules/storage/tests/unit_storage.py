@@ -35,8 +35,12 @@ def test_storage_single_aggregate_contract() -> None:
     assert ISkillsStorageAggregate is not None
 
 
-def test_exporter_exports_skill(tmp_path: Path) -> None:
+def test_exporter_exports_skill(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """UT-STORAGE-002: SkillsExporter exports skill files into a single Markdown file."""
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
+
     pack_root = tmp_path / "skills"
     skill_dir = pack_root / "test-category" / "my-skill"
     skill_dir.mkdir(parents=True)
@@ -55,7 +59,8 @@ def test_exporter_exports_skill(tmp_path: Path) -> None:
     exporter = SkillsExporter()
     out_file = exporter.export("my-skill", root=SkillsRoot(pack_root))
 
-    assert out_file == pack_root / ".export" / "my-skill.md"
+    expected = fake_home / ".agents" / "skills" / ".export" / "my-skill.md"
+    assert out_file == expected
     assert out_file.is_file()
 
     content = out_file.read_text(encoding="utf-8")
@@ -65,8 +70,12 @@ def test_exporter_exports_skill(tmp_path: Path) -> None:
     assert "## README.md\n\n# Readme content" in content
 
 
-def test_exporter_skill_not_found(tmp_path: Path) -> None:
+def test_exporter_skill_not_found(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """UT-STORAGE-003: SkillsExporter raises SkillNotFoundError on missing skill."""
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
+
     pack_root = tmp_path / "skills"
     pack_root.mkdir(parents=True)
 
@@ -75,8 +84,12 @@ def test_exporter_skill_not_found(tmp_path: Path) -> None:
         exporter.export("nonexistent", root=SkillsRoot(pack_root))
 
 
-def test_agent_execute_export(tmp_path: Path) -> None:
+def test_agent_execute_export(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """UT-STORAGE-004: SkillsStorageAgent routes EXPORT op to exporter."""
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
+
     pack_root = tmp_path / "skills"
     skill_dir = pack_root / "test-cat" / "sample-skill"
     skill_dir.mkdir(parents=True)
@@ -89,7 +102,7 @@ def test_agent_execute_export(tmp_path: Path) -> None:
     response = agent.execute(StorageRequest(verb=StorageVerb.EXPORT, query="sample-skill"))
     assert response.ok is True
     assert response.verb == "export"
-    expected_path = str(pack_root / ".export" / "sample-skill.md")
+    expected_path = str(fake_home / ".agents" / "skills" / ".export" / "sample-skill.md")
     assert response.message == expected_path
 
 
