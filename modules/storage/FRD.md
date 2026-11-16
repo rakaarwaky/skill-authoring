@@ -3,10 +3,10 @@
 ## Feature Overview
 
 The storage feature sits in the agent layer and is called by the surface
-and root CLI through the storage aggregate contract. It orchestrates five
-capabilities — archiver, backup, bootstrap, restore, rollback — and routes
-each storage op to the matching capability. The agent performs no
-filesystem I/O; all I/O is delegated to the capabilities.
+and root CLI through the storage aggregate contract. It orchestrates six
+capabilities — archiver, backup, bootstrap, exporter, restore, rollback —
+and routes each storage op to the matching capability. The agent performs
+no filesystem I/O; all I/O is delegated to the capabilities.
 
 ## Functional Requirements
 
@@ -241,6 +241,56 @@ the live tree before extraction so the operation is reversible.
 |---------------|-------|
 | Rollback success rate | 100 % |
 | Failed-rollback tree recovery rate | 100 % |
+
+### FR-storage-006: Export a skill pack to a single Markdown document
+
+**Description:**
+The feature shall export a skill folder into a single Markdown document
+saved at `.export/<namaskill>.md` under the pack root, concatenating the
+skill's key files (`SKILL.md`, `reference/`, `template/`, `scripts/`,
+`README.md`) separated by relative path headings.
+
+#### Business Logic
+
+- The exporter shall resolve the skill directory under the pack root.
+- The exporter shall read `SKILL.md`, files under `reference/`, `template/`,
+  `scripts/`, and `README.md` if present.
+- Each file section shall begin with `## <relative-path>` heading.
+- The output shall be written to `.export/<namaskill>.md` under the pack
+  root.
+- Containment inside the pack root shall be asserted before writing.
+
+#### Edge Cases
+
+- A nonexistent skill shall raise `SkillNotFoundError`.
+- Missing optional subdirectories or README.md shall be skipped gracefully.
+- Destination outside the pack root shall fail closed with a containment
+  error.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | skill, root |
+| **Output** | Path of exported Markdown file |
+| **Protocol** | ISkillsExportProtocol |
+| **Method** | export |
+| **Event** | None |
+| **Error** | SkillNotFoundError, SkillsUsageError, OSError |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| A valid skill exists | Exporter is invoked | A single concatenated `.md` is written to `.export/<skill>.md` |
+| The skill does not exist | Exporter is invoked | `SkillNotFoundError` is raised |
+| A computed path escapes the pack root | Exporter is invoked | `SkillsUsageError` containment error is raised |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Export success rate | 100 % |
 
 ## Public Interface
 

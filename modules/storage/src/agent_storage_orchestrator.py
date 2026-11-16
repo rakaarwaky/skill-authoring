@@ -1,8 +1,8 @@
 """Storage agent (AES agent layer).
 
 Implements ``ISkillsStorageAggregate`` over the storage-side capabilities:
-archiver, backup, restore, rollback. Owns the ops: archive, restore,
-backup, rollback.
+archiver, backup, bootstrap, exporter, restore, rollback. Owns the ops:
+archive, restore, backup, rollback, export.
 """
 
 from __future__ import annotations
@@ -24,6 +24,7 @@ from shared.src.storage.contract_storage_aggregate import (
 from shared.src.storage.contract_storage_protocol import (
     ISkillsArchiverProtocol,
     ISkillsBackupProtocol,
+    ISkillsExportProtocol,
     ISkillsRestoreProtocol,
     ISkillsRollbackProtocol,
 )
@@ -41,18 +42,22 @@ __all__ = [
 
 
 class SkillsStorageAgent(ISkillsStorageAggregate):
-    """Storage-side agent: archive / restore / backup / rollback."""
+    """Storage-side agent: archive / restore / backup / rollback / export."""
 
     def __init__(
         self,
         archiver: ISkillsArchiverProtocol | None = None,
         backup: ISkillsBackupProtocol | None = None,
+        bootstrap: object | None = None,
+        exporter: ISkillsExportProtocol | None = None,
         restore: ISkillsRestoreProtocol | None = None,
         rollback: ISkillsRollbackProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._archiver = archiver
         self._backup = backup
+        self._bootstrap = bootstrap
+        self._exporter = exporter
         self._restore = restore
         self._rollback = rollback
         self._default_root = default_root
@@ -104,13 +109,44 @@ class SkillsStorageAgent(ISkillsStorageAggregate):
     def _handler_for(
         self, op: StorageVerb
     ) -> Callable[[StorageRequest, StorageVerb], StorageResponse]:
-        name = f"_execute_{op.value}"
+        val = op.value if hasattr(op, "value") else str(op)
+        name = f"_execute_{val}"
         handler = getattr(self, name, None)
         if not callable(handler):
             raise KeyError(name)
         return cast(Callable[[StorageRequest, StorageVerb], StorageResponse], handler)
 
     # ─── Block 3: Module Helpers ────────────────────────────────
+    def _execute_export(
+        self, request: StorageRequest, op: StorageVerb
+    ) -> StorageResponse:
+        """EXPORT: export a skill folder to a single Markdown file."""
+        exporter = self._require(self._exporter, "exporter")
+        root = self._root(request)
+        if not request.query or str(request.query).strip() in ("", "None"):
+            return StorageResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=EXIT_USAGE,
+                message="Skill name required",
+            )
+        skill_name = str(request.query).strip()
+        try:
+            path = exporter.export(skill_name, root)
+        except (OSError, SkillsError) as failure:
+            exit_code = (
+                failure.exit_code
+                if isinstance(failure, SkillsError)
+                else EXIT_ISSUES_FOUND
+            )
+            return StorageResponse(
+                ok=False,
+                verb=op.value,
+                exit_code=exit_code,
+                message=str(failure),
+            )
+        return StorageResponse(ok=True, verb=op.value, message=str(path), root=root)
+
     def _execute_archive(self, request: StorageRequest, op: StorageVerb) -> StorageResponse:
         """ARCHIVE: move a live skill into _archive/."""
         archiver = self._require(self._archiver, "archiver")

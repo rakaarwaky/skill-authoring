@@ -38,10 +38,11 @@ class SkillsMcpAdapter:
     # ── Tool registry ───────────────────────────────────────────────
 
     def list_tools(self) -> list[dict]:
-        """Return MCP tool descriptors, one per sac verb (23 tools)."""
+        """Return MCP tool descriptors, one per sac verb (24 tools)."""
         return [
             {"name": "sac_list", "description": "List all skills in the pack"},
             {"name": "sac_read", "description": "Print a skill's SKILL.md"},
+            {"name": "sac_export", "description": "Export a skill folder to a single Markdown file"},
             {"name": "sac_lint", "description": "Lint scan all skills"},
             {"name": "sac_catalog", "description": "Build and/or print catalog.json"},
             {"name": "sac_discover", "description": "Search the catalog"},
@@ -85,6 +86,7 @@ class SkillsMcpAdapter:
         mapping = {
             "list": SkillsOp.LIST,
             "read": SkillsOp.READ,
+            "export": SkillsOp.EXPORT,
             "lint": SkillsOp.LINT,
             "catalog": SkillsOp.CATALOG,
             "discover": SkillsOp.DISCOVER,

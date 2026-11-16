@@ -271,7 +271,6 @@ def _storage_response_to_result(
         message=sresp.message,
         root=sresp.root,
         records=sresp.records,
-        manifest=sresp.manifest,
         content=sresp.content,
     )
 
@@ -307,7 +306,13 @@ _GOVERNANCE_OPS = frozenset(
 _MAINTENANCE_OPS = frozenset({SkillsOp.PRUNE, SkillsOp.PURGE})
 _OBSERVABILITY_OPS = frozenset({SkillsOp.LEDGER, SkillsOp.USAGE, SkillsOp.TRACES})
 _STORAGE_OPS = frozenset(
-    {SkillsOp.ARCHIVE, SkillsOp.BACKUP, SkillsOp.RESTORE, SkillsOp.ROLLBACK}
+    {
+        SkillsOp.ARCHIVE,
+        SkillsOp.BACKUP,
+        SkillsOp.EXPORT,
+        SkillsOp.RESTORE,
+        SkillsOp.ROLLBACK,
+    }
 )
 
 

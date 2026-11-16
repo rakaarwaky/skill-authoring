@@ -14,3 +14,13 @@ from storage.src.agent_storage_orchestrator import SkillsStorageAgent
 def test_agent_implements_protocol() -> None:
     agent = SkillsStorageAgent()
     assert isinstance(agent, ISkillsStorageAggregate)
+
+
+def test_exporter_implements_protocol() -> None:
+    from shared.src.storage.contract_storage_protocol import (
+        ISkillsExportProtocol,
+    )
+    from storage.src.capabilities_skills_exporter import SkillsExporter
+
+    assert issubclass(SkillsExporter, ISkillsExportProtocol)
+    assert isinstance(SkillsExporter(), ISkillsExportProtocol)

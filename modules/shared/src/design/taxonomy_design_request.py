@@ -44,6 +44,7 @@ class SkillsOp(StrEnum):
     LIST_UNMANAGED = "list-unmanaged"
     LIST_ARCHIVED = "list-archived"
     READ = "read"
+    EXPORT = "export"
     LINT = "lint"
     CATALOG = "catalog"
     DISCOVER = "discover"
