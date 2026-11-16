@@ -179,7 +179,7 @@ class _ComposedAggregate(ISkillsAggregate):
                 exit_code=2,
                 message=f"Unknown skills op: {op}",
             )
-        if result.ok:
+        if result.ok and op == SkillsOp.READ:
             skill_name = str(request.query or "").strip()
             if skill_name:
                 self._observability.record_view(skill_name)
