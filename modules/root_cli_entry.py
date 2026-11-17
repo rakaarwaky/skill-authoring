@@ -43,7 +43,22 @@ def main(argv: list[str] | None = None) -> int:
     if not args:
         print("Usage: sac <list|read|export|lint|catalog|discover|move|archive|create|status|usage|run|pause|resume|pin|unpin|restore|list-unmanaged|list-archived|prune|ledger> [flags]", file=sys.stderr)
         return 2
-    aggregate = default_aggregate()
+    # The skill pack on a CI host is this repo's own `skills/` tree, not
+    # $HOME/.agents/skills: checkout lands under the runner workspace, so the
+    # default pack root would find no skills and the drift gate would always
+    # fail. The catalog check runs against the in-repo tree when $HOME has no
+    # pack (CLI verbs keep using the default for interactive use).
+    from pathlib import Path as _Path
+
+    default_root = _Path(__file__).resolve().parents[4] / "skills"
+    if default_root.is_dir():
+        from shared.src.common.utility_common_skills import iter_skill_mds
+        if not iter_skill_mds(_Path.home() / ".agents" / "skills"):
+            aggregate = default_aggregate(default_root=default_root)
+        else:
+            aggregate = default_aggregate()
+    else:
+        aggregate = default_aggregate()
     return cmd_skills(args, aggregate)
 
 

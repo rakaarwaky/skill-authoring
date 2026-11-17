@@ -72,6 +72,15 @@ class SkillsCatalog(ISkillsCatalogProtocol):
         path = catalog_path(skills_root)
 
         if not path.exists():
+            if not skill_entries(skills_root):
+                return CatalogCheckResult(
+                    in_sync=True,
+                    diff_lines=(),
+                    message=(
+                        f"No skill pack at {skills_root}; catalog check skipped "
+                        "(nothing to verify)"
+                    ),
+                )
             return CatalogCheckResult(
                 in_sync=False,
                 diff_lines=(),
