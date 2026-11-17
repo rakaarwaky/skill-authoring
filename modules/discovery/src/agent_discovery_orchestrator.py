@@ -97,9 +97,9 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
             if verb == DiscoveryVerb.CATALOG:
                 return handler(
                     request,
-                    check=request.flags.get("check", "") == "1",
-                    build=request.flags.get("build", "1") == "1",
-                    read=request.flags.get("read", "1") == "1",
+                    check=str(request.flags.get("check", "")).lower() in ("1", "true"),
+                    build=str(request.flags.get("build", "1")).lower() in ("1", "true"),
+                    read=str(request.flags.get("read", "1")).lower() in ("1", "true"),
                 )
             if verb == DiscoveryVerb.DISCOVER:
                 limit_raw = request.flags.get("limit", "20") or "20"

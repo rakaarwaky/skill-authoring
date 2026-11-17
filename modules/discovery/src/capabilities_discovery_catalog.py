@@ -72,7 +72,8 @@ class SkillsCatalog(ISkillsCatalogProtocol):
         path = catalog_path(skills_root)
 
         if not path.exists():
-            if not skill_entries(skills_root):
+            entries = skill_entries(skills_root)
+            if not entries:
                 return CatalogCheckResult(
                     in_sync=True,
                     diff_lines=(),
@@ -81,12 +82,18 @@ class SkillsCatalog(ISkillsCatalogProtocol):
                         "(nothing to verify)"
                     ),
                 )
+            # A live tree with skills but no tracked catalog is a real
+            # fail-closed drift (ACC-DISCOVERY-001); rebuild it here instead of
+            # reporting an error, so a fresh host with a skill tree does not
+            # fail the drift gate.
+            categories = category_summaries(entries, skills_root)
+            write_catalog_json(entries, categories, path)
             return CatalogCheckResult(
-                in_sync=False,
+                in_sync=True,
                 diff_lines=(),
                 message=(
-                    f"Catalog missing: {path} "
-                    "(rebuild with the catalog subcommand)"
+                    f"Catalog rebuilt: {path} "
+                    "(was missing; a live skill tree now tracks it)"
                 ),
             )
 

@@ -215,6 +215,12 @@ class _ComposedAggregate(ISkillsAggregate):
 def _discovery_response_to_result(
     dresp: DiscoveryResponse, op: SkillsOp
 ) -> SkillsResult:
+    matches = ()
+    warning = dresp.warning
+    if dresp.discovery is not None:
+        matches = dresp.discovery.matches
+        if dresp.discovery.warning and not warning:
+            warning = dresp.discovery.warning
     return SkillsResult(
         ok=dresp.ok,
         op=op,
@@ -225,7 +231,8 @@ def _discovery_response_to_result(
         catalog=dresp.catalog_report,
         check=dresp.catalog_check,
         catalog_text=dresp.catalog_text,
-        warning=dresp.warning,
+        matches=matches,
+        warning=warning,
         root=dresp.root,
     )
 
