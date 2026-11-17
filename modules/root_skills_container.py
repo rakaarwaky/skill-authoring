@@ -16,6 +16,32 @@ Discovery ops are translated at the boundary: ``SkillsRequest`` →
 
 from __future__ import annotations
 
+# AES402/E402: flat intra-module imports (e.g. ``from agent_design_orchestrator``)
+# resolve only when each module's ``src/`` is on sys.path; the composition root
+# puts them there before importing module containers (regression on CI runner,
+# PYTHONPATH differs from a developer checkout).
+import sys as _sys
+from pathlib import Path as _Path
+
+_MODULES_ROOT = _Path(__file__).resolve().parent
+for _m in (
+    "design",
+    "discovery",
+    "maintenance",
+    "observability",
+    "shared",
+    "cli",
+    "storage",
+):
+    _src = _MODULES_ROOT / _m / "src"
+    if _src.is_dir():
+        _p = str(_src)
+        if _p not in _sys.path:
+            _sys.path.append(_p)
+if str(_MODULES_ROOT) not in _sys.path:
+    _sys.path.append(str(_MODULES_ROOT))
+
+
 from pathlib import Path
 
 from design.src.root_design_container import create_design_feature

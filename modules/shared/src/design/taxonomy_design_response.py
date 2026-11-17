@@ -42,6 +42,7 @@ if TYPE_CHECKING:
         SkillCreatePlan,
         TelemetryRow,
     )
+    from shared.src.observability.taxonomy_observability_entity import ScanResult
     from shared.src.observability.taxonomy_observability_vo import (
         MemoryReport,
         PhraseRow,
@@ -85,6 +86,7 @@ class SkillsResult:
     phrases_exact: tuple[PhraseRow, ...] = ()
     phrases_stems: tuple[PhraseRow, ...] = ()
     phrases_lines: tuple[PhraseRow, ...] = ()
+    scan_summary: ScanResult | None = None
     memory: MemoryReport | None = None
     plan: MutationPlan | None = None
     outcome: MutationOutcome | None = None

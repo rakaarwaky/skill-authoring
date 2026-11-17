@@ -18,6 +18,7 @@ from shared.src.observability.contract_observability_protocol import (
     ISkillsTracesProtocol,
 )
 from shared.src.observability.taxonomy_observability_entity import (
+    ScanResult,
     TraceSessionRecord,
 )
 from shared.src.observability.taxonomy_observability_vo import (
@@ -172,6 +173,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                 min_turns,
                 limit,
             )
+            _write_usage(grok_home, run_dir, kept)
 
         return ScanResult(
             records=tuple(records),
@@ -223,11 +225,13 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                         ):
                             lines[ln_n].add(rid)
 
-        return PhrasesReport(
+        report = PhrasesReport(
             exact_prompts=self._top(exact, min_sessions, "phrase"),
             stems=self._top(stems, self._STEM_MIN_SESSIONS, "stem"),
             repeated_instruction_lines=self._top(lines, self._LINE_MIN_SESSIONS, "line"),
         )
+        _write_phrases(run_dir, report)
+        return report
 
     def scan_memory(
         self,
@@ -720,3 +724,179 @@ def _write_manifest(
     }
     with open(os.path.join(run_dir, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=1, ensure_ascii=False)
+
+
+def _write_usage(
+    grok_home: str,
+    run_dir: str,
+    kept: list[dict],
+) -> None:
+    catalog_path = os.path.expanduser("~/.agents/skills/catalog.json")
+    skills_map: dict[str, dict] = {}
+    if os.path.isfile(catalog_path):
+        try:
+            with open(catalog_path, encoding="utf-8") as f:
+                cat = json.load(f)
+            for s in cat.get("skills", []):
+                name = s.get("name")
+                cat_name = s.get("category", "")
+                p = os.path.expanduser(f"~/.agents/skills/{cat_name}/{name}/SKILL.md")
+                if os.path.isfile(p):
+                    skills_map[name] = {
+                        "kind": "skill",
+                        "name": name,
+                        "source": "repo-pack",
+                        "path": p,
+                        "protected": "git-tracked",
+                        "referenced_by": [],
+                        "plugin": None,
+                        "plugin_state": None,
+                        "loaded": True,
+                        "disabled_by_name": False,
+                        "in_slash_mru": False,
+                    }
+        except (OSError, ValueError):
+            pass
+
+    bundled_dir = os.path.join(grok_home, "bundled", "skills")
+    if os.path.isdir(bundled_dir):
+        for name in sorted(os.listdir(bundled_dir)):
+            p = os.path.join(bundled_dir, name, "SKILL.md")
+            if os.path.isfile(p) and name not in skills_map:
+                skills_map[name] = {
+                    "kind": "skill",
+                    "name": name,
+                    "source": "bundled",
+                    "path": p,
+                    "protected": "bundled",
+                    "referenced_by": [],
+                    "plugin": None,
+                    "plugin_state": None,
+                    "loaded": True,
+                    "disabled_by_name": False,
+                    "in_slash_mru": False,
+                }
+
+    skill_bodies: dict[str, str] = {}
+    for name, item in skills_map.items():
+        try:
+            with open(item["path"], encoding="utf-8", errors="replace") as f:
+                skill_bodies[name] = f.read()
+        except OSError:
+            pass
+
+    for name, item in skills_map.items():
+        pat = re.compile(
+            r"(`/?"
+            + re.escape(name)
+            + r"`|(?<![\w-])/"
+            + re.escape(name)
+            + r"(?![\w-])|skills/"
+            + re.escape(name)
+            + r"(?![\w-]))"
+        )
+        refs = [
+            other
+            for other, body in skill_bodies.items()
+            if other != name and pat.search(body)
+        ]
+        item["referenced_by"] = sorted(set(refs))
+
+    usage: dict[str, dict] = defaultdict(
+        lambda: {
+            "count": 0,
+            "sessions": [],
+            "last_used": None,
+            "via": Counter(),
+        }
+    )
+    unknown_slash: Counter[str] = Counter()
+
+    for r in kept:
+        sid = r.get("id") or ""
+        updated = r.get("updated_at") or ""
+        for name, n in (r.get("skills_loaded") or {}).items():
+            u = usage[name]
+            u["count"] += n
+            if sid and sid not in u["sessions"] and len(u["sessions"]) < 8:
+                u["sessions"].append(sid)
+            if updated > (u["last_used"] or ""):
+                u["last_used"] = updated
+            u["via"]["skill_file_read"] += n
+        for name, n in (r.get("slash_commands") or {}).items():
+            if name in skills_map:
+                u = usage[name]
+                u["count"] += n
+                if sid and sid not in u["sessions"] and len(u["sessions"]) < 8:
+                    u["sessions"].append(sid)
+                if updated > (u["last_used"] or ""):
+                    u["last_used"] = updated
+                u["via"]["slash"] += n
+            else:
+                unknown_slash[name] += n
+
+    items = []
+    for name, item in sorted(skills_map.items()):
+        u = usage.get(name)
+        rec = dict(item)
+        rec["count"] = u["count"] if u else 0
+        rec["sessions"] = u["sessions"] if u else []
+        rec["last_used"] = u["last_used"] if u else None
+        rec["via"] = dict(u["via"]) if u else {}
+        items.append(rec)
+
+    unused = [
+        i["name"]
+        for i in items
+        if i["kind"] == "skill"
+        and i["loaded"]
+        and i["count"] == 0
+        and not i["in_slash_mru"]
+    ]
+
+    usage_data = {
+        "kept_sessions": len(kept),
+        "items": items,
+        "unused_loaded": unused,
+        "slash_commands_with_no_loaded_skill": dict(unknown_slash.most_common()),
+        "mcp_servers_used_but_not_in_local_config": {},
+        "note": "hooks and managed-gateway MCP servers are not visible in local config; count is None when it cannot be measured",
+    }
+    with open(os.path.join(run_dir, "usage.json"), "w", encoding="utf-8") as f:
+        json.dump(usage_data, f, indent=1, ensure_ascii=False)
+
+
+def _write_phrases(run_dir: str, report: PhrasesReport) -> None:
+    data = {
+        "exact_prompts": [
+            {
+                "phrase": r.phrase,
+                "sessions": r.sessions,
+                "occurrences": r.occurrences,
+                "session_ids": list(r.session_ids),
+            }
+            for r in report.exact_prompts
+        ],
+        "prompt_stems_12_words": [
+            {
+                "phrase": r.phrase,
+                "sessions": r.sessions,
+                "occurrences": r.occurrences,
+                "session_ids": list(r.session_ids),
+            }
+            for r in report.stems
+        ],
+        "repeated_instruction_lines": [
+            {
+                "phrase": r.phrase,
+                "sessions": r.sessions,
+                "occurrences": r.occurrences,
+                "session_ids": list(r.session_ids),
+            }
+            for r in report.repeated_instruction_lines
+        ],
+        "note": "counts are distinct sessions; single-turn sessions repeated 3+ times are excluded as likely automation",
+    }
+    with open(os.path.join(run_dir, "phrases.json"), "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=1, ensure_ascii=False)
+

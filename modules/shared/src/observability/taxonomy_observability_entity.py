@@ -7,7 +7,8 @@ or surface layers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 
 from shared.src.observability.taxonomy_observability_constant import (
     MIN_SESSIONS_DEFAULT,
@@ -23,6 +24,9 @@ class TraceSessionRecord:
     index: int
     cwd: str
     updated_at: str = ""
+    turns: tuple[str, ...] = ()
+    slash_commands: Mapping[str, int] = field(default_factory=dict)
+    skills_loaded: Mapping[str, int] = field(default_factory=dict)
     trace_path: str = ""
 
 
@@ -32,6 +36,7 @@ class ScanResult:
 
     records: tuple[TraceSessionRecord, ...]
     sessions_seen: int
+    dropped: Mapping[str, int] = field(default_factory=dict)
     min_turns: int = MIN_TURNS_DEFAULT
     min_sessions: int = MIN_SESSIONS_DEFAULT
 
