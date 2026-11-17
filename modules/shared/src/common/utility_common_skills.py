@@ -209,8 +209,10 @@ def _write_sidecar(path: Path, record: dict) -> None:
 
 
 def _category_dirs(skills_root: Path):
+    # A host without a skill pack reports an empty catalog instead of
+    # failing; read-only verbs render empty results.
     if not skills_root.is_dir():
-        raise SkillsUsageError(f"Skills root does not exist: {skills_root}")
+        return
 
     for path in sorted(skills_root.iterdir()):
         if path.is_symlink() or not path.is_dir():

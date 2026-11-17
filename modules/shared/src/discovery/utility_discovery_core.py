@@ -82,12 +82,13 @@ def clean_one_line(value: object) -> str:
 def category_dirs(skills_root: Path) -> Iterator[Path]:
     """Yield category directories, skipping hidden/ignored names.
 
-    Raises ``SkillsRootError`` when the root is missing or is not a
-    directory: a capability must not terminate the process, so the
-    legacy ``SystemExit(1)`` becomes the typed usage error (exit 2).
+    Yields nothing when the root is missing or is not a directory: a
+    host without a skill pack reports an empty catalog instead of
+    failing (the catalog check skips itself, read-only verbs render
+    empty results).
     """
     if not skills_root.is_dir():
-        raise SkillsRootError(f"Skills root does not exist: {skills_root}")
+        return
 
     for path in sorted(skills_root.iterdir()):
         if path.is_symlink() or not path.is_dir():
