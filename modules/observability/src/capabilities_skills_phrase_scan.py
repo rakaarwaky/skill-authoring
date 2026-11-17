@@ -732,6 +732,19 @@ def _write_usage(
     kept: list[dict],
 ) -> None:
     catalog_path = os.path.expanduser("~/.agents/skills/catalog.json")
+    # Pinned skills (sac pin) live in the centralized .usage.json sidecar.
+    # Fold the flag into usage.json so downstream curation (skill-traces)
+    # can exclude pinned skills from unused/delete actions.
+    sidecar_path = os.path.expanduser("~/.agents/skills/.usage.json")
+    pinned: set[str] = set()
+    if os.path.isfile(sidecar_path):
+        try:
+            with open(sidecar_path, encoding="utf-8") as f:
+                for sname, rec in json.load(f).items():
+                    if isinstance(rec, dict) and rec.get("pinned"):
+                        pinned.add(sname)
+        except (OSError, ValueError):
+            pass
     skills_map: dict[str, dict] = {}
     if os.path.isfile(catalog_path):
         try:
@@ -839,6 +852,7 @@ def _write_usage(
     for name, item in sorted(skills_map.items()):
         u = usage.get(name)
         rec = dict(item)
+        rec["pinned"] = name in pinned
         rec["count"] = u["count"] if u else 0
         rec["sessions"] = u["sessions"] if u else []
         rec["last_used"] = u["last_used"] if u else None
@@ -852,6 +866,7 @@ def _write_usage(
         and i["loaded"]
         and i["count"] == 0
         and not i["in_slash_mru"]
+        and not i.get("pinned")
     ]
 
     usage_data = {
