@@ -52,11 +52,7 @@ def main(argv: list[str] | None = None) -> int:
 
     default_root = _Path(__file__).resolve().parents[4] / "skills"
     if default_root.is_dir():
-        from shared.src.common.utility_common_skills import iter_skill_mds
-        if not iter_skill_mds(_Path.home() / ".agents" / "skills"):
-            aggregate = default_aggregate(default_root=default_root)
-        else:
-            aggregate = default_aggregate()
+        aggregate = default_aggregate(default_root=default_root)
     else:
         aggregate = default_aggregate()
     return cmd_skills(args, aggregate)
