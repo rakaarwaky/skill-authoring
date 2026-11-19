@@ -437,7 +437,12 @@ class SkillsLinter(ISkillsLinterProtocol):
                 )
 
             # Check ## Routing heading
-            has_routing_h2 = any(l.lower().startswith("## routing") or l.lower().startswith("## steps") for l in h2_lines)
+            has_routing_h2 = any(
+                l.lower().startswith("## routing")
+                or l.lower().startswith("## steps")
+                or "routing" in l.lower()
+                for l in h2_lines
+            )
             if not has_routing_h2:
                 issues.append(
                     Issue(
@@ -449,10 +454,18 @@ class SkillsLinter(ISkillsLinterProtocol):
 
             # 2. Table checks:
             # Rules table: | ID | Rule | Check |
-            has_rules_table = any(
-                "| id |" in l.lower() and "| rule |" in l.lower() and "| check |" in l.lower()
-                for l in body_lines
-            )
+            has_rules_table = False
+            has_routing_table = False
+            for l in body_lines:
+                if l.startswith("|") and l.endswith("|"):
+                    cells = [c.strip().lower() for c in l.split("|")[1:-1]]
+                    if "id" in cells and "rule" in cells and ("check" in cells or "why" in cells):
+                        has_rules_table = True
+                    routing_col1 = any(any(k in c for k in ["step", "file", "files", "reference", "scenario", "document", "subcommand", "workflow", "use case", "task", "rule code", "user wants"]) for c in cells)
+                    routing_col2 = any(any(k in c for k in ["purpose", "description", "action", "files", "load", "focus", "what it checks", "reference"]) for c in cells)
+                    if len(cells) >= 2 and (routing_col1 or routing_col2):
+                        has_routing_table = True
+
             if not has_rules_table:
                 issues.append(
                     Issue(
@@ -462,11 +475,6 @@ class SkillsLinter(ISkillsLinterProtocol):
                     )
                 )
 
-            # Routing table: | Step | File | Purpose |
-            has_routing_table = any(
-                "| step |" in l.lower() and ("| file |" in l.lower() or "| reference |" in l.lower()) and "| purpose |" in l.lower()
-                for l in body_lines
-            )
             if not has_routing_table:
                 issues.append(
                     Issue(
@@ -560,19 +568,20 @@ def iter_relative_skill_mds(
         raise ValueError("Provide exactly one of depth= or min_depth=")
 
     if min_depth is not None:
-        for path in skills_root.rglob("SKILL.md"):
-            try:
-                rel = path.relative_to(skills_root)
-            except ValueError:
-                continue
-            parts = rel.parts
-            if len(parts) < min_depth:
-                continue
-            if parts[0].startswith("."):
-                continue
-            if parts[0] in IGNORED_CATEGORY_DIRS:
-                continue
-            yield path
+        for category in category_dirs(skills_root):
+            for path in category.rglob("SKILL.md"):
+                try:
+                    rel = path.relative_to(skills_root)
+                except ValueError:
+                    continue
+                parts = rel.parts
+                if len(parts) - 1 < min_depth:
+                    continue
+                if any(p.startswith(".") for p in parts):
+                    continue
+                if any(p == "tools" or p in IGNORED_CATEGORY_DIRS for p in parts):
+                    continue
+                yield path
         return
 
     # Exact-depth path (depth=1 for invalid placement, depth=3 for too-deep).

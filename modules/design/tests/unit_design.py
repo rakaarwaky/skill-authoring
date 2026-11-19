@@ -5,6 +5,8 @@ Verifies the agent's op-handler dispatch and error propagation.
 
 from __future__ import annotations
 
+from typing import cast
+
 from design.src.agent_design_orchestrator import SkillsDesignAgent
 from shared.src.design.taxonomy_design_request import SkillsOp, SkillsRequest
 from shared.src.design.taxonomy_design_response import SkillsExitCode
@@ -12,7 +14,7 @@ from shared.src.design.taxonomy_design_response import SkillsExitCode
 
 def test_unknown_op_returns_usage_error() -> None:
     agent = SkillsDesignAgent()
-    result = agent.execute(SkillsRequest(op=SkillsOp("bogus"), query=""))
+    result = agent.execute(SkillsRequest(op=cast(SkillsOp, "bogus"), query=""))
     assert result.ok is False
     assert result.exit_code == SkillsExitCode.USAGE_ERROR
 
@@ -67,6 +69,34 @@ def test_creator_path_traversal_rejected() -> None:
             assert "outside the skills root" in str(exc)
             return
     raise AssertionError("expected SkillsUsageError for path traversal")
+
+
+def test_iter_relative_skill_mds_min_depth() -> None:
+    """UT-DESIGN-003: min_depth=3 yields depth >= 3 and skips standard category/skill/SKILL.md."""
+    import tempfile
+    from pathlib import Path
+    from design.src.capabilities_skills_linter import iter_relative_skill_mds
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        # standard skill (depth 2): category/skill/SKILL.md
+        std = root / "cat" / "skill" / "SKILL.md"
+        std.parent.mkdir(parents=True)
+        std.write_text("# std")
+
+        # too-deep skill (depth 3): category/pack/nested/SKILL.md
+        too_deep = root / "cat" / "pack" / "nested" / "SKILL.md"
+        too_deep.parent.mkdir(parents=True)
+        too_deep.write_text("# deep")
+
+        # invalid placement (depth 1): category/SKILL.md
+        invalid = root / "cat" / "SKILL.md"
+        invalid.write_text("# invalid")
+
+        results = list(iter_relative_skill_mds(root, min_depth=3))
+        assert too_deep in results
+        assert std not in results
+        assert invalid not in results
 
 
 def test_creator_inside_root_writes_ok() -> None:
