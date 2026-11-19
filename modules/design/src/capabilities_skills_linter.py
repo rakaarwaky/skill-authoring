@@ -112,6 +112,11 @@ class SkillsLinter(ISkillsLinterProtocol):
                 for issue in report.issues
                 if issue.category == category
                 or (issue.path or "").startswith(f"{category}/")
+                # Library-wide issues carry neither a category nor a path
+                # (duplicate-name / duplicate-description). They are kept
+                # in every category-filtered report so cross-category
+                # duplicate collisions remain visible.
+                or (issue.category is None and (issue.path or "") == "")
             )
         else:
             issues = report.issues
@@ -241,7 +246,12 @@ class SkillsLinter(ISkillsLinterProtocol):
             )
 
         exempt = too_deep_exempt_paths(skills_root)
-        for path in iter_relative_skill_mds(skills_root, depth=3):
+        # Walk the full subtree at min-depth 3 so any SKILL.md deeper than
+        # category/skill/SKILL.md (depth >= 3, including depth 4+) is
+        # flagged TOO_DEEP per the rule SSOT (no nesting deeper than
+        # category/skill/SKILL.md). Without this a SKILL.md at depth 4+
+        # would silently escape the rule.
+        for path in iter_relative_skill_mds(skills_root, min_depth=3):
             # DM1 nested-pack marker: the intermediate directory carrying
             # ``pack.toml`` opts the pack in — its too-deep files are
             # skipped. Without the marker the violation stands unchanged.
@@ -307,7 +317,14 @@ class SkillsLinter(ISkillsLinterProtocol):
             skill_md = skill_dir / "SKILL.md"
             if not skill_md.is_file():
                 continue
-            body = skill_md.read_text(encoding="utf-8")
+            # Tolerate a corrupt or unreadable SKILL.md: decode with
+            # errors="replace" (consistent with parse_frontmatter) and skip
+            # the reference check for this entry on OSError so one bad file
+            # cannot abort the whole lint scan.
+            try:
+                body = skill_md.read_text(encoding="utf-8-sig", errors="replace")
+            except OSError:
+                continue
 
             unlinked: list[str] = []
             for ref_path in iter_files(references_dir):
@@ -365,13 +382,48 @@ def iter_files(folder: Path) -> Iterator[Path]:
             yield Path(dirpath) / name
 
 
-def iter_relative_skill_mds(skills_root: Path, depth: int) -> Iterator[Path]:
-    """Yield ``SKILL.md`` files exactly ``depth`` directories below the root.
+def iter_relative_skill_mds(
+    skills_root: Path,
+    *,
+    depth: int | None = None,
+    min_depth: int | None = None,
+) -> Iterator[Path]:
+    """Yield ``SKILL.md`` files below the root, filtered by depth.
 
-    Linter-only: depth=1 is ``category/SKILL.md`` (invalid placement),
-    depth=3 is ``category/pack/nested/SKILL.md`` (too deep). Hidden and
-    ignored category directories are skipped.
+    Linter-only. Exactly one of *depth* / *min_depth* must be given:
+
+    * *depth* (exact) yields files exactly ``depth`` directories below the
+      root. ``depth=1`` is ``category/SKILL.md`` (invalid placement);
+      ``depth=3`` is ``category/pack/nested/SKILL.md`` (too deep).
+    * *min_depth* (floor) walks the full subtree and yields every
+      ``SKILL.md`` whose path is at least ``min_depth`` directories below
+      the root (e.g. ``min_depth=3`` catches too-deep files at depth 4+,
+      not just depth 3).
+
+    Hidden and ignored category directories are skipped. Symlinked
+    files are not descended into (a ``SKILL.md`` reachable only via a
+    symlink is not yielded), so a symlink loop cannot hang the scan.
     """
+    if (depth is None) == (min_depth is None):
+        raise ValueError("Provide exactly one of depth= or min_depth=")
+
+    if min_depth is not None:
+        for path in skills_root.rglob("SKILL.md"):
+            try:
+                rel = path.relative_to(skills_root)
+            except ValueError:
+                continue
+            parts = rel.parts
+            if len(parts) < min_depth:
+                continue
+            if parts[0].startswith("."):
+                continue
+            if parts[0] in IGNORED_CATEGORY_DIRS:
+                continue
+            yield path
+        return
+
+    # Exact-depth path (depth=1 for invalid placement, depth=3 for too-deep).
     pattern = "/".join(["*"] * depth + ["SKILL.md"])
     for path in skills_root.glob(pattern):
         try:
