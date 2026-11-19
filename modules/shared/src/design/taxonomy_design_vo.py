@@ -34,6 +34,7 @@ from shared.src.common.taxonomy_common_constant import (
 )
 from shared.src.design.taxonomy_design_constant import (
     CITATIONS,
+    MAX_WHEN_TO_USE_LEN,
     SUMMARIES,
 )
 
@@ -67,6 +68,16 @@ class IssueType(str, Enum):
     EMPTY_CATEGORY_DESCRIPTION = "empty-category-description"
     EMPTY_CATEGORY = "empty-category"
     REFERENCE_NOT_LINKED = "reference-not-linked"
+    # ── Body-shape and frontmatter rules ──────────────────────────────
+    MISSING_TITLE_HEADING = "missing-title-heading"
+    MISSING_RULES_HEADING = "missing-rules-heading"
+    MISSING_ROUTING_HEADING = "missing-routing-heading"
+    RULES_TABLE_MISSING = "rules-table-missing"
+    ROUTING_TABLE_MISSING = "routing-table-missing"
+    MISSING_INTRO_PARAGRAPH = "missing-intro-paragraph"
+    MISSING_WHEN_TO_USE = "missing-when-to-use"
+    MISSING_ARGUMENT_HINT = "missing-argument-hint"
+    WHEN_TO_USE_TOO_LONG = "when-to-use-too-long"
 
 
 #: Rule IDs are stable identifiers the skill bodies and the generated
@@ -86,6 +97,15 @@ RULE_IDS: Final = {
     "category-description-nonempty": IssueType.EMPTY_CATEGORY_DESCRIPTION,
     "category-nonempty": IssueType.EMPTY_CATEGORY,
     "references-linked": IssueType.REFERENCE_NOT_LINKED,
+    "when-to-use-length": IssueType.WHEN_TO_USE_TOO_LONG,
+    "when-to-use-present": IssueType.MISSING_WHEN_TO_USE,
+    "argument-hint-present": IssueType.MISSING_ARGUMENT_HINT,
+    "title-heading": IssueType.MISSING_TITLE_HEADING,
+    "rules-heading": IssueType.MISSING_RULES_HEADING,
+    "routing-heading": IssueType.MISSING_ROUTING_HEADING,
+    "rules-table": IssueType.RULES_TABLE_MISSING,
+    "routing-table": IssueType.ROUTING_TABLE_MISSING,
+    "intro-paragraph": IssueType.MISSING_INTRO_PARAGRAPH,
 }
 
 #: Verbatim message templates. Fields are exactly the ones
@@ -118,6 +138,23 @@ ISSUE_MESSAGES: Final = {
     IssueType.EMPTY_CATEGORY_DESCRIPTION: "DESCRIPTION.md has no description.",
     IssueType.EMPTY_CATEGORY: "Category has no skills.",
     IssueType.REFERENCE_NOT_LINKED: "Unlinked reference file(s): {paths}",
+    IssueType.MISSING_TITLE_HEADING: "SKILL.md must start with a '# <Skill Name>' heading.",
+    IssueType.MISSING_RULES_HEADING: "SKILL.md must contain a '## Rules' heading.",
+    IssueType.MISSING_ROUTING_HEADING: "SKILL.md must contain a '## Routing' heading.",
+    IssueType.RULES_TABLE_MISSING: (
+        "SKILL.md '## Rules' section must contain a table with '| ID | Rule | Check |'."
+    ),
+    IssueType.ROUTING_TABLE_MISSING: (
+        "SKILL.md '## Routing' section must contain a table with '| Step | File | Purpose |'."
+    ),
+    IssueType.MISSING_INTRO_PARAGRAPH: (
+        "SKILL.md must have an explanation paragraph between '# <Skill Name>' and '## Rules'."
+    ),
+    IssueType.MISSING_WHEN_TO_USE: "SKILL.md frontmatter must contain 'when-to-use:'.",
+    IssueType.MISSING_ARGUMENT_HINT: "SKILL.md frontmatter must contain 'argument-hint:'.",
+    IssueType.WHEN_TO_USE_TOO_LONG: (
+        "when-to-use is {length} chars; max is {max_len}."
+    ),
 }
 
 

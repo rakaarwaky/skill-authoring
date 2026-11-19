@@ -23,6 +23,7 @@ from typing import Final
 
 # Originally ``librarian.py`` (retired); now this module is the SSOT.
 MAX_DESCRIPTION_LEN: Final = 1024
+MAX_WHEN_TO_USE_LEN: Final = 1024
 
 # ── Rule documentation ───────────────────────────────────────────────
 
@@ -43,6 +44,15 @@ SUMMARIES: Final = {
     "category-description-nonempty": "Category `DESCRIPTION.md` describes the category",
     "category-nonempty": "Every category holds at least one skill",
     "references-linked": "Every file in `references/` is linked from `SKILL.md`",
+    "when-to-use-length": "When-to-use strings are at most 1024 characters",
+    "when-to-use-present": "Every skill carries a `when-to-use:` frontmatter key",
+    "argument-hint-present": "Every skill carries an `argument-hint:` frontmatter key",
+    "title-heading": "SKILL.md starts with a `# <Skill Name>` heading",
+    "rules-heading": "SKILL.md carries a `## Rules` heading",
+    "routing-heading": "SKILL.md carries a `## Routing` heading",
+    "rules-table": "## Rules carries a table with `| ID | Rule | Check |` header",
+    "routing-table": "## Routing carries a table with `| Step | File | Purpose |` header",
+    "intro-paragraph": "SKILL.md contains an explanation paragraph under `# <Skill Name>`",
 }
 
 #: Loader citations: the file each constraint was first read from. Empty
@@ -84,6 +94,15 @@ CITATIONS: Final = {
     "references-linked": (
         "`SKILL.md` body or Routing table must name every `references/` file"
     ),
+    "when-to-use-length": "`skill-improve/references/step-1-format.md` (1024-char limit)",
+    "when-to-use-present": "`template/skill.md` (mandatory frontmatter key)",
+    "argument-hint-present": "`template/skill.md` (mandatory frontmatter key)",
+    "title-heading": "`template/skill.md` (exact body heading shape)",
+    "rules-heading": "`template/skill.md` (exact body heading shape)",
+    "routing-heading": "`template/skill.md` (exact body heading shape)",
+    "rules-table": "`template/skill.md` (Rules table columns)",
+    "routing-table": "`template/skill.md` (Routing table columns)",
+    "intro-paragraph": "`template/skill.md` (one paragraph explanation under title)",
 }
 
 # ── Lifecycle ────────────────────────────────────────────────────────
@@ -95,5 +114,6 @@ __all__ = [
     "CITATIONS",
     "LIFECYCLE_STATES",
     "MAX_DESCRIPTION_LEN",
+    "MAX_WHEN_TO_USE_LEN",
     "SUMMARIES",
 ]
