@@ -38,6 +38,7 @@ from shared.src.common.taxonomy_common_vo import SkillsRoot
 from shared.src.design.contract_design_protocol import ISkillsLinterProtocol
 from shared.src.design.taxonomy_design_constant import (
     MAX_DESCRIPTION_LEN,
+    MAX_WHEN_TO_USE_LEN,
 )
 from shared.src.design.taxonomy_design_entity import (
     Issue,
@@ -90,6 +91,7 @@ class SkillsLinter(ISkillsLinterProtocol):
         self._check_placement(skills_root, issues)
         self._check_duplicates(entries, issues)
         self._check_references(skills_root, entries, issues)
+        self._check_body_shape(skills_root, entries, issues)
 
         report = ValidationReport(
             skills_root=skills_root,
@@ -233,6 +235,27 @@ class SkillsLinter(ISkillsLinterProtocol):
                         )
                     )
 
+            if not entry.when_to_use:
+                issues.append(
+                    Issue(
+                        type=IssueType.MISSING_WHEN_TO_USE.value,
+                        message=issue_message(IssueType.MISSING_WHEN_TO_USE),
+                        path=entry.path,
+                    )
+                )
+            elif len(entry.when_to_use) > MAX_WHEN_TO_USE_LEN:
+                issues.append(
+                    Issue(
+                        type=IssueType.WHEN_TO_USE_TOO_LONG.value,
+                        message=issue_message(
+                            IssueType.WHEN_TO_USE_TOO_LONG,
+                            length=len(entry.when_to_use),
+                            max_len=MAX_WHEN_TO_USE_LEN,
+                        ),
+                        path=entry.path,
+                    )
+                )
+
     @staticmethod
     def _check_placement(skills_root: Path, issues: list[Issue]) -> None:
         """``SKILL.md`` directly under a category, and too-deep files."""
@@ -343,6 +366,135 @@ class SkillsLinter(ISkillsLinterProtocol):
                             IssueType.REFERENCE_NOT_LINKED,
                             paths=", ".join(sorted(unlinked)),
                         ),
+                        path=entry.path,
+                    )
+                )
+
+    @staticmethod
+    def _check_body_shape(
+        skills_root: Path,
+        entries: list[SkillEntry],
+        issues: list[Issue],
+    ) -> None:
+        """Check body shape: frontmatter keys, headings, tables, intro paragraph."""
+        for entry in entries:
+            skill_dir = skills_root / entry.path
+            skill_md = skill_dir / "SKILL.md"
+            if not skill_md.is_file():
+                continue
+
+            try:
+                text = skill_md.read_text(encoding="utf-8-sig", errors="replace")
+            except OSError:
+                continue
+
+            # Check argument-hint in frontmatter
+            frontmatter = parse_frontmatter(skill_md)
+            if not frontmatter.get("argument-hint"):
+                issues.append(
+                    Issue(
+                        type=IssueType.MISSING_ARGUMENT_HINT.value,
+                        message=issue_message(IssueType.MISSING_ARGUMENT_HINT),
+                        path=entry.path,
+                    )
+                )
+
+            # Split frontmatter and body
+            stripped = text.lstrip()
+            if not stripped.startswith("---"):
+                continue
+            parts = stripped.split("---", 2)
+            if len(parts) < 3:
+                continue
+            body = parts[2]
+
+            body_lines = [line.strip() for line in body.splitlines()]
+
+            # 1. Heading check:
+            # First heading must be `# <Skill Name>`
+            # Then `## Rules` and `## Routing`
+            h1_lines = [l for l in body_lines if l.startswith("# ")]
+            h2_lines = [l for l in body_lines if l.startswith("## ")]
+
+            if not h1_lines:
+                issues.append(
+                    Issue(
+                        type=IssueType.MISSING_TITLE_HEADING.value,
+                        message=issue_message(IssueType.MISSING_TITLE_HEADING),
+                        path=entry.path,
+                    )
+                )
+
+            # Check ## Rules heading
+            has_rules_h2 = any(l.lower().startswith("## rules") or l.lower().startswith("## global rules") for l in h2_lines)
+            if not has_rules_h2:
+                issues.append(
+                    Issue(
+                        type=IssueType.MISSING_RULES_HEADING.value,
+                        message=issue_message(IssueType.MISSING_RULES_HEADING),
+                        path=entry.path,
+                    )
+                )
+
+            # Check ## Routing heading
+            has_routing_h2 = any(l.lower().startswith("## routing") or l.lower().startswith("## steps") for l in h2_lines)
+            if not has_routing_h2:
+                issues.append(
+                    Issue(
+                        type=IssueType.MISSING_ROUTING_HEADING.value,
+                        message=issue_message(IssueType.MISSING_ROUTING_HEADING),
+                        path=entry.path,
+                    )
+                )
+
+            # 2. Table checks:
+            # Rules table: | ID | Rule | Check |
+            has_rules_table = any(
+                "| id |" in l.lower() and "| rule |" in l.lower() and "| check |" in l.lower()
+                for l in body_lines
+            )
+            if not has_rules_table:
+                issues.append(
+                    Issue(
+                        type=IssueType.RULES_TABLE_MISSING.value,
+                        message=issue_message(IssueType.RULES_TABLE_MISSING),
+                        path=entry.path,
+                    )
+                )
+
+            # Routing table: | Step | File | Purpose |
+            has_routing_table = any(
+                "| step |" in l.lower() and ("| file |" in l.lower() or "| reference |" in l.lower()) and "| purpose |" in l.lower()
+                for l in body_lines
+            )
+            if not has_routing_table:
+                issues.append(
+                    Issue(
+                        type=IssueType.ROUTING_TABLE_MISSING.value,
+                        message=issue_message(IssueType.ROUTING_TABLE_MISSING),
+                        path=entry.path,
+                    )
+                )
+
+            # 3. Paragraph explanation below # <Skill Name>
+            # There should be non-empty paragraph text before the first ## heading
+            found_h1 = False
+            intro_lines: list[str] = []
+            for line in body_lines:
+                if line.startswith("# "):
+                    found_h1 = True
+                    continue
+                if found_h1:
+                    if line.startswith("## "):
+                        break
+                    if line and not line.startswith("#"):
+                        intro_lines.append(line)
+
+            if not intro_lines:
+                issues.append(
+                    Issue(
+                        type=IssueType.MISSING_INTRO_PARAGRAPH.value,
+                        message=issue_message(IssueType.MISSING_INTRO_PARAGRAPH),
                         path=entry.path,
                     )
                 )

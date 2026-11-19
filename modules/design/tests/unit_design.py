@@ -96,3 +96,95 @@ def test_creator_inside_root_writes_ok() -> None:
         text = plan.skill_md.read_text(encoding="utf-8")
         assert text.startswith("---\nname: my-skill\n")
         assert text.endswith("\n---\n\nbody")
+
+
+# ── Body-shape linter unit tests ───────────────────────────────────
+
+def test_linter_flags_missing_title_heading() -> None:
+    """UT-DESIGN-004: missing '# <Skill Name>' heading raises missing-title-heading."""
+    import tempfile
+    from pathlib import Path
+
+    from design.src.capabilities_skills_linter import SkillsLinter
+    from shared.src.common.taxonomy_common_vo import SkillsRoot
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    linter = SkillsLinter()
+    with tempfile.TemporaryDirectory() as tmp:
+        cat = Path(tmp) / "cat"
+        cat.mkdir()
+        skill_dir = cat / "my-skill"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: my-skill\n"
+            'description: "a"\n'
+            "when-to-use: \"t\"\n"
+            "argument-hint: \"h\"\n"
+            "---\n\n## Rules\n",
+            encoding="utf-8",
+        )
+        report = linter.lint(SkillsRoot(Path(tmp)))
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.MISSING_TITLE_HEADING in issue_types or IssueType.MISSING_TITLE_HEADING.value in issue_types
+
+
+def test_linter_flags_missing_frontmatter_keys() -> None:
+    """UT-DESIGN-005: missing when-to-use or argument-hint flags issues."""
+    import tempfile
+    from pathlib import Path
+
+    from design.src.capabilities_skills_linter import SkillsLinter
+    from shared.src.common.taxonomy_common_vo import SkillsRoot
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    linter = SkillsLinter()
+    with tempfile.TemporaryDirectory() as tmp:
+        cat = Path(tmp) / "cat"
+        cat.mkdir()
+        skill_dir = cat / "my-skill"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: my-skill\n"
+            'description: "a"\n'
+            "---\n\n# My Skill\n\nIntro.\n\n## Rules\n\n| ID | Rule | Check |\n|---|---|---|\n\n## Routing\n\n| Step | File | Purpose |\n|---|---|---|\n",
+            encoding="utf-8",
+        )
+        report = linter.lint(SkillsRoot(Path(tmp)))
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.MISSING_WHEN_TO_USE.value in issue_types
+        assert IssueType.MISSING_ARGUMENT_HINT.value in issue_types
+
+
+def test_linter_passes_valid_shape() -> None:
+    """UT-DESIGN-006: a valid SKILL.md raises no body-shape issues."""
+    import tempfile
+    from pathlib import Path
+
+    from design.src.capabilities_skills_linter import SkillsLinter
+    from shared.src.common.taxonomy_common_vo import SkillsRoot
+
+    linter = SkillsLinter()
+    with tempfile.TemporaryDirectory() as tmp:
+        cat = Path(tmp) / "cat"
+        cat.mkdir()
+        skill_dir = cat / "my-skill"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: my-skill\n"
+            'description: "a skill"\n'
+            "when-to-use: \"t\"\n"
+            "argument-hint: \"h\"\n"
+            "---\n\n# My Skill\n\nYou run this skill.\n\n## Rules\n\n| ID | Rule | Check |\n|----|------|-------|\n| R1 | x | y |\n\n## Routing\n\n| Step | File | Purpose |\n|------|------|---------|\n| 0 | ref.md | purpose |\n",
+            encoding="utf-8",
+        )
+        report = linter.lint(SkillsRoot(Path(tmp)))
+        body_shape_issues = {
+            issue.type for issue in report.issues
+            if getattr(issue.type, "value", issue.type) in {
+                "missing-title-heading", "missing-rules-heading",
+                "missing-routing-heading", "rules-table-missing",
+                "routing-table-missing", "missing-intro-paragraph",
+                "missing-when-to-use", "missing-argument-hint",
+            }
+        }
+        assert body_shape_issues == set()
