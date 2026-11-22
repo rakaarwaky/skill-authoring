@@ -188,11 +188,11 @@ class ObservabilityAgent(IObservabilityAggregate):
             run_dir = tempfile.mkdtemp(prefix="sac-memory-")
             request.flags["run_dir"] = run_dir
 
+        # A hardcoded 7-day window is used inside the capability; no day
+        # window or watermark is exposed to the caller.
         report = scan.scan_memory(
             grok_home,
             run_dir,
-            since_last=request.flags.get("since_last", "0") == "1",
-            days=int(request.flags.get("days", "0")),
         )
 
         return SkillsResult(
@@ -216,20 +216,18 @@ class ObservabilityAgent(IObservabilityAggregate):
             request.flags["run_dir"] = run_dir
 
         # Scan sessions first (builds session records in run_dir).
+        # A hardcoded 7-day window is used inside the capability; no day
+        # window, minimum-turn filter, or limit is exposed to the caller.
         scan_result = scan.scan_sessions(
             grok_home,
             run_dir,
-            days=int(request.flags.get("days", "0")),
-            since_last=request.flags.get("since_last", "0") == "1",
-            min_turns=int(request.flags.get("min_turns", "1")),
-            limit=int(request.flags.get("limit", "0")),
         )
 
         # Mine repeated phrases from the records written to run_dir.
+        # min_sessions is hardcoded inside the capability; nothing exposed.
         report = scan.build_phrases(
             grok_home,
             run_dir,
-            min_sessions=int(request.flags.get("min_sessions", "2")),
         )
 
         return SkillsResult(

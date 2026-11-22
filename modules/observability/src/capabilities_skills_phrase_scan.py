@@ -65,14 +65,12 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         self,
         grok_home: GrokHome,
         run_dir: TraceRunDir,
-        days: int = 0,
-        since_last: bool = False,
-        min_turns: int = 1,
-        limit: int = 0,
     ) -> ScanResult:
         """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
 
-        Writes ``manifest.json`` plus ``sessions/*.json`` into *run_dir*.
+        A weekly (7-day) window is hardcoded — only sessions updated within
+        the last 7 days are kept. ``since_last``, minimum-turn filter, and
+        limit are removed; nothing is configurable by the caller.
         """
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         sessions_root = os.path.join(grok_home, "sessions")
@@ -82,15 +80,8 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         exclude_cwd = _default_exclude_cwd()
         drop_patterns = [re.compile(p, re.IGNORECASE) for p in self.DEFAULT_DROP_PATTERNS]
 
-        cutoff = None
-        if days > 0:
-            cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=days)
-        if since_last:
-            state_path_ = os.path.join(grok_home, "learn", "state.json")
-            try:
-                cutoff = _parse_time(_read_json(state_path_).get("last_completed_at"))
-            except (OSError, ValueError):
-                cutoff = None
+        # Hardcoded 7-day window: keep sessions newer than now - 7 days.
+        cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=7)
 
         kept: list[dict] = []
         seen = 0
@@ -131,7 +122,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                             dropped["older_than_window"] += 1
                             continue
                     rec = _scan_session(sess_dir, summary, drop_patterns)
-                    if rec is None or rec["human_turns"] < min_turns:
+                    if rec is None or rec["human_turns"] < 1:
                         dropped["no_human_turns"] += 1
                         continue
                     kept.append(rec)
@@ -146,10 +137,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                 )
             kept = [r for r in kept if not r["repeated_single_turn"]]
             kept = [r for r in kept if not r["smoke_test"]]
-
-            if limit > 0 and len(kept) > limit:
-                dropped["beyond_limit"] += len(kept) - limit
-                kept = kept[:limit]
 
             records: list[TraceSessionRecord] = []
             for i, r in enumerate(kept):
@@ -168,10 +155,10 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                 kept,
                 seen,
                 dropped,
-                days,
-                since_last,
-                min_turns,
-                limit,
+                days=7,
+                since_last=False,
+                min_turns=1,
+                limit=0,
             )
             _write_usage(grok_home, run_dir, kept)
 
@@ -179,19 +166,26 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
             records=tuple(records),
             sessions_seen=seen,
             dropped=dict(dropped),
+            min_turns=1,
+            min_sessions=2,
         )
 
     def build_phrases(
         self,
         grok_home: GrokHome,
         run_dir: TraceRunDir,
-        min_sessions: int = 2,
     ) -> PhrasesReport:
-        """Read session records from ``run_dir`` and return repeated phrases."""
+        """Read session records from ``run_dir`` and return repeated phrases.
+
+        ``min_sessions`` is hardcoded to ``_EXACT_MIN_SESSIONS`` (2); nothing is
+        configurable by the caller.
+        """
         sessions_dir = os.path.join(run_dir, "sessions")
         exact: dict[str, list[str]] = defaultdict(list)
         stems: dict[str, list[str]] = defaultdict(list)
         lines: dict[str, set[str]] = defaultdict(set)
+
+        min_sessions = self._EXACT_MIN_SESSIONS
 
         if os.path.isdir(sessions_dir):
             for name in sorted(os.listdir(sessions_dir)):
@@ -237,28 +231,21 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         self,
         grok_home: GrokHome,
         run_dir: TraceRunDir,
-        since_last: bool = False,
-        days: int = 0,
     ) -> MemoryReport:
         """Read ``$GROK_HOME/memory-v2`` topics and observations.
 
-        Writes ``memory.json`` into *run_dir* and returns the deterministic
-        report. Never edits memory files.
+        A weekly (7-day) window is hardcoded — only memory items modified
+        within the last 7 days are kept. ``since_last`` and ``days`` are
+        removed; nothing is configurable by the caller. Never edits memory
+        files.
         """
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         memory_root = os.path.join(grok_home, "memory-v2")
         run_dir = os.path.abspath(run_dir)
         os.makedirs(run_dir, exist_ok=True)
 
-        cutoff = None
-        if days > 0:
-            cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=days)
-        if since_last:
-            state_path_ = os.path.join(grok_home, "learn", "state.json")
-            try:
-                cutoff = _parse_time(_read_json(state_path_).get("last_completed_at"))
-            except (OSError, ValueError):
-                cutoff = None
+        # Hardcoded 7-day window: keep memory items mtime >= now - 7 days.
+        cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=7)
 
         topics: list[MemoryTopicRow] = []
         observations: list[MemoryObservationRow] = []
@@ -405,8 +392,8 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
             topics=tuple(topics),
             observations=tuple(observations),
             keep_list=tuple(keep_skills),
-            since_last=bool(since_last),
-            watermark=cutoff.isoformat() if cutoff else "",
+            since_last=False,
+            watermark=cutoff.isoformat(),
             generated_at=dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
         )
 

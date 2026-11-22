@@ -122,25 +122,28 @@ prompts, stems, and instruction lines.
 
 #### Business Logic
 
-- `scan_sessions` walks `$GROK_HOME/sessions`, skips excluded cwds and
-  smoke-test sessions, and writes session records plus a `manifest.json` into
-  `run_dir`.
+- `scan_sessions` walks `$GROK_HOME/sessions` with a hardcoded weekly (7-day)
+  window — only sessions updated within the last 7 days are kept — skips
+  excluded cwds, smoke-test and below-1-turn sessions, and writes session
+  records plus a `manifest.json` into `run_dir`. No day window override,
+  minimum-turn filter, limit, or watermark is exposed to the caller — every
+  tunable is hardcoded inside the capability.
 - `build_phrases` reads session records from `run_dir` and groups repeated
-  exact prompts (>=2 sessions), stems (>=3 sessions), and instruction lines
-  (>=3 sessions).
+  exact prompts (>=2 sessions, hardcoded), stems (>=3 sessions), and
+  instruction lines (>=3 sessions).
 - Single-turn prompts repeated >=3 times are dropped as noise.
 
 #### Edge Cases
 
 - Missing `chat_history.jsonl` in a session → session skipped.
-- Empty or below-`min_turns` sessions → dropped from kept records.
+- Sessions with no human turns → dropped from kept records.
 - `run_dir` missing → created with `tempfile.mkdtemp`.
 
 #### Technical Specification
 
 | Aspect       | Detail                                                    |
 | ------------ | --------------------------------------------------------- |
-| **Input**    | `SkillsRequest(op=TRACES, flags)`. Source: surface / root CLI. |
+| **Input**    | `SkillsRequest(op=TRACES, flags: grok_home?, run_dir?)`. Source: surface / root CLI. |
 | **Output**   | `SkillsResult(ok, op, exit_code, message, phrases_exact, phrases_stems, phrases_lines, scan_summary, root?)`. Destination: surface / root CLI. |
 | **Protocol** | `ISkillsTracesProtocol`                                   |
 | **Method**   | `scan_sessions`, `build_phrases`                          |

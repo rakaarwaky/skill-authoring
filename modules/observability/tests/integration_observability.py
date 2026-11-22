@@ -29,8 +29,6 @@ def test_scan_memory_writes_memory_json_to_run_dir(tmp_path) -> None:
     report = scan.scan_memory(
         "$HOME/.grok",
         run_dir,
-        since_last=False,
-        days=0,
     )
     # memory.json must exist next to the report.
     import json
