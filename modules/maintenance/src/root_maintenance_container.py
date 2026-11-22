@@ -17,7 +17,6 @@ from capabilities_skills_mover import SkillsMover
 from capabilities_skills_piner import SkillsPiner
 from capabilities_skills_prune import SkillsPrune
 from capabilities_skills_runner import SkillsRunner
-
 from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.maintenance.contract_maintenance_aggregate import (
     ISkillsMaintenanceAggregate,
