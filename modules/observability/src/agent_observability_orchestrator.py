@@ -180,7 +180,12 @@ class ObservabilityAgent(IObservabilityAggregate):
     def _execute_memory(
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
-        """MEMORY: mine repeated signals from memory-v2."""
+        """MEMORY: mine repeated signals from memory-v2.
+
+        ``run_dir`` is always set by the CLI surface to
+        ``~/.agents/learn`` — the fallback to a temp dir is kept only as a
+        defensive guard for direct programmatic callers that omit it.
+        """
         scan = self._require(self._scan, "scan")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "") or ""
@@ -199,7 +204,7 @@ class ObservabilityAgent(IObservabilityAggregate):
             ok=True,
             op=op,
             exit_code=SkillsExitCode.CLEAN,
-            message=f"Memory mined → {run_dir}",
+            message=f"Memory mined → {run_dir}/memory.json",
             memory=report,
             root=self._root(request),
         )
@@ -207,7 +212,12 @@ class ObservabilityAgent(IObservabilityAggregate):
     def _execute_phrases(
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
-        """PHRASES: mine repeated prompts from session traces."""
+        """PHRASES: mine repeated prompts from session traces.
+
+        ``run_dir`` is always set by the CLI surface to
+        ``~/.agents/learn`` — the fallback to a temp dir is kept only as a
+        defensive guard for direct programmatic callers that omit it.
+        """
         scan = self._require(self._scan, "scan")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "") or ""
@@ -234,7 +244,7 @@ class ObservabilityAgent(IObservabilityAggregate):
             ok=True,
             op=op,
             exit_code=SkillsExitCode.CLEAN,
-            message=f"Phrases mined → {run_dir}",
+            message=f"Phrases mined → {run_dir}/phrase.json",
             phrases_exact=report.exact_prompts,
             phrases_stems=report.stems,
             phrases_lines=report.repeated_instruction_lines,
