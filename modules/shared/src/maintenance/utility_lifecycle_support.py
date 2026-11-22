@@ -14,11 +14,9 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import shutil
 import tarfile
 import time
-from collections.abc import Iterable
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
@@ -48,15 +46,11 @@ __all__ = [
     "ACTIVE",
     "ARCHIVED",
     "BACKUP_DIRNAME",
-    "BLOBS_DIRNAME",
     "DEFAULT_CREATED_BY",
     "DEFAULT_KEEP",
-    "DEFAULT_LEDGER_ACTOR",
-    "DEFAULT_LEDGER_COMPACT_DAYS",
     "DEFAULT_STATE",
     "EXCLUDED_PATHS",
     "FIELDS",
-    "LEDGER_FILENAME",
     "MANIFEST_NAME",
     "STALE",
     "TARBALL_NAME",
@@ -65,7 +59,6 @@ __all__ = [
     "default_pack_root",
     "delete_record",
     "find_skill_dir",
-    "manifest_sha256",
     "now_iso",
     "pack_usage_path",
     "read_record",
@@ -104,11 +97,6 @@ BACKUP_DIRNAME = ".lifecycle_backups"
 TARBALL_NAME = "skills.tar.gz"
 MANIFEST_NAME = "manifest.json"
 
-LEDGER_FILENAME = ".lifecycle_ledger.jsonl"
-BLOBS_DIRNAME = "blobs"
-DEFAULT_LEDGER_ACTOR = "lifecycle"
-DEFAULT_LEDGER_COMPACT_DAYS = 90
-
 EXCLUDED_PATHS: frozenset[str] = frozenset(
     {
         BACKUP_DIRNAME,
@@ -117,7 +105,6 @@ EXCLUDED_PATHS: frozenset[str] = frozenset(
         ".git",
         ".archive",
         ARCHIVE_DIRNAME,
-        LEDGER_FILENAME,
         "venv",
         "node_modules",
     }
@@ -194,47 +181,6 @@ def now_iso() -> str:
 def entry_ts(entry: dict) -> str:
     value = entry.get("ts")
     return value if isinstance(value, str) and value else ""
-
-
-def _parse_ts(ts: str) -> float | None:
-    if not ts:
-        return None
-    try:
-        return datetime.fromisoformat(ts).timestamp()
-    except ValueError:
-        return None
-
-
-def _is_newer_than(entry: dict, days: int) -> bool:
-    ts = entry_ts(entry)
-    parsed = _parse_ts(ts)
-    if parsed is None:
-        return True
-    cutoff = _parse_ts(now_iso()) - days * 86400
-    return parsed >= cutoff
-
-
-def _is_valid_sha256(digest: str) -> bool:
-    return bool(re.fullmatch(r"[0-9a-f]{64}", digest))
-
-
-def manifest_sha256(manifest: Any) -> list[str]:
-    seen: dict[str, None] = {}
-    if isinstance(manifest, Iterable) and not isinstance(manifest, (str, bytes)):
-        for item in manifest:
-            if isinstance(item, dict):
-                digest = item.get("sha256")
-                if isinstance(digest, str) and digest and digest not in seen:
-                    seen[digest] = None
-    return list(seen)
-
-
-def _blob_dir(root: Path | Any) -> Path:
-    return Path(root) / BACKUP_DIRNAME / BLOBS_DIRNAME
-
-
-def _ledger_file(root: Path | Any | None) -> Path:
-    return Path(root) / LEDGER_FILENAME
 
 
 def _is_cache_dir(name: str) -> bool:

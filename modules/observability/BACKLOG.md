@@ -8,31 +8,16 @@ Last Updated: 2026-11-09
 
 ## Progress Overview
 
-The observability feature owns the audit-ledger and per-skill telemetry
-side: `SkillsLedger` (append/read/compact/rollback), `SkillsTelemetry`
-(seed, reanchor, curated report, views bump), and `SkillsPhraseScan`
-(session scan + phrase mining). `ObservabilityAgent` dispatches
-`ledger`/`usage`/`traces` behind `IObservabilityAggregate`. Every
+The observability feature owns the per-skill telemetry side:
+`SkillsTelemetry` (seed, reanchor, curated report, views bump), and
+`SkillsPhraseScan` (session scan + phrase mining). `ObservabilityAgent`
+dispatches `usage`/`traces` behind `IObservabilityAggregate`. Every
 requirement in [FRD.md](FRD.md) is implemented and wired into
 `modules/root_skills_container.py` and
 `modules/observability/src/root_observability_container.py`; nothing is
 in progress.
 
 ## Backlog Status
-
-### FR-observability-001: Append and read the audit ledger
-
-| Aspect        | Detail     |
-| ------------- | ---------- |
-| State         | Done       |
-| Done          | Wired      |
-| In Progress   | None       |
-| Risk          | None       |
-| Updated       | 2026-11-09 |
-
-`SkillsLedger.ledger_append` appends one content-addressed entry to the
-audit ledger; `ledger_read` returns up to `limit` most recent entries.
-The agent routes `SkillsOp.LEDGER` to it via `_execute_ledger`.
 
 ### FR-observability-002: Bump and report per-skill telemetry
 

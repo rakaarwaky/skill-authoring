@@ -157,7 +157,7 @@ The mcp surface exposes `surface_mcp_command.py` as the command router over the 
 
 #### Proposed Solution
 
-The observability feature implements ledger, telemetry, and traces capabilities behind `IObservabilityAggregate`, wired into `root_observability_container.py`. It imports `taxonomy_observability_constant` and `taxonomy_observability_error` for domain types.
+The observability feature implements telemetry and traces capabilities behind `IObservabilityAggregate`, wired into `root_observability_container.py`. It imports `taxonomy_observability_constant` and `taxonomy_observability_error` for domain types.
 
 #### Main User Flow
 

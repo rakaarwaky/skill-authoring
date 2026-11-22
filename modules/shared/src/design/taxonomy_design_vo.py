@@ -6,7 +6,7 @@ The design-domain ``_vo`` module. It carries:
   and the ``rule``/``is_valid_skill_name``/``issue_message`` helpers);
 * the authoring result/mutation VOs (``ValidationReport``,
   ``MutationPlan``, ...);
-* the lifecycle telemetry/ledger VOs (``TelemetryRow``, ``LedgerEntry``);
+* the lifecycle telemetry VOs (``TelemetryRow``);
 * the lifecycle config VO.
 
 Cross-domain shared VOs (``SkillRecord``, ``CatalogReport``,
@@ -22,7 +22,7 @@ defaults. No imports from capabilities, agent, root, or surface layers.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
@@ -353,20 +353,6 @@ class TelemetryRow:
     activity_window_start: str | None
 
 
-@dataclass(frozen=True)
-class LedgerEntry:
-    """One append-only audit-ledger row."""
-
-    id: str
-    ts: str
-    actor: str
-    action: str
-    skill: str
-    before: tuple[dict[str, Any], ...] = ()
-    after: tuple[dict[str, Any], ...] = ()
-    evidence: dict[str, Any] = field(default_factory=dict)
-
-
 # ─── Lifecycle config ──────────────────────────────────────────────────
 
 
@@ -395,7 +381,6 @@ __all__ = [
     "RULES",
     "RULE_IDS",
     "IssueType",
-    "LedgerEntry",
     "Level",
     "LifecycleConfig",
     "LintReport",

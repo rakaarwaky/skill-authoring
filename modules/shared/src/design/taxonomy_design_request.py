@@ -32,7 +32,7 @@ SkillQuery = NewType("SkillQuery", str)
 #: deliberately broader than the design protocol surface. Design owns
 #: create and lint. Lifecycle verbs (RUN, PAUSE, RESUME) route to the
 #: maintenance aggregate via ``ISkillsRunnerProtocol`` in the maintenance
-#: contract; telemetry ops (USAGE, STATUS, LEDGER, TRACES) route through
+#: contract; telemetry ops (USAGE, STATUS, TRACES) route through
 #: ``ISkillsTelemetryProtocol`` in the observability contract. PRUNE and
 #: the remaining lifecycle verbs are dispatched by the maintenance and
 #: observability aggregates. Keep the enum as the authoritative op list;
@@ -59,7 +59,6 @@ class SkillsOp(StrEnum):
     UNPIN = "unpin"
     RESTORE = "restore"
     PRUNE = "prune"
-    LEDGER = "ledger"
     TRACES = "traces"
 
 

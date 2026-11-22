@@ -20,7 +20,7 @@ through the injected aggregate.
 **Entry points:** `SkillsMcpAdapter` (class, public) exposes every `sac`
 verb as an MCP tool, constructed with the composed `ISkillsAggregate`;
 `SkillsMcpAdapter.list_tools` returns MCP tool descriptors, one per `sac`
-verb (24 tools); `SkillsMcpAdapter.execute_tool` dispatches an MCP tool
+verb (18 tools); `SkillsMcpAdapter.execute_tool` dispatches an MCP tool
 call to the aggregate and returns an MCP result envelope (`ok`, `content`).
 
 **Visible states:** the surface itself is stateless; visible states come
@@ -35,9 +35,9 @@ reported an issue with `content` carrying the `SkillsResult` message.
 
 | Variant  | Detail                                                            |
 | -------- | ----------------------------------------------------------------- |
-| 20 tools | One MCP tool per `sac` verb (list, read, lint, catalog, discover, |
+| 18 tools | One MCP tool per `sac` verb (list, read, lint, catalog, discover, |
 |          | move, archive, create, status, usage, run, pause, resume, pin,    |
-|          | unpin, restore, prune, purge, ledger)                      |
+|          | unpin, restore, prune)                      |
 |          | Token: `SkillsOp`                                                 |
 |          | Value: `ISkillsAggregate.execute`                                 |
 

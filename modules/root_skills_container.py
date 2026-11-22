@@ -294,7 +294,7 @@ _MAINTENANCE_OPS = frozenset(
     }
 )
 _OBSERVABILITY_OPS = frozenset(
-    {SkillsOp.LEDGER, SkillsOp.USAGE, SkillsOp.TRACES, SkillsOp.STATUS}
+    {SkillsOp.USAGE, SkillsOp.TRACES, SkillsOp.STATUS}
 )
 _STORAGE_OPS = frozenset(
     {

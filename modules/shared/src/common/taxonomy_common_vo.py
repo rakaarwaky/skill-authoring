@@ -30,9 +30,6 @@ SkillDescription = NewType("SkillDescription", str)
 ErrorMessage = NewType("ErrorMessage", str)
 """A formatted error message for skill-domain exceptions."""
 
-EntryId = NewType("EntryId", str)
-"""Opaque ledger entry identifier."""
-
 SkillsJsonPayload = NewType("SkillsJsonPayload", Mapping[str, object])
 """The pure-data JSON list of global skills (``SkillsLister.list_skills_json``).
 
@@ -215,7 +212,6 @@ __all__ = [
     "CategoryName",
     "DiscoveryMatch",
     "DiscoveryResult",
-    "EntryId",
     "ErrorMessage",
     "MutationOutcome",
     "MutationPlan",
@@ -238,7 +234,6 @@ _layer_symbols = {
     "DiscoveryMatch": DiscoveryMatch,
     "DiscoveryResult": DiscoveryResult,
     "ErrorMessage": ErrorMessage,
-    "EntryId": EntryId,
     "MutationOutcome": MutationOutcome,
     "MutationPlan": MutationPlan,
     "MutationStep": MutationStep,

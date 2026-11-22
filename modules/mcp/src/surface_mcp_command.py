@@ -38,7 +38,7 @@ class SkillsMcpAdapter:
     # ── Tool registry ───────────────────────────────────────────────
 
     def list_tools(self) -> list[dict]:
-        """Return MCP tool descriptors, one per sac verb (19 tools).
+        """Return MCP tool descriptors, one per sac verb (18 tools).
 
         Each descriptor carries a draft-07 ``inputSchema`` so MCP clients
         can validate arguments before they reach the aggregate.
@@ -288,17 +288,6 @@ class SkillsMcpAdapter:
                     },
                 },
             },
-            {
-                "name": "sac_ledger",
-                "description": "View or compact audit ledger",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "action": {"type": "string", "description": "Ledger action to run"},
-                        "skill": {"type": "string", "description": "Optional skill name filter"},
-                    },
-                },
-            },
         ]
 
     def execute_tool(self, name: str, arguments: dict) -> dict:
@@ -416,7 +405,6 @@ class SkillsMcpAdapter:
             "unpin": SkillsOp.UNPIN,
             "restore": SkillsOp.RESTORE,
             "prune": SkillsOp.PRUNE,
-            "ledger": SkillsOp.LEDGER,
         }
         try:
             return mapping[tool]

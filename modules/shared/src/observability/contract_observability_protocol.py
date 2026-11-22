@@ -1,6 +1,6 @@
 """Observability-domain capability contracts (AES contract layer, ABC traits).
 
-One seam per observability-side capability: traces, ledger, telemetry.
+One seam per observability-side capability: traces, telemetry.
 Capabilities implement these; the composition root injects them into
 the agent. No import of sibling domain contracts — observability keeps
 its own seams.
@@ -11,18 +11,12 @@ No implementation code here — ABCs only, bodies are ``...``.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 
 from shared.src.common.taxonomy_common_vo import (
-    EntryId,
-    MutationOutcome,
     SkillName,
     SkillsRoot,
 )
-from shared.src.design.taxonomy_design_vo import (
-    LedgerEntry,
-    TelemetryRow,
-)
+from shared.src.design.taxonomy_design_vo import TelemetryRow
 from shared.src.observability.taxonomy_observability_constant import (
     GROK_HOME_ENV,
     MIN_SESSIONS_DEFAULT,
@@ -68,41 +62,6 @@ class ISkillsTracesProtocol(ABC):
         ...
 
 
-class ISkillsLedgerProtocol(ABC):
-    """Ledger capability: append / read / compact / rollback."""
-
-    @abstractmethod
-    def ledger_append(
-        self, root: SkillsRoot | Path, entry: LedgerEntry
-    ) -> LedgerEntry:
-        """Append *entry* to the audit ledger; return the stored entry."""
-        ...
-
-    @abstractmethod
-    def ledger_read(
-        self,
-        root: SkillsRoot | Path,
-        limit: int | None = None,
-    ) -> tuple[LedgerEntry, ...]:
-        """Read up to *limit* most recent ledger entries."""
-        ...
-
-    @abstractmethod
-    def ledger_compact(
-        self,
-        root: SkillsRoot | Path,
-        older_than_days: int | None = None,
-        keep_recent: int = 0,
-    ) -> MutationOutcome:
-        """Compact the ledger beyond *older_than_days*, keeping *keep_recent*."""
-        ...
-
-    @abstractmethod
-    def rollback_entry(self, root: SkillsRoot | Path, entry_id: EntryId) -> MutationOutcome:
-        """Roll back to the state at *entry_id*; return the result."""
-        ...
-
-
 class ISkillsTelemetryProtocol(ABC):
     """Telemetry capability: usage tracking and status reports."""
 
@@ -128,13 +87,11 @@ class ISkillsTelemetryProtocol(ABC):
 
 
 __all__ = [
-    "ISkillsLedgerProtocol",
     "ISkillsTelemetryProtocol",
     "ISkillsTracesProtocol",
 ]
 
 _layer_symbols = {
-    "ISkillsLedgerProtocol": ISkillsLedgerProtocol,
     "ISkillsTelemetryProtocol": ISkillsTelemetryProtocol,
     "ISkillsTracesProtocol": ISkillsTracesProtocol,
     "GROK_HOME_ENV": GROK_HOME_ENV,
