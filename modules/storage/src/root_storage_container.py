@@ -16,7 +16,6 @@ from agent_storage_orchestrator import SkillsStorageAgent
 from capabilities_skills_archiver import SkillsArchiver
 from capabilities_skills_exporter import SkillsExporter
 from capabilities_skills_restore import SkillsRestore
-
 from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.storage.contract_storage_aggregate import (
     ISkillsStorageAggregate,
