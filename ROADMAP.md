@@ -54,15 +54,7 @@ The Skill Authoring pack ships three invocation modes — `--create`, `--improve
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-007: shared
-
-| Aspect       | Detail                                                        |
-|--------------|---------------------------------------------------------------|
-| Priority     | P2                                                            |
-| State        | Done                                                          |
-| Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
-
-### PR-SKILLDESIGN-008: storage
+### PR-SKILLDESIGN-007: storage
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|

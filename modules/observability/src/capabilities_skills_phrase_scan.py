@@ -273,7 +273,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                 return True
             return mtime >= cutoff
 
-        # --- Topics: global + every workspace ------------------------------
         topic_roots = []
         if os.path.isdir(os.path.join(memory_root, "global", "topics")):
             topic_roots.append(("global", os.path.join(memory_root, "global", "topics")))
@@ -362,7 +361,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                     )
                 )
 
-        # --- Observations: every workspace _inbox --------------------------
         if os.path.isdir(workspaces_root):
             for ws in sorted(os.listdir(workspaces_root)):
                 inbox = os.path.join(workspaces_root, ws, "observations", "_inbox")
@@ -395,7 +393,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                         )
                     )
 
-        # --- Keep-list: skills named in keep/never-delete topics -----------
         for t in topics:
             if t.matched_section == "keep":
                 for s in t.skill_names:

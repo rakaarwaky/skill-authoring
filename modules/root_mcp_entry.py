@@ -29,10 +29,18 @@ from mcp.server import Server as _McpServer
 from mcp.server.stdio import stdio_server as _stdio_server
 from mcp.types import (
     CallToolResult as _CallToolResult,
+)
+from mcp.types import (
     ListToolsResult as _ListToolsResult,
+)
+from mcp.types import (
     TextContent as _TextContent,
+)
+from mcp.types import (
     Tool as _Tool,
 )
+
+from shared.src.storage.utility_path_bootstrap import bootstrap_ns_roots
 
 # Evict the installed mcp package from sys.modules so that re-adding modules/
 # to the path lets `from mcp.src...` (used by root_cli_entry) resolve to
@@ -44,8 +52,6 @@ for _ns in (_TOOLS_ROOT, _MODULES):
     _ns_str = str(_ns)
     if _ns.is_dir() and _ns_str not in sys.path:
         sys.path.insert(0, _ns_str)
-
-from shared.src.storage.utility_path_bootstrap import bootstrap_ns_roots
 
 bootstrap_ns_roots()
 
@@ -84,7 +90,11 @@ async def _call_tool(context, params) -> _CallToolResult:
     name = params.name
     args = params.arguments or {}
     result = adapter.execute_tool(name, args)
-    text = result["content"][0]["text"] if result.get("content") else f"{result.get('op')}: exit {result.get('exit_code')}"
+    text = (
+        result["content"][0]["text"]
+        if result.get("content")
+        else f"{result.get('op')}: exit {result.get('exit_code')}"
+    )
     return _CallToolResult(content=[_TextContent(type="text", text=text)])
 
 

@@ -18,8 +18,8 @@ from shared.src.maintenance.utility_lifecycle_support import (
     _normalize,
     _now_iso,
     _read_sidecar,
-    pack_usage_path,
     _with_lock,
+    pack_usage_path,
 )
 from shared.src.maintenance.utility_skills_mutation import atomic_write_json
 from shared.src.observability.contract_observability_protocol import (
@@ -33,7 +33,7 @@ __all__ = ["SkillsTelemetry"]
 class SkillsTelemetry(ISkillsTelemetryProtocol):
     """Telemetry capability: sidecar reads, bumps, and the curated report."""
 
-# ─── Block 2: Module Contract ─────────────
+    # ─── Block 2: Module Contract ─────────────
     def seed_record_if_missing(self, skill: str, root: SkillsRoot) -> None:
         skills_root = Path(root)
         path = pack_usage_path(skills_root)
@@ -100,7 +100,7 @@ class SkillsTelemetry(ISkillsTelemetryProtocol):
     def view(self, skill: str, root: SkillsRoot) -> None:
         self._bump(skill, root, "views")
 
-# ─── Block 3: Module Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def _bump(
         self,
         skill: str,

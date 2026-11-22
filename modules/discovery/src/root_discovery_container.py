@@ -7,6 +7,7 @@ contract to the surface and entry layers.
 Wiring only: no business logic, no orchestration policy, no technical
 parsing, no UI behaviour — those live in capabilities / agent / surface.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,6 +17,7 @@ from capabilities_discovery_catalog import SkillsCatalog
 from capabilities_discovery_finder import SkillsDiscover
 from capabilities_discovery_lister import SkillsLister
 from capabilities_discovery_reader import SkillsPackReader
+
 from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.discovery.contract_discovery_aggregate import (
     ISkillsDiscoveryAggregate,
@@ -41,9 +43,7 @@ class DiscoveryContainer:
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
         self._catalog = catalog or SkillsCatalog()
-        self._discover = discover or SkillsDiscover(
-            self._catalog, SkillsBm25fRanker()
-        )
+        self._discover = discover or SkillsDiscover(self._catalog, SkillsBm25fRanker())
         self._lister = lister or SkillsLister()
         self._reader = reader or SkillsPackReader()
         self._orchestrator = SkillsDiscoveryAgent(

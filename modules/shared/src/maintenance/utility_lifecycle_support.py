@@ -63,15 +63,15 @@ __all__ = [
     "archive_root",
     "archive_skill",
     "default_pack_root",
+    "delete_record",
     "find_skill_dir",
     "manifest_sha256",
     "now_iso",
+    "pack_usage_path",
     "read_record",
     "restore_skill",
     "tar_data_filter",
     "write_record",
-    "pack_usage_path",
-    "delete_record",
 ]
 
 # ── Lifecycle constants (local to maintenance, not shared with siblings) ─
@@ -563,12 +563,6 @@ def restore_skill(skill: str, pack_root: Path, reanchor=None) -> dict:
     record["activity_window_start"] = _now_iso()
     write_record(archived_dir, record, pack_root)
     try:
-        shutil.move(str(archived_dir), str(destination))
-    except OSError:
-        record["state"] = prior_state
-        if prior_archived_at is not None:
-            record["archived_at"] = prior_archived_at
-        write_record(archived_dir, record, pack_root)
         shutil.move(str(archived_dir), str(destination))
     except OSError:
         record["state"] = prior_state

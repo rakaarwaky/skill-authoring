@@ -39,7 +39,7 @@ class PinState:
     pinned_at: str | None = None
 
 
-__all__ = ["MaintenanceRecord", "PruneCandidate", "PinState"]
+__all__ = ["MaintenanceRecord", "PinState", "PruneCandidate"]
 
 _layer_symbols = {
     "MaintenanceRecord": MaintenanceRecord,

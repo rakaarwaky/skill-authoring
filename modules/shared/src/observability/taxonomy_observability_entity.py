@@ -14,6 +14,7 @@ from shared.src.observability.taxonomy_observability_constant import (
     MIN_SESSIONS_DEFAULT,
     MIN_TURNS_DEFAULT,
 )
+from shared.src.observability.taxonomy_observability_vo import Turns
 
 
 @dataclass(frozen=True)
@@ -24,7 +25,7 @@ class TraceSessionRecord:
     index: int
     cwd: str
     updated_at: str = ""
-    turns: tuple[str, ...] = ()
+    turns: Turns = ()
     slash_commands: Mapping[str, int] = field(default_factory=dict)
     skills_loaded: Mapping[str, int] = field(default_factory=dict)
     trace_path: str = ""

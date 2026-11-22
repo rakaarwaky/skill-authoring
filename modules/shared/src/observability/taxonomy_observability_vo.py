@@ -14,6 +14,9 @@ from typing import NewType
 GrokHome = NewType("GrokHome", str)
 #: The run directory one trace scan writes into (``report.md``, ``sessions/``).
 TraceRunDir = NewType("TraceRunDir", str)
+#: A turn is one user utterance in a trace session. ``Turns`` carries the
+#: ordered tuple of turn strings instead of a bare primitive ``tuple``.
+Turns = NewType("Turns", tuple[str, ...])
 
 
 @dataclass(frozen=True)
@@ -84,6 +87,7 @@ __all__ = [
     "PhraseRow",
     "PhrasesReport",
     "TraceRunDir",
+    "Turns",
 ]
 
 _layer_symbols = {

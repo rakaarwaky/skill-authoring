@@ -13,6 +13,7 @@ from typing import cast
 from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
+    SkillsUsageError,
 )
 from shared.src.maintenance.contract_maintenance_aggregate import (
     ISkillsMaintenanceAggregate,
