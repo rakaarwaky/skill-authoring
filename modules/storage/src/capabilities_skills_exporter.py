@@ -39,6 +39,10 @@ class SkillsExporter(ISkillsExportProtocol):
         export_dir.mkdir(parents=True, exist_ok=True)
 
         target_files = self._collect_skill_files(skill_dir)
+        # Filter to supported text extensions only, skipping binary/cache noise
+        supported_exts = {".md", ".py", ".rs", ".ts", ".json", ".sh"}
+        target_files = [(rp, fp) for rp, fp in target_files
+                       if fp.suffix.lower() in supported_exts]
         sections: list[str] = []
         for rel_path, file_path in target_files:
             text = file_path.read_text(encoding="utf-8", errors="replace").rstrip()
@@ -47,12 +51,32 @@ class SkillsExporter(ISkillsExportProtocol):
             else:
                 sections.append(f"## {rel_path}\n")
 
-        out_content = "\n".join(sections)
+        index_section = self._format_index_section(skill_name, target_files)
+        out_content = index_section + "\n" + "\n".join(sections)
         out_file = export_dir / f"{skill_name}.md"
         out_file.write_text(out_content, encoding="utf-8")
         return out_file
 
     # ─── Block 3: Module Helpers ───
+    def _format_index_section(
+        self,
+        skill_name: str,
+        target_files: list[tuple[str, Path]],
+    ) -> str:
+        """Format the Index section listing all exported file relative paths."""
+        lines = [
+            f"# {skill_name}",
+            "",
+            "## Index",
+            "",
+        ]
+        for rel_path, _ in target_files:
+            lines.append(f"- `{rel_path}`")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+        return "\n".join(lines)
+
     def _collect_skill_files(self, skill_dir: Path) -> list[tuple[str, Path]]:
         """Collect key files: SKILL.md, reference/, template/, scripts/, README.md."""
         files: list[tuple[str, Path]] = []

@@ -76,6 +76,52 @@ def test_exporter_exports_skill(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     assert "## README.md\n\n# Readme content" in content
 
 
+def test_exporter_index_section(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """UT-STORAGE-005: Exported Markdown begins with an Index section listing all files."""
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
+
+    pack_root = tmp_path / "skills"
+    skill_dir = pack_root / "test-category" / "my-skill"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text("# My Skill\nSome description\n", encoding="utf-8")
+
+    ref_dir = skill_dir / "references"
+    ref_dir.mkdir()
+    (ref_dir / "step-1.md").write_text("# Step 1\nStep 1 details\n", encoding="utf-8")
+    # Un-supported extension (.dat) should be excluded
+    (ref_dir / "cache.dat").write_text("binary-data", encoding="utf-8")
+
+    scripts_dir = skill_dir / "scripts"
+    scripts_dir.mkdir()
+    (scripts_dir / "helper.py").write_text("print('test')\n", encoding="utf-8")
+    # Unsupported extension (.bin) should be excluded
+    (scripts_dir / "data.bin").write_text("binary-data", encoding="utf-8")
+
+    (skill_dir / "README.md").write_text("# Readme content\n", encoding="utf-8")
+
+    exporter = SkillsExporter()
+    out_file = exporter.export("my-skill", root=SkillsRoot(pack_root))
+    content = out_file.read_text(encoding="utf-8")
+
+    # Index section is the first section
+    assert content.startswith("# my-skill\n")
+    assert "## Index\n" in content
+    # Supported files are listed in the Index
+    assert "- `SKILL.md`" in content
+    assert "- `references/step-1.md`" in content
+    assert "- `scripts/helper.py`" in content
+    assert "- `README.md`" in content
+    # Unsupported files are NOT in the Index
+    assert "cache.dat" not in content
+    assert "data.bin" not in content
+    # Index comes before the first file section
+    index_pos = content.index("## Index")
+    skill_section_pos = content.index("## SKILL.md")
+    assert index_pos < skill_section_pos
+
+
 def test_exporter_skill_not_found(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """UT-STORAGE-003: SkillsExporter raises SkillNotFoundError on missing skill."""
     fake_home = tmp_path / "home"
