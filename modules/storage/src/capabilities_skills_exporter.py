@@ -41,8 +41,9 @@ class SkillsExporter(ISkillsExportProtocol):
         target_files = self._collect_skill_files(skill_dir)
         # Filter to supported text extensions only, skipping binary/cache noise
         supported_exts = {".md", ".py", ".rs", ".ts", ".json", ".sh"}
-        target_files = [(rp, fp) for rp, fp in target_files
-                       if fp.suffix.lower() in supported_exts]
+        target_files = [
+            (rp, fp) for rp, fp in target_files if fp.suffix.lower() in supported_exts
+        ]
         sections: list[str] = []
         for rel_path, file_path in target_files:
             text = file_path.read_text(encoding="utf-8", errors="replace").rstrip()
@@ -77,12 +78,18 @@ class SkillsExporter(ISkillsExportProtocol):
         lines.append("")
         return "\n".join(lines)
 
+    def _is_hidden(self, file_path: Path, base_dir: Path) -> bool:
+        """True when any component of *file_path* relative to *base_dir* is dotted."""
+        return any(
+            part.startswith(".") for part in file_path.relative_to(base_dir).parts
+        )
+
     def _collect_skill_files(self, skill_dir: Path) -> list[tuple[str, Path]]:
         """Collect key files: SKILL.md, reference/, template/, scripts/, README.md."""
         files: list[tuple[str, Path]] = []
 
         skill_md = skill_dir / "SKILL.md"
-        if skill_md.is_file():
+        if skill_md.is_file() and not self._is_hidden(skill_md, skill_dir):
             files.append(("SKILL.md", skill_md))
 
         subdirs = [
@@ -95,12 +102,12 @@ class SkillsExporter(ISkillsExportProtocol):
                 sub_path = skill_dir / sub_name
                 if sub_path.is_dir():
                     for item in sorted(sub_path.rglob("*")):
-                        if item.is_file() and not item.name.startswith("."):
+                        if item.is_file() and not self._is_hidden(item, sub_path):
                             rel_posix = item.relative_to(skill_dir).as_posix()
                             files.append((rel_posix, item))
 
         readme = skill_dir / "README.md"
-        if readme.is_file():
+        if readme.is_file() and not self._is_hidden(readme, skill_dir):
             files.append(("README.md", readme))
 
         return files
