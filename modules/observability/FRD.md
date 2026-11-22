@@ -72,9 +72,11 @@ prompts, stems, and instruction lines.
 - `scan_sessions` walks `$GROK_HOME/sessions` with a hardcoded weekly (7-day)
   window — only sessions updated within the last 7 days are kept — skips
   excluded cwds, smoke-test and below-1-turn sessions, and writes session
-  records plus a `manifest.json` into `run_dir`. No day window override,
-  minimum-turn filter, limit, or watermark is exposed to the caller — every
-  tunable is hardcoded inside the capability.
+  records plus a `manifest.json` into `run_dir`. Before writing, every
+  existing file under `run_dir` is cleared (manifest.json, usage.json,
+  phrase.json, memory.json, sessions/) so stale records from a prior run do
+  not linger. No day window override, minimum-turn filter, limit, or watermark
+  is exposed to the caller — every tunable is hardcoded inside the capability.
 - `build_phrases` reads session records from `run_dir` and groups repeated
   exact prompts (>=2 sessions, hardcoded), stems (>=3 sessions), and
   instruction lines (>=3 sessions).
@@ -84,7 +86,8 @@ prompts, stems, and instruction lines.
 
 - Missing `chat_history.jsonl` in a session → session skipped.
 - Sessions with no human turns → dropped from kept records.
-- `run_dir` missing → created with `tempfile.mkdtemp`.
+- `run_dir` missing → created with `os.makedirs(exist_ok=True)`.
+- Existing `run_dir` contents → cleared before fresh write.
 
 #### Technical Specification
 

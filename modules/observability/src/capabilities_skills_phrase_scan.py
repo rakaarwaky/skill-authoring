@@ -11,6 +11,7 @@ import datetime as dt
 import json
 import os
 import re
+import shutil
 from collections import Counter, defaultdict
 from urllib.parse import unquote
 
@@ -75,6 +76,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         sessions_root = os.path.join(grok_home, "sessions")
         run_dir = os.path.abspath(run_dir)
+        _clear_run_dir(run_dir)
         os.makedirs(os.path.join(run_dir, "sessions"), exist_ok=True)
 
         exclude_cwd = _default_exclude_cwd()
@@ -242,6 +244,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         memory_root = os.path.join(grok_home, "memory-v2")
         run_dir = os.path.abspath(run_dir)
+        _clear_run_dir(run_dir)
         os.makedirs(run_dir, exist_ok=True)
 
         # Hardcoded 7-day window: keep memory items mtime >= now - 7 days.
@@ -708,6 +711,25 @@ def _write_manifest(
     }
     with open(os.path.join(run_dir, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=1, ensure_ascii=False)
+
+
+def _clear_run_dir(run_dir: str) -> None:
+    """Remove all existing files under *run_dir* before a fresh write.
+
+    The ``learn`` folder itself is kept; only its contents (manifest.json,
+    usage.json, phrase.json, memory.json, sessions/) are wiped. This runs at
+    the start of ``scan_sessions`` and ``scan_memory`` so a new invocation
+    never leaves stale session records from a prior run behind.
+    """
+    run_dir = os.path.abspath(run_dir)
+    if not os.path.isdir(run_dir):
+        return
+    for entry in os.listdir(run_dir):
+        path = os.path.join(run_dir, entry)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
 
 
 def _write_usage(
