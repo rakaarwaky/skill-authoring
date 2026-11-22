@@ -452,19 +452,24 @@ class SkillsLinter(ISkillsLinterProtocol):
                     )
                 )
 
-            # 2. Table checks:
+            # 2. Table checks — header row must match exactly.
             # Rules table: | ID | Rule | Check |
+            # Routing table: | Scenario | File | Purpose |
             has_rules_table = False
             has_routing_table = False
-            for l in body_lines:
-                if l.startswith("|") and l.endswith("|"):
-                    cells = [c.strip().lower() for c in l.split("|")[1:-1]]
-                    if "id" in cells and "rule" in cells and ("check" in cells or "why" in cells):
-                        has_rules_table = True
-                    routing_col1 = any(any(k in c for k in ["step", "file", "files", "reference", "scenario", "document", "subcommand", "workflow", "use case", "task", "rule code", "user wants"]) for c in cells)
-                    routing_col2 = any(any(k in c for k in ["purpose", "description", "action", "files", "load", "focus", "what it checks", "reference"]) for c in cells)
-                    if len(cells) >= 2 and (routing_col1 or routing_col2):
-                        has_routing_table = True
+            for i, l in enumerate(body_lines):
+                if not (l.startswith("|") and l.endswith("|")):
+                    continue
+                # Only check the FIRST row (header) of each table block.
+                cells = [c.strip().lower() for c in l.split("|")[1:-1]]
+                if not cells:
+                    continue
+                # Rules header: exact match ID + Rule + Check
+                if cells == ["id", "rule", "check"]:
+                    has_rules_table = True
+                # Routing header: exact match Scenario + File + Purpose
+                if cells == ["scenario", "file", "purpose"]:
+                    has_routing_table = True
 
             if not has_rules_table:
                 issues.append(

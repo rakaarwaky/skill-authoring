@@ -141,10 +141,10 @@ ISSUE_MESSAGES: Final = {
     IssueType.MISSING_RULES_HEADING: "SKILL.md must contain a '## Rules' heading.",
     IssueType.MISSING_ROUTING_HEADING: "SKILL.md must contain a '## Routing' heading.",
     IssueType.RULES_TABLE_MISSING: (
-        "SKILL.md '## Rules' section must contain a table with '| ID | Rule | Check |'."
+        "SKILL.md '## Rules' section must contain a table with header '| ID | Rule | Check |'."
     ),
     IssueType.ROUTING_TABLE_MISSING: (
-        "SKILL.md '## Routing' section must contain a table with '| Step | File | Purpose |'."
+        "SKILL.md '## Routing' section must contain a table with header '| Scenario | File | Purpose |'."
     ),
     IssueType.MISSING_INTRO_PARAGRAPH: (
         "SKILL.md must have an explanation paragraph between '# <Skill Name>' and '## Rules'."

@@ -27,7 +27,7 @@ def test_scan_memory_writes_memory_json_to_run_dir(tmp_path) -> None:
     scan = SkillsPhraseScan()
     run_dir = str(tmp_path / "memrun")
     report = scan.scan_memory(
-        "/home/raka/.grok",
+        "$HOME/.grok",
         run_dir,
         since_last=False,
         days=0,

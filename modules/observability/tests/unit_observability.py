@@ -53,7 +53,7 @@ def test_memory_report_roundtrips_via_skills_result() -> None:
             MemoryTopicRow(
                 workspace="global",
                 title="orca worktree conventions",
-                path="/home/raka/.grok/memory-v2/global/topics/orca-worktree-conventions.md",
+                path="$HOME/.grok/memory-v2/global/topics/orca-worktree-conventions.md",
                 skill_names=("skill-traces", "skill-authoring"),
                 quoted_lines=("skill-traces reads memory topics",),
                 matched_section="learn",
