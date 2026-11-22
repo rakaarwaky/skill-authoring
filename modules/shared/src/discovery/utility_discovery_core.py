@@ -24,7 +24,6 @@ from shared.src.common.taxonomy_common_entity import (
     CategorySummary,
     SkillEntry,
 )
-from shared.src.common.taxonomy_common_error import SkillsRootError
 
 
 def relpath(path: Path, skills_root: Path) -> str:

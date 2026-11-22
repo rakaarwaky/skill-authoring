@@ -28,9 +28,9 @@ from shared.src.maintenance.utility_lifecycle_support import (
     _now_iso,
     _parse_iso,
     _read_sidecar,
+    _with_lock,
     default_pack_root,
     pack_usage_path,
-    _with_lock,
 )
 from shared.src.maintenance.utility_skills_mutation import (
     atomic_write_json as _atomic_write_json,
@@ -108,14 +108,14 @@ class SkillsRunner(ISkillsRunnerProtocol):
         config = load_lifecycle_config(SkillsRoot(root))
         new_dict = asdict(replace(config, pause=True))
         config_path = Path(root) / ".lifecycle_config.json"
-        atomic_write_json(config_path, new_dict)
+        _atomic_write_json(config_path, new_dict)
         return {"paused": True}
 
     def resume(self, root: SkillsRoot) -> dict:
         config = load_lifecycle_config(SkillsRoot(root))
         new_dict = asdict(replace(config, pause=False))
         config_path = Path(root) / ".lifecycle_config.json"
-        atomic_write_json(config_path, new_dict)
+        _atomic_write_json(config_path, new_dict)
         return {"paused": False}
 
     def _seed_record_if_missing(self, skill: str, pack_root: Path) -> None:

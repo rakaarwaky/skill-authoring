@@ -165,26 +165,7 @@ The observability feature implements ledger, telemetry, and traces capabilities 
 2. Skill-design walks `$GROK_HOME/sessions` and returns a compact scan outcome.
 3. It mines repeated phrases and writes them to the report.
 
-### PR-SKILLDESIGN-007: shared
-<!-- Tier P2: shared entry. -->
-
-#### User Stories
-
-| As a | I want | So that | Priority |
-|------|--------|---------|----------|
-| Pack maintainer | Keep shared domain types in one place | Every feature imports from shared | The shared kernel holds contract+taxonomy+utility |
-
-#### Proposed Solution
-
-The shared folder carries `contract_*`, `taxonomy_*`, and `utility_*` files per domain (design, discovery, governance, maintenance, observability, storage), plus DATA.md and BACKLOG.md. Every crate folder carries its taxonomy types.
-
-#### Main User Flow
-
-1. Feature capability imports its domain taxonomy from `shared.src.<domain>`.
-2. The shared module exposes only stateless pure functions and domain types.
-3. No cross-domain imports leak into shared.
-
-### PR-SKILLDESIGN-008: storage
+### PR-SKILLDESIGN-007: storage
 <!-- Tier P2: storage entry. -->
 
 #### User Stories

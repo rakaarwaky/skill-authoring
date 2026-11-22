@@ -30,12 +30,7 @@ adapters:
   - name: "architecture"
     weight: 3.0
 
-ignored_rules:
-  - "markdownlint::MD013"
-  - "markdownlint::MD060"
-  - "markdownlint::MD033"
-  - "markdownlint::MD024"
-  - "markdownlint::MD012"
+ignored_rules: []
   
 ignored_paths: []
 

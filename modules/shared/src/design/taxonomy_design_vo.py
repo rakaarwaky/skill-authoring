@@ -34,7 +34,6 @@ from shared.src.common.taxonomy_common_constant import (
 )
 from shared.src.design.taxonomy_design_constant import (
     CITATIONS,
-    MAX_WHEN_TO_USE_LEN,
     SUMMARIES,
 )
 
