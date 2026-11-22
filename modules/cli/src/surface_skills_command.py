@@ -5,8 +5,7 @@ scan (``lint``), the catalog builder/reader (``catalog``), the search
 (``discover``), the mutation verbs (``move``/``archive``/``create``), and the
 lifecycle verbs (``status``/``usage``/``run``/``pause``/``resume``/
 ``pin``/``unpin``/``restore``/``list-unmanaged``/
-``list-archived``/``prune``/
-``ledger``).
+``list-archived``/``prune``).
 
 The pack root is always the repository's ``skills/`` pack; there is no
 ``--skills-root`` override and no JSON export — output is a terminal
@@ -76,7 +75,6 @@ _LIFECYCLE_OPS = {
     "list-unmanaged": SkillsOp.LIST_UNMANAGED,
     "list-archived": SkillsOp.LIST_ARCHIVED,
     "prune": SkillsOp.PRUNE,
-    "ledger": SkillsOp.LEDGER,
 }
 
 #: The results table header/separator and empty-result line, verbatim from
@@ -333,8 +331,6 @@ def _render_lifecycle(sub: str, op: SkillsOp, result: SkillsResult) -> int:
         return _render_list_archived(result)
     if sub == "prune":
         return _render_prune(result)
-    if sub == "ledger":
-        return _render_ledger(result)
 
     return exit_code
 
@@ -412,14 +408,6 @@ def _render_prune(result: SkillsResult) -> int:
     return 0
 
 
-def _render_ledger(result: SkillsResult) -> int:
-    records = result.records or ()
-    info(f"[OK] ledger — {len(records)} record(s)")
-    for rec in records:
-        info(f"  {rec}")
-    return 0
-
-
 def _print_usage() -> None:
     banner()
     info(f"{BOLD()}Discovery:{RESET()}")
@@ -457,8 +445,6 @@ def _print_usage() -> None:
     info(f"{BOLD()}sac list-unmanaged{RESET()}                List skills without telemetry")
     info(f"{BOLD()}sac list-archived{RESET()}                 List archived skills")
     info(f"{BOLD()}sac prune [--days N] [--purge-days N] [--apply]{RESET()}  Archive idle skills, purge old archives")
-    print()
-    info(f"{BOLD()}sac ledger{RESET()}                        View or compact audit ledger")
     print()
     info(f"{BOLD()}Note:{RESET()} move/archive/create are dry-run by default; pass --apply to write.")
     info(

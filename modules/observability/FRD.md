@@ -3,66 +3,13 @@
 ## Feature Overview
 
 The observability feature sits in the agent layer and answers the audit and
-telemetry questions about the skill pack: who changed what, how often each
-skill is viewed, and which phrases repeat across sessions. It owns three
-capabilities — SkillsLedger, SkillsTelemetry, and SkillsPhraseScan — and one
-merged agent: `ObservabilityAgent` dispatches the `LEDGER`, `USAGE`, and
-`TRACES` ops behind `IObservabilityAggregate`. The agent performs no filesystem
-I/O itself; all I/O is delegated to the capabilities.
+telemetry questions about the skill pack: how often each skill is viewed, and
+which phrases repeat across sessions. It owns two capabilities — SkillsTelemetry,
+and SkillsPhraseScan — and one merged agent: `ObservabilityAgent` dispatches the
+`USAGE` and `TRACES` ops behind `IObservabilityAggregate`. The agent performs no
+filesystem I/O itself; all I/O is delegated to the capabilities.
 
 ## Functional Requirements
-
-### FR-observability-001: Append and read the audit ledger
-
-**Description:** `ObservabilityAgent.execute(request)` with `op=LEDGER` shall
-route to the ledger capability to append one content-addressed entry to the
-append-only JSONL audit ledger and return the stored entry to the caller.
-
-#### Business Logic
-
-- `ledger_append` sets a UUID id, ISO timestamp, actor (from lifecycle config or
-  a default actor), and defaults for action, skill, before, after, and evidence.
-- Content-addressed blobs are copied into the blob store keyed by sha256 when a
-  valid digest references a readable source file.
-- A blob store copy failure is logged as a warning; the append still proceeds.
-- `ledger_read` parses the JSONL file line by line, skipping blank or corrupt
-  lines, and returns up to `limit` entries in insertion order.
-- A `SkillsError` raised by the ledger is caught by the agent and mapped to a
-  `SkillsResult` carrying the error's exit code and message.
-
-#### Edge Cases
-
-- Missing ledger file → `ledger_read` returns an empty tuple.
-- Invalid sha256 digest in a manifest entry → `SkillsUsageError` raised at
-  append time.
-- A blob store copy failure → logged warning, append still proceeds.
-
-#### Technical Specification
-
-| Aspect       | Detail                                                    |
-| ------------ | --------------------------------------------------------- |
-| **Input**    | `SkillsRequest(op=LEDGER, query, flags, root?)`. Source: surface / root CLI. |
-| **Output**   | `SkillsResult(ok, op, exit_code, message, root?)`. Destination: surface / root CLI. |
-| **Protocol** | `ISkillsLedgerProtocol`                                   |
-| **Method**   | `ledger_append`                                           |
-| **Event**    | None                                                      |
-| **Error**    | `CLEAN` 0, `ISSUES_FOUND` 1, `USAGE_ERROR` 2              |
-
-#### Test
-
-| Context                              | When Action                          | Then Observable Result                            |
-| ------------------------------------ | ------------------------------------ | ------------------------------------------------- |
-| A valid entry is appended            | The caller invokes `LEDGER` append   | `ok=True`; entry stored with defaults filled      |
-| The ledger file has existing entries | The caller invokes `LEDGER` append   | The new entry is appended after the existing ones |
-| The ledger file does not exist       | The caller invokes `LEDGER` append   | A new ledger file is created                      |
-| An invalid sha256 digest is supplied | The caller invokes `LEDGER` append   | `SkillsUsageError` raised; `USAGE_ERROR` returned |
-
-#### Metric
-
-| Target Metric       | Value |
-| ------------------- | ----- |
-| Append p95 latency  | 10 ms |
-| Append accuracy     | 100 % |
 
 ### FR-observability-002: Bump and report per-skill telemetry
 

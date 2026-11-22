@@ -1,6 +1,6 @@
 """Unit tests: typed JSON inputSchema on every sac MCP tool descriptor.
 
-Verifies that ``SkillsMcpAdapter.list_tools()`` declares all 19 verbs and
+Verifies that ``SkillsMcpAdapter.list_tools()`` declares all 18 verbs and
 that each descriptor carries a draft-07 ``inputSchema`` with the required
 properties, correct types, and enums the CLI accepts.
 """
@@ -41,7 +41,6 @@ EXPECTED_TOOLS = (
     "sac_unpin",
     "sac_restore",
     "sac_prune",
-    "sac_ledger",
 )
 
 #: Tools whose args are mandatory; the schema must list them as required.
@@ -80,7 +79,6 @@ PROPERTY_TYPES = {
     "sac_pin": {"skill": "string"},
     "sac_unpin": {"skill": "string"},
     "sac_prune": {"days": "integer", "purge_days": "integer", "dry_run": "boolean"},
-    "sac_ledger": {"action": "string", "skill": "string"},
 }
 
 
@@ -105,13 +103,13 @@ def _schema(tool: str) -> dict:
 
 # ─── Tests: registry coverage ────────────────────────────────────────
 
-def test_list_tools_declares_all_nineteen_verbs():
-    """UT-MCP-SCHEMA-001: list_tools returns exactly the 19 sac verbs."""
+def test_list_tools_declares_all_eighteen_verbs():
+    """UT-MCP-SCHEMA-001: list_tools returns exactly the 18 sac verbs."""
     names = [d["name"] for d in _adapter().list_tools()]
 
     assert names == list(EXPECTED_TOOLS)
-    assert len(names) == 19
-    assert len(set(names)) == 19
+    assert len(names) == 18
+    assert len(set(names)) == 18
 
 
 def test_every_descriptor_carries_an_object_schema():
@@ -160,7 +158,6 @@ def test_tools_without_required_args_omit_the_key():
         "sac_pause",
         "sac_resume",
         "sac_prune",
-        "sac_ledger",
     ):
         assert "required" not in _schema(tool), tool
 
@@ -189,21 +186,13 @@ def test_optional_numeric_and_boolean_args_are_typed():
 # ─── Tests: enums ────────────────────────────────────────────────────
 
 def test_enum_properties_are_constrained():
-    """UT-MCP-SCHEMA-009: kind, verb, and ledger action expose their values."""
+    """UT-MCP-SCHEMA-009: kind and verb expose their values."""
     assert _schema("sac_create")["properties"]["kind"]["enum"] == ["skill", "category"]
     assert _schema("sac_usage")["properties"]["verb"]["enum"] == [
         "report",
         "seed",
         "reanchor",
     ]
-
-
-def test_ledger_action_is_a_free_form_string():
-    """UT-MCP-SCHEMA-010: ledger action is a string, not a closed enum."""
-    action = _schema("sac_ledger")["properties"]["action"]
-
-    assert action["type"] == "string"
-    assert "enum" not in action
 
 
 # ─── Tests: parameterless tools ──────────────────────────────────────

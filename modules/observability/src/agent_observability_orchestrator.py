@@ -1,9 +1,9 @@
 """Observability agent (AES agent layer).
 
-Merges ``SkillsObservabilityAgent`` (ledger / telemetry) and
+Merges ``SkillsObservabilityAgent`` (telemetry) and
 ``SkillsPhraseAgent`` (traces / phrase scan) into a single
 ``ObservabilityAgent`` implementing ``IObservabilityAggregate``.
-Owns the ops: ledger, usage, traces/phrases.
+Owns the ops: usage, traces/phrases.
 """
 
 from __future__ import annotations
@@ -29,7 +29,6 @@ from shared.src.observability.contract_observability_aggregate import (
     IObservabilityAggregate,
 )
 from shared.src.observability.contract_observability_protocol import (
-    ISkillsLedgerProtocol,
     ISkillsTelemetryProtocol,
     ISkillsTracesProtocol,
 )
@@ -38,21 +37,18 @@ __all__ = ["IObservabilityAggregate", "ObservabilityAgent"]
 
 
 class ObservabilityAgent(IObservabilityAggregate):
-    """Merged observability agent: ledger / usage / traces.
+    """Merged observability agent: usage / traces.
 
-    Dispatches ``SkillsOp.LEDGER`` to the ledger capability,
-    ``SkillsOp.USAGE`` to the telemetry capability, and
-    ``SkillsOp.TRACES`` to the phrase-scan capability.
+    Dispatches ``SkillsOp.USAGE`` to the telemetry capability,
+    and ``SkillsOp.TRACES`` to the phrase-scan capability.
     """
 
     def __init__(
         self,
-        ledger: ISkillsLedgerProtocol | None = None,
         telemetry: ISkillsTelemetryProtocol | None = None,
         scan: ISkillsTracesProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
-        self._ledger = ledger
         self._telemetry = telemetry
         self._scan = scan
         self._default_root = default_root
@@ -111,28 +107,6 @@ class ObservabilityAgent(IObservabilityAggregate):
         return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
 
     # ─── Block 3: Module Helpers ────────────────────────────────
-    def _execute_ledger(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """LEDGER: append an entry to the audit ledger."""
-        ledger = self._require(self._ledger, "ledger")
-        root = self._root(request)
-        entry = {
-            "action": str(request.flags.get("action", "patch")),
-            "skill": str(request.query or ""),
-            "before": request.flags.get("before", []),
-            "after": request.flags.get("after", []),
-            "evidence": request.flags.get("evidence", {}),
-        }
-        try:
-            result = ledger.ledger_append(root, entry)
-        except OSError as failure:
-            return SkillsResult(
-                ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
-                message=str(failure),
-            )
-        return SkillsResult(ok=True, op=op, message=str(result))
-
     def _execute_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """USAGE: bump/report per-skill telemetry sidecar."""
         telemetry = self._require(self._telemetry, "telemetry")
