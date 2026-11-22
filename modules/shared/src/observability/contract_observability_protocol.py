@@ -49,12 +49,12 @@ class ISkillsTracesProtocol(ABC):
         self,
         grok_home: GrokHome,
         run_dir: TraceRunDir,
-        days: int = 0,
-        since_last: bool = False,
-        min_turns: int = 1,
-        limit: int = 0,
     ) -> ScanResult:
-        """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome."""
+        """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
+
+        A hardcoded weekly (7-day) window is used; no day window override,
+        minimum-turn filter, limit, or watermark is exposed.
+        """
         ...
 
     @abstractmethod
@@ -62,7 +62,6 @@ class ISkillsTracesProtocol(ABC):
         self,
         grok_home: GrokHome,
         run_dir: TraceRunDir,
-        min_sessions: int = 2,
     ) -> PhrasesReport:
         """Mine repeated exact prompts and repeated instruction lines."""
         ...

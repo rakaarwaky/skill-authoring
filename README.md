@@ -35,7 +35,8 @@ Skill Authoring is the skill-authoring skill that keeps the skill tree clean, co
 
 | Command | Purpose |
 |---------|---------|
-| `sac phrases [--grok-home DIR] [--run-dir DIR] [--days N] [--since-last] [--min-turns N] [--limit N] [--min-sessions N] [--json]` | Mine repeated user prompts from session traces |
+| `sac phrases [--json]` | Mine repeated user prompts from session traces (hardcoded 7-day window, grok_home/run_dir auto-filled) |
+| `sac memory [--json]` | Mine memory-v2 topics & observations (hardcoded 7-day window, grok_home/run_dir auto-filled) |
 
 ### Mutations
 

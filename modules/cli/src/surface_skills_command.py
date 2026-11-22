@@ -37,7 +37,9 @@ Data rows carry no prefix; status lines always do.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
+import tempfile
 
 from shared.src.common.taxonomy_common_error import SkillsUsageError
 from shared.src.design.contract_design_aggregate import ISkillsAggregate
@@ -140,29 +142,18 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
 def _cmd_phrases(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac phrases`` to the traces agent; render repeated phrases."""
     parser = argparse.ArgumentParser(prog="sac phrases", add_help=True)
-    parser.add_argument("--grok-home", metavar="DIR", default="", help="$GROK_HOME directory")
-    parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to write session records into")
-    parser.add_argument("--days", type=str, default="0", help="Only keep sessions within N days")
-    parser.add_argument("--since-last", action="store_true", default=False, help="Skip sessions processed in a prior run")
-    parser.add_argument("--min-turns", type=str, default="1", help="Minimum human turns per kept session")
-    parser.add_argument("--limit", type=str, default="0", help="Max sessions to keep")
-    parser.add_argument("--min-sessions", type=str, default="2", help="Minimum distinct sessions for a phrase to count")
     parser.add_argument("--json", action="store_true", default=False, help="Emit JSON")
     try:
         namespace = parser.parse_args(rest)
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
-    run_dir = getattr(namespace, "run_dir", "") or ""
+    grok_home = os.environ.get("GROK_HOME") or os.path.expanduser("~/.grok")
+    run_dir = tempfile.mkdtemp(prefix="sac-phrases-")
     flags: dict[str, object] = {
         "traces_action": "phrases",
-        "grok_home": getattr(namespace, "grok_home", "") or "",
+        "grok_home": grok_home,
         "run_dir": run_dir,
-        "days": str(getattr(namespace, "days", "0") or "0"),
-        "since_last": "1" if getattr(namespace, "since_last", False) else "0",
-        "min_turns": str(getattr(namespace, "min_turns", "1") or "1"),
-        "limit": str(getattr(namespace, "limit", "0") or "0"),
-        "min_sessions": str(getattr(namespace, "min_sessions", "2") or "2"),
     }
     request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
     result = aggregate.execute(request)
@@ -242,23 +233,18 @@ def _render_phrases(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
 def _cmd_memory(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac memory`` to the traces agent; render memory-v2 signals."""
     parser = argparse.ArgumentParser(prog="sac memory", add_help=True)
-    parser.add_argument("--grok-home", metavar="DIR", default="", help="$GROK_HOME directory")
-    parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to write memory.json into")
-    parser.add_argument("--days", type=str, default="0", help="Only keep memory items within N days")
-    parser.add_argument("--since-last", action="store_true", default=False, help="Skip items processed in a prior run")
     parser.add_argument("--json", action="store_true", default=False, help="Emit JSON")
     try:
         namespace = parser.parse_args(rest)
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
-    run_dir = getattr(namespace, "run_dir", "") or ""
+    grok_home = os.environ.get("GROK_HOME") or os.path.expanduser("~/.grok")
+    run_dir = tempfile.mkdtemp(prefix="sac-memory-")
     flags: dict[str, object] = {
         "traces_action": "memory",
-        "grok_home": getattr(namespace, "grok_home", "") or "",
+        "grok_home": grok_home,
         "run_dir": run_dir,
-        "days": str(getattr(namespace, "days", "0") or "0"),
-        "since_last": "1" if getattr(namespace, "since_last", False) else "0",
     }
     request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
     result = aggregate.execute(request)
@@ -473,14 +459,10 @@ def _print_usage() -> None:
     info(f"{BOLD()}sac discover <query>{RESET()}             Search the catalog")
     print()
     info(f"{BOLD()}Observation:{RESET()}")
-    info(f"{BOLD()}sac phrases [--grok-home DIR] [--run-dir DIR] [--days N]{RESET()}  "
-         "Mine repeated user prompts from session traces")
-    info(f"{BOLD()}sac phrases [--since-last] [--min-turns N] [--limit N]{RESET()}      "
-         "[--min-sessions N] [--json]")
-    info(f"{BOLD()}sac memory [--grok-home DIR] [--run-dir DIR] [--days N]{RESET()}     "
-         "Mine memory-v2 topics & observations")
-    info(f"{BOLD()}sac memory [--since-last][--json]{RESET()}                          "
-         "reuse the prior run's watermark")
+    info(f"{BOLD()}sac phrases [--json]{RESET()}   "
+         "Mine repeated user prompts from session traces (hardcoded 7-day window)")
+    info(f"{BOLD()}sac memory [--json]{RESET()}    "
+         "Mine memory-v2 topics & observations (hardcoded 7-day window)")
     print()
     info(f"{BOLD()}Mutations:{RESET()}")
     info(f"{BOLD()}sac move <name> <category> [--apply]{RESET()}  Move a skill to a category")

@@ -58,9 +58,13 @@ The agent routes `SkillsOp.USAGE` to it via `_execute_usage`.
 | Risk          | None       |
 | Updated       | 2026-11-09 |
 
-`SkillsPhraseScan.scan_sessions` walks `$GROK_HOME/sessions` and
-`build_phrases` mines repeated exact prompts, stems, and instruction
-lines. The agent routes `SkillsOp.TRACES` to it via `_execute_phrases`.
+`SkillsPhraseScan.scan_sessions` walks `$GROK_HOME/sessions` with a
+hardcoded weekly (7-day) window — only sessions updated within the last
+7 days are kept — and `build_phrases` mines repeated exact prompts,
+stems, and instruction lines. No day window, `since_last`, minimum-turn
+filter, limit, or `min_sessions` flag is exposed to the caller — every
+tunable is hardcoded inside the capability. The agent routes
+`SkillsOp.TRACES` to it via `_execute_phrases`.
 
 ## Reference
 
