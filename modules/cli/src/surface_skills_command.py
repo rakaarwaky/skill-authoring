@@ -39,7 +39,6 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-import tempfile
 
 from shared.src.common.taxonomy_common_error import SkillsUsageError
 from shared.src.design.contract_design_aggregate import ISkillsAggregate
@@ -142,14 +141,13 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
 def _cmd_phrases(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac phrases`` to the traces agent; render repeated phrases."""
     parser = argparse.ArgumentParser(prog="sac phrases", add_help=True)
-    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON")
     try:
         namespace = parser.parse_args(rest)
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
     grok_home = os.environ.get("GROK_HOME") or os.path.expanduser("~/.grok")
-    run_dir = tempfile.mkdtemp(prefix="sac-phrases-")
+    run_dir = os.path.join(os.path.expanduser("~/.agents"), "learn")
     flags: dict[str, object] = {
         "traces_action": "phrases",
         "grok_home": grok_home,
@@ -158,89 +156,66 @@ def _cmd_phrases(rest: list[str], aggregate: ISkillsAggregate) -> int:
     request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
     result = aggregate.execute(request)
 
-    return _render_phrases(result, getattr(namespace, "json", False), run_dir)
+    return _render_phrases(result, run_dir)
 
 
-def _render_phrases(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
-    """Render a phrases result and return its exit code."""
+def _render_phrases(result: SkillsResult, run_dir: str) -> int:
+    """Render a phrases result as JSON and return its exit code."""
     if not result.ok:
         err(result.message)
         return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
 
-    exact = result.phrases_exact or ()
-    stems = result.phrases_stems or ()
-    lines = result.phrases_lines or ()
+    import json as _json
 
-    if json_mode:
-        import json as _json
-
-        print(
-            _json.dumps(
-                {
-                    "run_dir": run_dir,
-                    "exact_prompts": [
-                        {
-                            "phrase": r.phrase,
-                            "sessions": r.sessions,
-                            "occurrences": r.occurrences,
-                            "session_ids": list(r.session_ids),
-                        }
-                        for r in exact
-                    ],
-                    "prompt_stems_12_words": [
-                        {
-                            "phrase": r.phrase,
-                            "sessions": r.sessions,
-                            "occurrences": r.occurrences,
-                            "session_ids": list(r.session_ids),
-                        }
-                        for r in stems
-                    ],
-                    "repeated_instruction_lines": [
-                        {
-                            "phrase": r.phrase,
-                            "sessions": r.sessions,
-                            "occurrences": r.occurrences,
-                            "session_ids": list(r.session_ids),
-                        }
-                        for r in lines
-                    ],
-                },
-                indent=2,
-                ensure_ascii=False,
-            )
+    print(
+        _json.dumps(
+            {
+                "run_dir": run_dir,
+                "exact_prompts": [
+                    {
+                        "phrase": r.phrase,
+                        "sessions": r.sessions,
+                        "occurrences": r.occurrences,
+                        "session_ids": list(r.session_ids),
+                    }
+                    for r in result.phrases_exact or ()
+                ],
+                "prompt_stems_12_words": [
+                    {
+                        "phrase": r.phrase,
+                        "sessions": r.sessions,
+                        "occurrences": r.occurrences,
+                        "session_ids": list(r.session_ids),
+                    }
+                    for r in result.phrases_stems or ()
+                ],
+                "repeated_instruction_lines": [
+                    {
+                        "phrase": r.phrase,
+                        "sessions": r.sessions,
+                        "occurrences": r.occurrences,
+                        "session_ids": list(r.session_ids),
+                    }
+                    for r in result.phrases_lines or ()
+                ],
+            },
+            indent=2,
+            ensure_ascii=False,
         )
-        return 0
-
-    info(f"[OK] phrases — {result.message}")
-    if exact:
-        info(f"{len(exact)} repeated exact prompt(s):")
-        for r in exact:
-            info(f"  [{r.sessions} sessions / {r.occurrences} occurrences] {r.phrase}")
-    if stems:
-        info(f"{len(stems)} repeated prompt stem(s):")
-        for r in stems:
-            info(f"  [{r.sessions} sessions / {r.occurrences} occurrences] {r.phrase}")
-    if lines:
-        info(f"{len(lines)} repeated instruction line(s):")
-        for r in lines:
-            info(f"  [{r.sessions} sessions / {r.occurrences} occurrences] {r.phrase}")
-    if not exact and not stems and not lines:
-        info("  No repeated phrases found.")
+    )
     return 0
 
 
 def _cmd_memory(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac memory`` to the traces agent; render memory-v2 signals."""
     parser = argparse.ArgumentParser(prog="sac memory", add_help=True)
-    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON")
     try:
         namespace = parser.parse_args(rest)
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
     grok_home = os.environ.get("GROK_HOME") or os.path.expanduser("~/.grok")
-    run_dir = tempfile.mkdtemp(prefix="sac-memory-")
+    run_dir = os.path.join(os.path.expanduser("~/.agents"), "learn")
     flags: dict[str, object] = {
         "traces_action": "memory",
         "grok_home": grok_home,
@@ -249,54 +224,29 @@ def _cmd_memory(rest: list[str], aggregate: ISkillsAggregate) -> int:
     request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
     result = aggregate.execute(request)
 
-    return _render_memory(result, getattr(namespace, "json", False), run_dir)
+    return _render_memory(result, run_dir)
 
 
-def _render_memory(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
-    """Render a memory result and return its exit code."""
+def _render_memory(result: SkillsResult, run_dir: str) -> int:
+    """Render a memory result as JSON and return its exit code."""
     if not result.ok:
         err(result.message)
         return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
 
+    import json as _json
+
     memory = result.memory
     if memory is None:
-        info("[OK] memory — memory.json written")
-        return 0
-
-    if json_mode:
-        import json as _json
-
         print(
             _json.dumps(
                 {
                     "run_dir": run_dir,
-                    "topics": [
-                        {
-                            "workspace": t.workspace,
-                            "title": t.title,
-                            "path": t.path,
-                            "skill_names": list(t.skill_names),
-                            "quoted_lines": list(t.quoted_lines),
-                            "updated_at": t.updated_at,
-                            "matched_section": t.matched_section,
-                        }
-                        for t in memory.topics
-                    ],
-                    "observations": [
-                        {
-                            "type": o.type,
-                            "quoted": o.quoted,
-                            "workspace": o.workspace,
-                            "created_at": o.created_at,
-                            "topic_hint": o.topic_hint,
-                            "session_id": o.session_id,
-                        }
-                        for o in memory.observations
-                    ],
-                    "keep_list": list(memory.keep_list),
-                    "since_last": memory.since_last,
-                    "watermark": memory.watermark,
-                    "generated_at": memory.generated_at,
+                    "topics": [],
+                    "observations": [],
+                    "keep_list": [],
+                    "since_last": False,
+                    "watermark": "",
+                    "generated_at": "",
                 },
                 indent=2,
                 ensure_ascii=False,
@@ -304,20 +254,42 @@ def _render_memory(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
         )
         return 0
 
-    info(f"[OK] memory — {result.message}")
-    info(f"  topics: {len(memory.topics)}")
-    info(f"  observations: {len(memory.observations)}")
-    info(f"  keep-list: {len(memory.keep_list)} skill(s)")
-    if memory.topics:
-        info("  topic rows:")
-        for t in memory.topics:
-            info(f"    [{t.workspace}] {t.title}")
-    if memory.keep_list:
-        info("  keep-list skills:")
-        for s in memory.keep_list:
-            info(f"    {s}")
-    if not memory.topics and not memory.observations:
-        info("  No memory-v2 signals found.")
+    print(
+        _json.dumps(
+            {
+                "run_dir": run_dir,
+                "topics": [
+                    {
+                        "workspace": t.workspace,
+                        "title": t.title,
+                        "path": t.path,
+                        "skill_names": list(t.skill_names),
+                        "quoted_lines": list(t.quoted_lines),
+                        "updated_at": t.updated_at,
+                        "matched_section": t.matched_section,
+                    }
+                    for t in memory.topics
+                ],
+                "observations": [
+                    {
+                        "type": o.type,
+                        "quoted": o.quoted,
+                        "workspace": o.workspace,
+                        "created_at": o.created_at,
+                        "topic_hint": o.topic_hint,
+                        "session_id": o.session_id,
+                    }
+                    for o in memory.observations
+                ],
+                "keep_list": list(memory.keep_list),
+                "since_last": memory.since_last,
+                "watermark": memory.watermark,
+                "generated_at": memory.generated_at,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
     return 0
 
 
