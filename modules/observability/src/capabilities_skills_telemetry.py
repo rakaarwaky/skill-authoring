@@ -122,7 +122,7 @@ class SkillsTelemetry(ISkillsTelemetryProtocol):
         via ``load_usage_sidecar``, then writes the combined result back to the
         sidecar.
         """
-        sidecar_path = Path(grok_home).expanduser() / ".usage.json" if grok_home else pack_usage_path()
+        sidecar_path = pack_usage_path()
         sidecar_data = read_telemetry(sidecar_path)
         usage_data = load_usage_sidecar(run_dir)
         items = usage_data.get("items", []) if isinstance(usage_data, dict) else []

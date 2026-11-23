@@ -16,6 +16,7 @@ from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )
+from shared.src.common.taxonomy_common_vo import ErrorMessage
 from shared.src.design.taxonomy_design_request import (
     SkillsOp,
     SkillsRequest,
@@ -65,7 +66,7 @@ class ObservabilityAgent(IObservabilityAggregate):
     # ─── Block 1: Module Declaration ────────────────────────────────────────
     def _require(self, capability: object, name: str) -> object:
         if capability is None:
-            raise SkillsRootError(f"observability capability not wired: {name}")
+            raise SkillsRootError(ErrorMessage(f"observability capability not wired: {name}"))
         return capability
 
     def _root(self, request: SkillsRequest) -> SkillsRoot | None:
@@ -167,7 +168,6 @@ class ObservabilityAgent(IObservabilityAggregate):
         run_dir = request.flags.get("run_dir", "") or ""
         if not run_dir:
             run_dir = tempfile.mkdtemp(prefix="sac-memory-")
-            request.flags["run_dir"] = run_dir
 
         report = memory.scan_memory(grok_home, run_dir)
 
@@ -187,7 +187,6 @@ class ObservabilityAgent(IObservabilityAggregate):
         run_dir = request.flags.get("run_dir", "") or ""
         if not run_dir:
             run_dir = tempfile.mkdtemp(prefix="sac-phrases-")
-            request.flags["run_dir"] = run_dir
 
         # Scan sessions first (builds session records in run_dir).
         scan = self._require(self._scan, "scan")
@@ -226,7 +225,6 @@ class ObservabilityAgent(IObservabilityAggregate):
         run_dir = request.flags.get("run_dir", "") or ""
         if not run_dir:
             run_dir = tempfile.mkdtemp(prefix="sac-usage-")
-            request.flags["run_dir"] = run_dir
 
         scan_result = scan.scan_sessions(grok_home, run_dir)
         records = scan_result.records

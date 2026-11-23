@@ -176,8 +176,10 @@ def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path) -> None:
     import json
 
     from observability.src.capabilities_skills_telemetry import SkillsTelemetry
+    from shared.src.maintenance.utility_lifecycle_support import pack_usage_path
 
-    sidecar = tmp_path / ".usage.json"
+    sidecar = pack_usage_path()
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
     sidecar.write_text(json.dumps({
         "my-skill": {
             "state": "active",
@@ -218,10 +220,11 @@ def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path) -> None:
 
 def test_scan_sessions_usage_action_writes_usage_not_phrases(tmp_path) -> None:
     """UT-OBS-009: scan_sessions + write_usage writes usage.json, not phrases.json."""
-    import json
     from pathlib import Path
 
-    from observability.src.capabilities_observability_usage import SkillsObservabilityUsage
+    from observability.src.capabilities_observability_usage import (
+        SkillsObservabilityUsage,
+    )
     from observability.src.capabilities_skills_phrase_scan import SkillsPhraseScan
 
     scan = SkillsPhraseScan()

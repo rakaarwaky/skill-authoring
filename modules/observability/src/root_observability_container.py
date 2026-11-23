@@ -49,9 +49,6 @@ class ObservabilityContainer:
             memory=memory or SkillsObservabilityMemory(),
             default_root=root,
         )
-        # Wire the memory capability in the container so AES503 (capabilities
-        # orphan) passes; the agent consumes it in PR 4.
-        self._memory = memory or SkillsObservabilityMemory()
 
     @property
     def aggregate(self) -> IObservabilityAggregate:

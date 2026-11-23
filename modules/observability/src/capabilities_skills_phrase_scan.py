@@ -42,7 +42,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         self,
         grok_home: GrokHome,
         run_dir: TraceRunDir,
-        action: str = "phrases",
     ) -> ScanResult:
         """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
         A monthly (30-day) window is hardcoded — only sessions updated within
@@ -52,7 +51,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         sessions_root = os.path.join(grok_home, "sessions")
         run_dir = os.path.abspath(run_dir)
-        _clear_run_dir(run_dir, action=action)
+        _clear_run_dir(run_dir)
         os.makedirs(os.path.join(run_dir, "sessions"), exist_ok=True)
         exclude_cwd = _default_exclude_cwd()
         drop_patterns = [
