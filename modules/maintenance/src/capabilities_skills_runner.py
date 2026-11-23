@@ -79,7 +79,7 @@ class SkillsRunner(ISkillsRunnerProtocol):
                 skipped.append({"skill": name, "reason": "no-anchor"})
                 continue
 
-            if record.get("uses", 0) == 0:
+            if record.get("used_count", 0) == 0:
                 created = _parse_iso(record.get("created_at"))
                 if created is not None and created > stale_cutoff:
                     skipped.append({"skill": name, "reason": "young-unused"})

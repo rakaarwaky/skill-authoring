@@ -167,7 +167,7 @@ class ObservabilityAgent(IObservabilityAggregate):
             run_dir = tempfile.mkdtemp(prefix="sac-memory-")
             request.flags["run_dir"] = run_dir
 
-        # A hardcoded 7-day window is used inside the capability; no day
+        # A hardcoded 30-day window is used inside the capability; no day
         # window or watermark is exposed to the caller.
         report = scan.scan_memory(
             grok_home,
@@ -200,7 +200,7 @@ class ObservabilityAgent(IObservabilityAggregate):
             request.flags["run_dir"] = run_dir
 
         # Scan sessions first (builds session records in run_dir).
-        # A hardcoded 7-day window is used inside the capability; no day
+        # A hardcoded 30-day window is used inside the capability; no day
         # window, minimum-turn filter, or limit is exposed to the caller.
         scan_result = scan.scan_sessions(
             grok_home,
@@ -226,10 +226,10 @@ class ObservabilityAgent(IObservabilityAggregate):
             root=self._root(request),
         )
 
-    def record_view(self, skill: str, root: SkillsRoot | None = None) -> None:
-        """Public seam: bump the ``views`` counter for *skill* in ``.usage.json``."""
+    def record_use(self, skill: str, root: SkillsRoot | None = None) -> None:
+        """Public seam: bump the ``used_count`` counter for *skill* in ``.usage.json``."""
         telemetry = self._require(self._telemetry, "telemetry")
         target_root = root if root is not None else self._root(
             SkillsRequest(op=SkillsOp.USAGE, query=skill)
         )
-        telemetry.view(skill, target_root)
+        telemetry.record_use(skill, target_root)

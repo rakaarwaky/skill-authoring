@@ -353,10 +353,9 @@ def _render_usage(result: SkillsResult) -> int:
     if records:
         for rec in records:
             name = getattr(rec, "name", "unknown")
-            views = getattr(rec, "views", 0)
-            uses = getattr(rec, "uses", 0)
+            used_count = getattr(rec, "used_count", 0)
             state = getattr(rec, "state", "active")
-            info(f"  {name}: views={views} uses={uses} state={state}")
+            info(f"  {name}: used_count={used_count} state={state}")
     return 0
 
 
@@ -420,9 +419,9 @@ def _print_usage() -> None:
     print()
     info(f"{BOLD()}Observation:{RESET()}")
     info(f"{BOLD()}sac phrases [--json]{RESET()}   "
-         "Mine repeated user prompts from session traces (hardcoded 7-day window)")
+         "Mine repeated user prompts from session traces (hardcoded 30-day window)")
     info(f"{BOLD()}sac memory [--json]{RESET()}    "
-         "Mine memory-v2 topics & observations (hardcoded 7-day window)")
+         "Mine memory-v2 topics & observations (hardcoded 30-day window)")
     print()
     info(f"{BOLD()}Mutations:{RESET()}")
     info(f"{BOLD()}sac move <name> <category> [--apply]{RESET()}  Move a skill to a category")

@@ -46,7 +46,7 @@ class ISkillsTracesProtocol(ABC):
     ) -> ScanResult:
         """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
 
-        A hardcoded weekly (7-day) window is used; no day window override,
+        A hardcoded monthly (30-day) window is used; no day window override,
         minimum-turn filter, limit, or watermark is exposed.
         """
         ...
@@ -80,8 +80,8 @@ class ISkillsTelemetryProtocol(ABC):
         ...
 
     @abstractmethod
-    def view(self, skill: SkillName, root: SkillsRoot) -> None:
-        """Bump the views counter for *skill*."""
+    def record_use(self, skill: SkillName, root: SkillsRoot) -> None:
+        """Bump the used_count counter for *skill*."""
         ...
 
 

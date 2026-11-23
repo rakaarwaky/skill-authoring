@@ -205,10 +205,11 @@ class _ComposedAggregate(ISkillsAggregate):
                 exit_code=2,
                 message=f"Unknown skills op: {op}",
             )
-        if result.ok and op == SkillsOp.READ:
-            skill_name = str(request.query or "").strip()
-            if skill_name:
-                self._observability.record_view(skill_name)
+        # used_count is owned by the session scan (SkillsPhraseScan), which
+        # recomputes it over a 30-day window and folds it into the sidecar.
+        # The READ op no longer bumps a live counter: doing so would make the
+        # sidecar diverge from learn/usage.json between scans. Refresh usage
+        # by running `sac phrases` (optionally scheduled).
         return result
 
 

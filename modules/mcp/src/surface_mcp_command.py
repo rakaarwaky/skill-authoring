@@ -372,15 +372,14 @@ class SkillsMcpAdapter:
 
     @staticmethod
     def _render_usage_records(records: tuple) -> str:
-        """Render usage telemetry rows (name: views=N uses=N state=X)."""
+        """Render usage telemetry rows (name: used_count=N state=X)."""
         rows = list(records)
         lines = [f"[OK] usage — {len(rows)} skill row(s)"]
         for rec in rows:
             name = getattr(rec, "name", "unknown")
-            views = getattr(rec, "views", 0)
-            uses = getattr(rec, "uses", 0)
+            used_count = getattr(rec, "used_count", 0)
             state = getattr(rec, "state", "active")
-            lines.append(f"  {name}: views={views} uses={uses} state={state}")
+            lines.append(f"  {name}: used_count={used_count} state={state}")
         return "\n".join(lines)
 
     # ── Internals ──────────────────────────────────────────────────

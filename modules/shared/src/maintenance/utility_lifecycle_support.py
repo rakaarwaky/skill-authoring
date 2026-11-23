@@ -83,8 +83,7 @@ FIELDS = (
     "first_seen_at",
     "last_activity_at",
     "archived_at",
-    "views",
-    "uses",
+    "used_count",
     "activity_window_start",
 )
 
@@ -314,8 +313,7 @@ def _baseline_record() -> dict:
         "first_seen_at": now,
         "last_activity_at": now,
         "archived_at": _DEFAULT_TIMESTAMP,
-        "views": 0,
-        "uses": 0,
+        "used_count": 0,
         "activity_window_start": now,
     }
 
