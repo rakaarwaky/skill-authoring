@@ -34,7 +34,6 @@ class SkillsObservabilityMemory(ISkillsMemoryProtocol):
     _MEMORY_MAX_QUOTE = 200
     # Memory-v2 signal patterns (deterministic, no agent judgment).
     SKILL_PATH_RE = re.compile(r"[/\\]skills[/\\]([^/\\-][^/\\]*)[/\\]SKILL\.md$")
-    SIGNAL_SECTION_RE = re.compile(r"(?m)^(##?\s+)(.*?)$")
     _KEEP_HINTS = (
         "never delete",
         "do not delete",
@@ -58,11 +57,11 @@ class SkillsObservabilityMemory(ISkillsMemoryProtocol):
         removed; nothing is configurable by the caller. Never edits memory
         files.
         """
-        grok_home = os.path.abspath(os.path.expanduser(grok_home))
-        memory_root = os.path.join(grok_home, "memory-v2")
-        run_dir = os.path.abspath(run_dir)
-        clear_run_dir(run_dir, action="memory")
-        os.makedirs(run_dir, exist_ok=True)
+        grok_home_path = os.path.abspath(os.path.expanduser(grok_home))
+        memory_root = os.path.join(grok_home_path, "memory-v2")
+        run_dir_path = os.path.abspath(run_dir)
+        clear_run_dir(run_dir_path, action="memory")
+        os.makedirs(run_dir_path, exist_ok=True)
         # Hardcoded 30-day window: keep memory items mtime >= now - 30 days.
         cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=30)
         topics: list[MemoryTopicRow] = []
@@ -70,8 +69,6 @@ class SkillsObservabilityMemory(ISkillsMemoryProtocol):
         keep_skills: list[str] = []
 
         def keep_ok(path: str) -> bool:
-            if cutoff is None:
-                return True
             try:
                 mtime = dt.datetime.fromtimestamp(os.path.getmtime(path), tz=dt.UTC)
             except OSError:
@@ -210,7 +207,7 @@ class SkillsObservabilityMemory(ISkillsMemoryProtocol):
             generated_at=dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
         )
         # Persist memory.json into the run dir (deterministic material).
-        with open(os.path.join(run_dir, "memory.json"), "w", encoding="utf-8") as f:
+        with open(os.path.join(run_dir_path, "memory.json"), "w", encoding="utf-8") as f:
             json.dump(
                 {
                     "source": "memory-v2",
