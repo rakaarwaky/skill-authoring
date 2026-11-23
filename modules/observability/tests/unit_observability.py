@@ -21,6 +21,7 @@ def test_unknown_op_returns_usage_error() -> None:
 
 # ── Observability capability unit tests ─────────────────────────────────
 
+
 def test_phrases_result_has_phrases_fields() -> None:
     """UT-OBSERVABILITY-001: SkillsResult carries phrases_exact/stems/lines."""
     from shared.src.design.taxonomy_design_request import SkillsOp
@@ -92,4 +93,174 @@ def test_execute_tool_empty_message_fallback() -> None:
 
     adapter = SkillsMcpAdapter(FakeAggregate())
     out = adapter.execute_tool("sac_list", {})
-    assert out["content"][0]["text"] == "list: exit 0"
+    assert out["content"][0]["text"] == "No skills in the pack yet."
+
+
+# ── _clear_run_dir per-action scoping ─────────────────────────────────────
+
+
+def test_clear_run_dir_usage_preserves_phrases_json(tmp_path) -> None:
+    """UT-OBS-005: _clear_run_dir('usage') wipes sessions/manifest/usage.json only."""
+    import json
+
+    from observability.src.capabilities_skills_phrase_scan import _clear_run_dir
+
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "sessions").mkdir()
+    (run_dir / "sessions" / "0001-s.json").write_text("{}")
+    (run_dir / "manifest.json").write_text("{}")
+    (run_dir / "phrases.json").write_text("{}")
+    (run_dir / "usage.json").write_text("{}")
+    (run_dir / "memory.json").write_text("{}")
+
+    _clear_run_dir(str(run_dir), action="usage")
+
+    assert not (run_dir / "sessions").exists()
+    assert not (run_dir / "manifest.json").exists()
+    assert not (run_dir / "usage.json").exists()
+    assert (run_dir / "phrases.json").exists()
+    assert json.loads((run_dir / "phrases.json").read_text()) == {}
+    # memory.json must survive a usage clear.
+    assert (run_dir / "memory.json").exists()
+    assert json.loads((run_dir / "memory.json").read_text()) == {}
+
+
+def test_clear_run_dir_phrases_preserves_usage_json(tmp_path) -> None:
+    """UT-OBS-006: _clear_run_dir('phrases') wipes sessions/manifest/phrases.json only."""
+    from observability.src.capabilities_skills_phrase_scan import _clear_run_dir
+
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "sessions").mkdir()
+    (run_dir / "sessions" / "0001-s.json").write_text("{}")
+    (run_dir / "manifest.json").write_text("{}")
+    (run_dir / "phrases.json").write_text("{}")
+    (run_dir / "usage.json").write_text("{}")
+    (run_dir / "memory.json").write_text("{}")
+
+    _clear_run_dir(str(run_dir), action="phrases")
+
+    assert not (run_dir / "sessions").exists()
+    assert not (run_dir / "manifest.json").exists()
+    assert not (run_dir / "phrases.json").exists()
+    assert (run_dir / "usage.json").exists()
+    # memory.json must survive a phrases clear.
+    assert (run_dir / "memory.json").exists()
+
+
+def test_clear_run_dir_memory_only_clears_memory_json(tmp_path) -> None:
+    """UT-OBS-007: _clear_run_dir('memory') only wipes memory.json."""
+    from observability.src.capabilities_skills_phrase_scan import _clear_run_dir
+
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "memory.json").write_text("{}")
+    (run_dir / "phrases.json").write_text("{}")
+    (run_dir / "usage.json").write_text("{}")
+    (run_dir / "manifest.json").write_text("{}")
+
+    _clear_run_dir(str(run_dir), action="memory")
+
+    assert not (run_dir / "memory.json").exists()
+    assert (run_dir / "phrases.json").exists()
+    assert (run_dir / "usage.json").exists()
+    assert (run_dir / "manifest.json").exists()
+
+
+# ── _fold_used_count_into_sidecar analytics seeding ───────────────────────
+
+
+def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path) -> None:
+    """UT-OBS-008: _fold_used_count_into_sidecar writes sessions/last_used/via fields."""
+    import json
+
+    from observability.src.capabilities_skills_phrase_scan import (
+        _fold_used_count_into_sidecar,
+    )
+
+    sidecar = tmp_path / ".usage.json"
+    sidecar_data = {
+        "my-skill": {
+            "state": "active",
+            "pinned": False,
+        }
+    }
+    items = [
+        {
+            "kind": "skill",
+            "name": "my-skill",
+            "used_count": 5,
+            "sessions": ["s1", "s2"],
+            "last_used": "2026-11-20T10:00:00+00:00",
+            "via": {"skill_file_read": 3, "slash": 2},
+        }
+    ]
+    _fold_used_count_into_sidecar(str(sidecar), sidecar_data, items)
+    written = json.loads(sidecar.read_text())
+    rec = written["my-skill"]
+    assert rec["used_count"] == 5
+    assert rec["sessions"] == ["s1", "s2"]
+    assert rec["last_used"] == "2026-11-20T10:00:00+00:00"
+    assert rec["via"] == {"skill_file_read": 3, "slash": 2}
+    # Lifecycle fields preserved.
+    assert rec["state"] == "active"
+    assert rec["pinned"] is False
+
+
+# ── scan_sessions with action="usage" writes usage.json not phrases.json ──
+
+
+def test_scan_sessions_usage_action_writes_usage_not_phrases(tmp_path) -> None:
+    """UT-OBS-009: scan_sessions(action='usage') writes usage.json, not phrases.json."""
+    from pathlib import Path
+
+    from observability.src.capabilities_skills_phrase_scan import SkillsPhraseScan
+
+    scan = SkillsPhraseScan()
+    run_dir = str(tmp_path / "run")
+    # Empty grok_home — no sessions, but scan_sessions should still work.
+    scan.scan_sessions(str(tmp_path / "grok"), run_dir, action="usage")
+    assert (Path(run_dir) / "usage.json").is_file()
+    assert not (Path(run_dir) / "phrases.json").exists()
+
+
+# ── _baseline_record() defaults ─────────────────────────────────────────────
+
+
+def test_baseline_record_defaults() -> None:
+    """UT-OBS-010: _baseline_record() returns the canonical default fields."""
+    from shared.src.maintenance.utility_lifecycle_support import _baseline_record
+
+    rec = _baseline_record()
+    assert rec["state"] == "active"
+    assert rec["pinned"] is False
+    assert isinstance(rec["created_by"], str) and rec["created_by"]
+    assert isinstance(rec["created_at"], str) and rec["created_at"]
+    assert rec["first_seen_at"] == rec["created_at"]
+    assert rec["last_activity_at"] == rec["created_at"]
+    assert rec["archived_at"] == ""
+    assert rec["used_count"] == 0
+    assert isinstance(rec["activity_window_start"], str) and rec["activity_window_start"]
+    assert rec["sessions"] == []
+    assert rec["last_used"] is None
+    assert rec["via"] == {}
+
+
+def test_normalize_preserves_baseline_defaults() -> None:
+    """UT-OBS-011: _normalize() keeps missing fields at baseline defaults."""
+    from shared.src.maintenance.utility_lifecycle_support import (
+        _baseline_record,
+        _normalize,
+    )
+
+    baseline = _baseline_record()
+    rec = _normalize({"name": "only-name-provided"})
+    # All baseline defaults are preserved.
+    assert rec["state"] == baseline["state"]
+    assert rec["pinned"] == baseline["pinned"]
+    assert rec["created_by"] == baseline["created_by"]
+    assert rec["used_count"] == baseline["used_count"]
+    assert rec["sessions"] == []
+    assert rec["last_used"] is None
+    assert rec["via"] == {}

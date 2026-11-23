@@ -42,6 +42,7 @@ from shared.src.common.taxonomy_common_error import (
 def default_pack_root() -> Path:
     return Path.home() / ".agents" / "skills"
 
+
 __all__ = [
     "ACTIVE",
     "ARCHIVED",
@@ -85,6 +86,9 @@ FIELDS = (
     "archived_at",
     "used_count",
     "activity_window_start",
+    "sessions",
+    "last_used",
+    "via",
 )
 
 DEFAULT_STATE = "active"
@@ -117,7 +121,9 @@ SkillsRoot = NewType("SkillsRoot", Path)
 
 def find_skill_dir(skill: str, root: Path, in_archive: bool = False) -> Path | None:
     """Find a skill directory by name under root (optionally inside archive)."""
-    search_root = Path.home() / ".agents" / "skills" / ARCHIVE_DIRNAME if in_archive else root
+    search_root = (
+        Path.home() / ".agents" / "skills" / ARCHIVE_DIRNAME if in_archive else root
+    )
     if not search_root.is_dir():
         return None
     matches: list[Path] = []
@@ -258,9 +264,7 @@ def _assert_member_safe(member: tarfile.TarInfo, target_root: Path) -> None:
         ) from exc
     if member.issym() or member.islnk():
         link_target = member.linkname
-        if os.path.isabs(link_target) or ".." in Path(
-            link_target.lstrip("/")
-        ).parts:
+        if os.path.isabs(link_target) or ".." in Path(link_target.lstrip("/")).parts:
             raise SkillsUsageError(f"unsafe tarball link target: {link_target}")
         link_path = target / link_target
         try:
@@ -315,6 +319,9 @@ def _baseline_record() -> dict:
         "archived_at": _DEFAULT_TIMESTAMP,
         "used_count": 0,
         "activity_window_start": now,
+        "sessions": [],
+        "last_used": None,
+        "via": {},
     }
 
 
@@ -403,9 +410,7 @@ def read_record(skill_dir: Path, pack_root: Path | None = None) -> dict:
     return data.get(skill_name, {})
 
 
-def write_record(
-    skill_dir: Path, record: dict, pack_root: Path | None = None
-) -> None:
+def write_record(skill_dir: Path, record: dict, pack_root: Path | None = None) -> None:
     """Write a skill's record into the centralized ``.usage.json``."""
     skill_name = skill_dir.name
     path = pack_usage_path(pack_root)

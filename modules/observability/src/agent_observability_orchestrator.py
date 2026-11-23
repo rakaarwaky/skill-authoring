@@ -135,15 +135,15 @@ class ObservabilityAgent(IObservabilityAggregate):
             root=root,
         )
 
-    def _execute_traces(
-        self, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
-        """TRACES: route on ``flags['traces_action']`` ('phrases' or 'memory')."""
+    def _execute_traces(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """TRACES: route on ``flags['traces_action']`` ('phrases', 'usage', or 'memory')."""
         traces_action = request.flags.get("traces_action", "")
         if traces_action == "memory":
             return self._execute_memory(request, op)
         if traces_action == "phrases":
             return self._execute_phrases(request, op)
+        if traces_action == "usage":
+            return self._execute_usage_traces(request, op)
         return SkillsResult(
             ok=False,
             op=op,
@@ -151,13 +151,11 @@ class ObservabilityAgent(IObservabilityAggregate):
             message=f"Unknown traces action: {traces_action or '(none)'}",
         )
 
-    def _execute_memory(
-        self, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
+    def _execute_memory(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """MEMORY: mine repeated signals from memory-v2.
 
         ``run_dir`` is always set by the CLI surface to
-        ``~/.agents/learn`` — the fallback to a temp dir is kept only as a
+        ``~/.agents/skills`` — the fallback to a temp dir is kept only as a
         defensive guard for direct programmatic callers that omit it.
         """
         scan = self._require(self._scan, "scan")
@@ -183,13 +181,11 @@ class ObservabilityAgent(IObservabilityAggregate):
             root=self._root(request),
         )
 
-    def _execute_phrases(
-        self, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
+    def _execute_phrases(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """PHRASES: mine repeated prompts from session traces.
 
         ``run_dir`` is always set by the CLI surface to
-        ``~/.agents/learn`` — the fallback to a temp dir is kept only as a
+        ``~/.agents/skills`` — the fallback to a temp dir is kept only as a
         defensive guard for direct programmatic callers that omit it.
         """
         scan = self._require(self._scan, "scan")
@@ -218,7 +214,7 @@ class ObservabilityAgent(IObservabilityAggregate):
             ok=True,
             op=op,
             exit_code=SkillsExitCode.CLEAN,
-            message=f"Phrases mined → {run_dir}/phrase.json",
+            message=f"Phrases mined → {run_dir}/phrases.json",
             phrases_exact=report.exact_prompts,
             phrases_stems=report.stems,
             phrases_lines=report.repeated_instruction_lines,
@@ -226,10 +222,46 @@ class ObservabilityAgent(IObservabilityAggregate):
             root=self._root(request),
         )
 
+    def _execute_usage_traces(
+        self, request: SkillsRequest, op: SkillsOp
+    ) -> SkillsResult:
+        """USAGE (traces): scan sessions and fold usage analytics into sidecar.
+
+        Calls ``scan.scan_sessions()`` only (no ``build_phrases()``). The
+        capability writes ``sessions/``, ``manifest.json``, ``usage.json`` into
+        ``run_dir`` and folds ``used_count``/``sessions``/``last_used``/``via``
+        into the ``.usage.json`` sidecar via ``_fold_used_count_into_sidecar``.
+        """
+        scan = self._require(self._scan, "scan")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "") or ""
+        if not run_dir:
+            run_dir = tempfile.mkdtemp(prefix="sac-usage-")
+            request.flags["run_dir"] = run_dir
+
+        # Scan sessions only — scan_sessions folds usage into the sidecar
+        # and writes usage.json + manifest.json + sessions/ into run_dir.
+        scan_result = scan.scan_sessions(
+            grok_home,
+            run_dir,
+            action="usage",
+        )
+
+        return SkillsResult(
+            ok=True,
+            op=op,
+            exit_code=SkillsExitCode.CLEAN,
+            message=f"Usage scanned → {run_dir}/usage.json",
+            scan_summary=scan_result,
+            root=self._root(request),
+        )
+
     def record_use(self, skill: str, root: SkillsRoot | None = None) -> None:
         """Public seam: bump the ``used_count`` counter for *skill* in ``.usage.json``."""
         telemetry = self._require(self._telemetry, "telemetry")
-        target_root = root if root is not None else self._root(
-            SkillsRequest(op=SkillsOp.USAGE, query=skill)
+        target_root = (
+            root
+            if root is not None
+            else self._root(SkillsRequest(op=SkillsOp.USAGE, query=skill))
         )
         telemetry.record_use(skill, target_root)

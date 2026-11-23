@@ -39,6 +39,7 @@ from mcp.types import (
 from mcp.types import (
     Tool as _Tool,
 )
+
 from shared.src.storage.utility_path_bootstrap import bootstrap_ns_roots
 
 # Evict the installed mcp package from sys.modules so that re-adding modules/
