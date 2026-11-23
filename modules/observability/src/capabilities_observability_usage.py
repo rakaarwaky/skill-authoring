@@ -76,7 +76,8 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
         No ``.get()`` / dict access is used — ``TraceSessionRecord`` is a frozen
         dataclass with no mapping interface. Returns per-skill records
         (used_count, sessions, last_used, via, pinned) for the agent to hand to
-        telemetry; sidecar fold delegated to telemetry in PR 4.
+        telemetry; sidecar fold is implemented on this class via
+        ``fold_used_count_into_sidecar``.
 
         Clearing ownership: clears ONLY ``usage.json`` via
         ``clear_run_dir(run_dir, action="usage")``. It never clears ``sessions/``
@@ -374,7 +375,6 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
         except OSError:
             pass
 
-    # ─── Block 3: Module Helpers ─────────
     def _bump(
         self,
         skill: str,
