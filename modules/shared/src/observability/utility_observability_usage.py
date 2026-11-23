@@ -1,10 +1,9 @@
 """Stateless helpers for reading telemetry sidecars and usage artifacts.
 
-Owned by the observability shared kernel; consumed by the telemetry
-capability (``SkillsTelemetry.fold_used_count_into_sidecar``) and any
-other module that needs to read the centralized ``.usage.json`` sidecar
-or a run-dir ``usage.json`` artifact without importing a sibling
-capability.
+Owned by the observability shared kernel; consumed by the usage capability
+(``SkillsObservabilityUsage.fold_used_count_into_sidecar``) and any other
+module that needs to read the centralized ``.usage.json`` sidecar or a
+run-dir ``usage.json`` artifact without importing a sibling capability.
 """
 
 from __future__ import annotations

@@ -19,7 +19,6 @@ from shared.src.design.taxonomy_design_response import (
     SkillsResult,
 )
 from shared.src.observability.contract_observability_protocol import (
-    ISkillsTelemetryProtocol,
     ISkillsTracesProtocol,
 )
 from shared.src.observability.taxonomy_observability_request import (
@@ -43,7 +42,6 @@ __all__ = [
     "OBSERVABILITY_EXIT_CODES",
     "OBSERVABILITY_OPS",
     "IObservabilityAggregate",
-    "ISkillsTelemetryProtocol",
     "ISkillsTracesProtocol",
 ]
 
