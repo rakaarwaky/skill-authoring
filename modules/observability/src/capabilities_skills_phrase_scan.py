@@ -15,6 +15,10 @@ import shutil
 from collections import Counter, defaultdict
 from urllib.parse import unquote
 
+from shared.src.maintenance.utility_lifecycle_support import (
+    _baseline_record,
+    _now_iso,
+)
 from shared.src.observability.contract_observability_protocol import (
     ISkillsTracesProtocol,
 )
@@ -30,10 +34,6 @@ from shared.src.observability.taxonomy_observability_vo import (
     PhraseRow,
     PhrasesReport,
     TraceRunDir,
-)
-from shared.src.maintenance.utility_lifecycle_support import (
-    _baseline_record,
-    _now_iso,
 )
 
 __all__ = ["SkillsPhraseScan"]
@@ -91,6 +91,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=30)
 
         kept: list[dict] = []
+        records: list[TraceSessionRecord] = []
         seen = 0
         dropped: Counter[str] = Counter()
 
@@ -145,7 +146,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
             kept = [r for r in kept if not r["repeated_single_turn"]]
             kept = [r for r in kept if not r["smoke_test"]]
 
-            records: list[TraceSessionRecord] = []
             for i, r in enumerate(kept):
                 r["index"] = i
                 session_file = os.path.join(
@@ -155,18 +155,19 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                     json.dump(r, f, indent=1, ensure_ascii=False)
                 records.append(_record_from_dict(r))
 
-            _write_manifest(
-                grok_home,
-                run_dir,
-                records,
-                kept,
-                seen,
-                dropped,
-                days=30,
-                since_last=False,
-                min_turns=1,
-                limit=0,
-            )
+        _write_manifest(
+            grok_home,
+            run_dir,
+            records,
+            kept,
+            seen,
+            dropped,
+            days=30,
+            since_last=False,
+            min_turns=1,
+            limit=0,
+        )
+        if action == "usage":
             _write_usage(grok_home, run_dir, kept)
 
         return ScanResult(

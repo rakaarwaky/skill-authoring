@@ -24,7 +24,7 @@ def test_scan_memory_writes_memory_json_to_run_dir(tmp_path) -> None:
     """UT-OBSERVABILITY-004: scan_memory writes memory.json into run_dir."""
     scan = SkillsPhraseScan()
     run_dir = str(tmp_path / "memrun")
-    report = scan.scan_memory(
+    scan.scan_memory(
         "$HOME/.grok",
         run_dir,
     )
@@ -45,3 +45,20 @@ def test_scan_memory_writes_memory_json_to_run_dir(tmp_path) -> None:
     assert any("skill-authoring" in t for t in titles) or any(
         "skill-authoring" in t.get("path", "") for t in data["topics"]
     )
+
+
+def test_scan_sessions_usage_writes_usage_json(tmp_path) -> None:
+    """IT-OBS-001: scan_sessions(action='usage') writes usage.json, not phrases.json."""
+    import json
+    from pathlib import Path
+
+    scan = SkillsPhraseScan()
+    run_dir = str(tmp_path / "usage-run")
+    # Empty grok_home — no sessions, but the scan still writes usage.json.
+    scan.scan_sessions(str(tmp_path / "grok"), run_dir, action="usage")
+
+    assert (Path(run_dir) / "usage.json").is_file()
+    assert not (Path(run_dir) / "phrases.json").exists()
+    usage = json.loads((Path(run_dir) / "usage.json").read_text())
+    assert "items" in usage
+    assert "kept_sessions" in usage

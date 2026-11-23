@@ -2,10 +2,10 @@
 
 Agent-oriented commands: read-only discovery (``list``/``read``), the lint
 scan (``lint``), the catalog builder/reader (``catalog``), the search
-(``discover``), the mutation verbs (``move``/``archive``/``create``), and the
-lifecycle verbs (``status``/``usage``/``run``/``pause``/``resume``/
-``pin``/``unpin``/``restore``/``list-unmanaged``/
-``list-archived``/``prune``).
+(``discover``), the mutation verbs (``move``/``archive``/``create``), the
+observation verbs (``phrases``/``usage``/``memory``), and the lifecycle
+verbs (``status``/``run``/``pause``/``resume``/``pin``/``unpin``/
+``restore``/``list-unmanaged``/``list-archived``/``prune``).
 
 The pack root is always the repository's ``skills/`` pack; there is no
 ``--skills-root`` override and no JSON export — output is a terminal
@@ -140,8 +140,9 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
 def _cmd_phrases(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac phrases`` to the traces agent; render repeated phrases."""
     parser = argparse.ArgumentParser(prog="sac phrases", add_help=True)
+    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON output")
     try:
-        namespace = parser.parse_args(rest)
+        parser.parse_args(rest)
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
@@ -161,8 +162,9 @@ def _cmd_phrases(rest: list[str], aggregate: ISkillsAggregate) -> int:
 def _cmd_usage(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac usage`` to the traces agent; render usage scan items."""
     parser = argparse.ArgumentParser(prog="sac usage", add_help=True)
+    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON output")
     try:
-        namespace = parser.parse_args(rest)
+        parser.parse_args(rest)
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
@@ -253,8 +255,9 @@ def _render_phrases(result: SkillsResult, run_dir: str) -> int:
 def _cmd_memory(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac memory`` to the traces agent; render memory-v2 signals."""
     parser = argparse.ArgumentParser(prog="sac memory", add_help=True)
+    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON output")
     try:
-        namespace = parser.parse_args(rest)
+        parser.parse_args(rest)
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
@@ -361,8 +364,6 @@ def _render_lifecycle(sub: str, op: SkillsOp, result: SkillsResult) -> int:
 
     if sub == "status":
         return _render_status(result)
-    if sub == "usage":
-        return _render_usage(result)
     if sub == "run":
         return _render_run(result)
     if sub in ("pause", "resume"):
@@ -390,18 +391,6 @@ def _render_status(result: SkillsResult) -> int:
             state = getattr(rec, "state", "active")
             pinned = " (pinned)" if getattr(rec, "pinned", False) else ""
             info(f"  {name}: {state}{pinned}")
-    return 0
-
-
-def _render_usage(result: SkillsResult) -> int:
-    records = result.records or ()
-    info(f"[OK] usage — {len(records)} skill row(s)")
-    if records:
-        for rec in records:
-            name = getattr(rec, "name", "unknown")
-            used_count = getattr(rec, "used_count", 0)
-            state = getattr(rec, "state", "active")
-            info(f"  {name}: used_count={used_count} state={state}")
     return 0
 
 
@@ -479,7 +468,6 @@ def _print_usage() -> None:
     print()
     info(f"{BOLD()}Lifecycle:{RESET()}")
     info(f"{BOLD()}sac status{RESET()}                        Show per-skill lifecycle states")
-    info(f"{BOLD()}sac usage{RESET()}                         Show usage telemetry rows")
     info(f"{BOLD()}sac run{RESET()}                           Run automated state transitions")
     info(f"{BOLD()}sac pause{RESET()}                         Pause automatic transitions")
     info(f"{BOLD()}sac resume{RESET()}                        Resume automatic transitions")
