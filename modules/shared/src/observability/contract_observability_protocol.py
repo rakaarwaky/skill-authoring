@@ -40,7 +40,7 @@ from shared.src.observability.taxonomy_observability_vo import (
 
 
 class ISkillsTracesProtocol(ABC):
-    """Scan sessions and mine repeated phrases."""
+    """Scan sessions only (traces capability)."""
 
     @abstractmethod
     def scan_sessions(
@@ -53,15 +53,6 @@ class ISkillsTracesProtocol(ABC):
         A hardcoded monthly (30-day) window is used; no day window override,
         minimum-turn filter, limit, or watermark is exposed.
         """
-        ...
-
-    @abstractmethod
-    def build_phrases(
-        self,
-        grok_home: GrokHome,
-        run_dir: TraceRunDir,
-    ) -> PhrasesReport:
-        """Mine repeated exact prompts and repeated instruction lines."""
         ...
 
 
@@ -113,6 +104,21 @@ class ISkillsTelemetryProtocol(ABC):
     @abstractmethod
     def record_use(self, skill: SkillName, root: SkillsRoot) -> None:
         """Bump the used_count counter for *skill*."""
+        ...
+
+    @abstractmethod
+    def fold_used_count_into_sidecar(
+        self,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
+        records: tuple[TraceSessionRecord, ...],
+    ) -> None:
+        """Fold per-skill ``used_count`` analytics into ``.usage.json`` sidecar.
+
+        Reads telemetry via ``read_telemetry`` and the run-dir usage artifact
+        via ``load_usage_sidecar``, then writes the combined result back to the
+        sidecar.
+        """
         ...
 
 

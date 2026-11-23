@@ -46,6 +46,7 @@ class ObservabilityContainer:
             scan=scan or SkillsPhraseScan(),
             phrase=phrase or SkillsObservabilityPhrase(),
             usage=usage or SkillsObservabilityUsage(),
+            memory=memory or SkillsObservabilityMemory(),
             default_root=root,
         )
         # Wire the memory capability in the container so AES503 (capabilities

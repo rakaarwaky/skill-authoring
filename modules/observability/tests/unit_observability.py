@@ -168,35 +168,40 @@ def test_clear_run_dir_memory_only_clears_memory_json(tmp_path) -> None:
     assert (run_dir / "manifest.json").exists()
 
 
-# ── _fold_used_count_into_sidecar analytics seeding ───────────────────────
+# ── SkillsTelemetry.fold_used_count_into_sidecar analytics seeding ─────────
 
 
 def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path) -> None:
-    """UT-OBS-008: _fold_used_count_into_sidecar writes sessions/last_used/via fields."""
+    """UT-OBS-008: SkillsTelemetry.fold_used_count_into_sidecar writes sessions/last_used/via fields."""
     import json
 
-    from observability.src.capabilities_skills_phrase_scan import (
-        _fold_used_count_into_sidecar,
-    )
+    from observability.src.capabilities_skills_telemetry import SkillsTelemetry
 
     sidecar = tmp_path / ".usage.json"
-    sidecar_data = {
+    sidecar.write_text(json.dumps({
         "my-skill": {
             "state": "active",
             "pinned": False,
         }
-    }
-    items = [
-        {
-            "kind": "skill",
-            "name": "my-skill",
-            "used_count": 5,
-            "sessions": ["s1", "s2"],
-            "last_used": "2026-11-20T10:00:00+00:00",
-            "via": {"skill_file_read": 3, "slash": 2},
-        }
-    ]
-    _fold_used_count_into_sidecar(str(sidecar), sidecar_data, items)
+    }))
+    usage_dir = tmp_path / "run"
+    usage_dir.mkdir()
+    (usage_dir / "usage.json").write_text(json.dumps({
+        "items": [
+            {
+                "kind": "skill",
+                "name": "my-skill",
+                "used_count": 5,
+                "sessions": ["s1", "s2"],
+                "last_used": "2026-11-20T10:00:00+00:00",
+                "via": {"skill_file_read": 3, "slash": 2},
+            }
+        ]
+    }))
+
+    telemetry = SkillsTelemetry()
+    telemetry.fold_used_count_into_sidecar(str(tmp_path), str(usage_dir), ())
+
     written = json.loads(sidecar.read_text())
     rec = written["my-skill"]
     assert rec["used_count"] == 5
@@ -212,15 +217,20 @@ def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path) -> None:
 
 
 def test_scan_sessions_usage_action_writes_usage_not_phrases(tmp_path) -> None:
-    """UT-OBS-009: scan_sessions(action='usage') writes usage.json, not phrases.json."""
+    """UT-OBS-009: scan_sessions + write_usage writes usage.json, not phrases.json."""
+    import json
     from pathlib import Path
 
+    from observability.src.capabilities_observability_usage import SkillsObservabilityUsage
     from observability.src.capabilities_skills_phrase_scan import SkillsPhraseScan
 
     scan = SkillsPhraseScan()
+    usage = SkillsObservabilityUsage()
     run_dir = str(tmp_path / "run")
     # Empty grok_home — no sessions, but scan_sessions should still work.
-    scan.scan_sessions(str(tmp_path / "grok"), run_dir, action="usage")
+    scan_result = scan.scan_sessions(str(tmp_path / "grok"), run_dir)
+    usage.write_usage("$HOME/.grok", run_dir, scan_result.records)
+
     assert (Path(run_dir) / "usage.json").is_file()
     assert not (Path(run_dir) / "phrases.json").exists()
 

@@ -25,6 +25,17 @@ from shared.src.maintenance.utility_skills_mutation import atomic_write_json
 from shared.src.observability.contract_observability_protocol import (
     ISkillsTelemetryProtocol,
 )
+from shared.src.observability.taxonomy_observability_entity import (
+    TraceSessionRecord,
+)
+from shared.src.observability.taxonomy_observability_vo import (
+    GrokHome,
+    TraceRunDir,
+)
+from shared.src.observability.utility_observability_usage import (
+    load_usage_sidecar,
+    read_telemetry,
+)
 
 __all__ = ["SkillsTelemetry"]
 
@@ -98,6 +109,69 @@ class SkillsTelemetry(ISkillsTelemetryProtocol):
 
     def record_use(self, skill: str, root: SkillsRoot) -> None:
         self._bump(skill, root, "used_count")
+
+    def fold_used_count_into_sidecar(
+        self,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
+        records: tuple[TraceSessionRecord, ...],
+    ) -> None:
+        """Fold per-skill ``used_count`` analytics into ``.usage.json`` sidecar.
+
+        Reads telemetry via ``read_telemetry`` and the run-dir usage artifact
+        via ``load_usage_sidecar``, then writes the combined result back to the
+        sidecar.
+        """
+        sidecar_path = Path(grok_home).expanduser() / ".usage.json" if grok_home else pack_usage_path()
+        sidecar_data = read_telemetry(sidecar_path)
+        usage_data = load_usage_sidecar(run_dir)
+        items = usage_data.get("items", []) if isinstance(usage_data, dict) else []
+
+        now = _now_iso()
+        legacy_count_fields = ("views", "uses", "use_count", "view_count")
+        changed = False
+        for item in items:
+            if item.get("kind") != "skill":
+                continue
+            name = item["name"]
+            count = int(item.get("used_count", 0) or 0)
+            existing = sidecar_data.get(name)
+            if existing is None:
+                record = _baseline_record()
+            else:
+                record = dict(existing)
+            had_legacy = any(f in record for f in legacy_count_fields)
+            if (
+                record.get("used_count") == count
+                and "used_count" in record
+                and existing is not None
+                and not had_legacy
+                and record.get("sessions") == item.get("sessions", [])
+                and record.get("last_used") == item.get("last_used")
+                and record.get("via") == item.get("via", {})
+            ):
+                continue
+            for f in legacy_count_fields:
+                record.pop(f, None)
+            record["used_count"] = count
+            record["sessions"] = item.get("sessions", [])
+            record["last_used"] = item.get("last_used")
+            record["via"] = item.get("via", {})
+            last_used = item.get("last_used")
+            if last_used:
+                record["last_activity_at"] = last_used
+                record["activity_window_start"] = last_used
+            else:
+                record["last_activity_at"] = now
+                record["activity_window_start"] = now
+            sidecar_data[name] = record
+            changed = True
+        if not changed:
+            return
+        try:
+            atomic_write_json(sidecar_path, sidecar_data)
+        except OSError:
+            pass
 
     # ─── Block 3: Module Helpers ─────────
     def _bump(

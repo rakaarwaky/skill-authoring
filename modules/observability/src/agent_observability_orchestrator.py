@@ -29,6 +29,7 @@ from shared.src.observability.contract_observability_aggregate import (
     IObservabilityAggregate,
 )
 from shared.src.observability.contract_observability_protocol import (
+    ISkillsMemoryProtocol,
     ISkillsPhraseProtocol,
     ISkillsTelemetryProtocol,
     ISkillsTracesProtocol,
@@ -51,12 +52,14 @@ class ObservabilityAgent(IObservabilityAggregate):
         scan: ISkillsTracesProtocol | None = None,
         usage: ISkillsUsageProtocol | None = None,
         phrase: ISkillsPhraseProtocol | None = None,
+        memory: ISkillsMemoryProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._telemetry = telemetry
         self._scan = scan
         self._usage = usage
         self._phrase = phrase
+        self._memory = memory
         self._default_root = default_root
 
     # ─── Block 1: Module Declaration ────────────────────────────────────────
@@ -158,25 +161,15 @@ class ObservabilityAgent(IObservabilityAggregate):
         )
 
     def _execute_memory(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """MEMORY: mine repeated signals from memory-v2.
-
-        ``run_dir`` is always set by the CLI surface to
-        ``~/.agents/skills`` — the fallback to a temp dir is kept only as a
-        defensive guard for direct programmatic callers that omit it.
-        """
-        scan = self._require(self._scan, "scan")
+        """MEMORY: mine repeated signals from memory-v2."""
+        memory = self._require(self._memory, "memory")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "") or ""
         if not run_dir:
             run_dir = tempfile.mkdtemp(prefix="sac-memory-")
             request.flags["run_dir"] = run_dir
 
-        # A hardcoded 30-day window is used inside the capability; no day
-        # window or watermark is exposed to the caller.
-        report = scan.scan_memory(
-            grok_home,
-            run_dir,
-        )
+        report = memory.scan_memory(grok_home, run_dir)
 
         return SkillsResult(
             ok=True,
@@ -188,13 +181,8 @@ class ObservabilityAgent(IObservabilityAggregate):
         )
 
     def _execute_phrases(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """PHRASES: mine repeated prompts from session traces.
-
-        ``run_dir`` is always set by the CLI surface to
-        ``~/.agents/skills`` — the fallback to a temp dir is kept only as a
-        defensive guard for direct programmatic callers that omit it.
-        """
-        scan = self._require(self._scan, "scan")
+        """PHRASES: mine repeated prompts from session records."""
+        phrase = self._require(self._phrase, "phrase")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "") or ""
         if not run_dir:
@@ -202,19 +190,14 @@ class ObservabilityAgent(IObservabilityAggregate):
             request.flags["run_dir"] = run_dir
 
         # Scan sessions first (builds session records in run_dir).
-        # A hardcoded 30-day window is used inside the capability; no day
-        # window, minimum-turn filter, or limit is exposed to the caller.
+        scan = self._require(self._scan, "scan")
         scan_result = scan.scan_sessions(
             grok_home,
             run_dir,
         )
 
         # Mine repeated phrases from the records written to run_dir.
-        # min_sessions is hardcoded inside the capability; nothing exposed.
-        report = scan.build_phrases(
-            grok_home,
-            run_dir,
-        )
+        report = phrase.build_phrases(grok_home, run_dir)
 
         return SkillsResult(
             ok=True,
@@ -233,10 +216,10 @@ class ObservabilityAgent(IObservabilityAggregate):
     ) -> SkillsResult:
         """USAGE (traces): scan sessions and fold usage analytics into sidecar.
 
-        Calls ``scan.scan_sessions()`` only (no ``build_phrases()``). The
-        capability writes ``sessions/``, ``manifest.json``, ``usage.json`` into
-        ``run_dir`` and folds ``used_count``/``sessions``/``last_used``/``via``
-        into the ``.usage.json`` sidecar via ``_fold_used_count_into_sidecar``.
+        Scans sessions only (no build_phrases), writes usage.json via
+        ``self._usage.write_usage``, then folds used_count into the
+        ``.usage.json`` sidecar via ``self._telemetry.fold_used_count_into_sidecar``.
+        No direct sidecar write in the agent.
         """
         scan = self._require(self._scan, "scan")
         grok_home = request.flags.get("grok_home", "")
@@ -245,13 +228,14 @@ class ObservabilityAgent(IObservabilityAggregate):
             run_dir = tempfile.mkdtemp(prefix="sac-usage-")
             request.flags["run_dir"] = run_dir
 
-        # Scan sessions only — scan_sessions folds usage into the sidecar
-        # and writes usage.json + manifest.json + sessions/ into run_dir.
-        scan_result = scan.scan_sessions(
-            grok_home,
-            run_dir,
-            action="usage",
-        )
+        scan_result = scan.scan_sessions(grok_home, run_dir)
+        records = scan_result.records
+
+        usage = self._require(self._usage, "usage")
+        usage.write_usage(grok_home, run_dir, records)
+
+        telemetry = self._require(self._telemetry, "telemetry")
+        telemetry.fold_used_count_into_sidecar(grok_home, run_dir, records)
 
         return SkillsResult(
             ok=True,
