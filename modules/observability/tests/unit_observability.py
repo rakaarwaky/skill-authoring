@@ -187,7 +187,7 @@ def test_build_phrases_writes_phrase_json(tmp_path) -> None:
     Path(run_dir).mkdir(parents=True, exist_ok=True)
     (Path(run_dir) / "sessions").mkdir(exist_ok=True)
 
-    report = phrase.build_phrases("$HOME/.grok", run_dir)
+    phrase.build_phrases("$HOME/.grok", run_dir)
 
     assert (Path(run_dir) / "phrase.json").is_file()
     data = json.loads((Path(run_dir) / "phrase.json").read_text())
@@ -355,14 +355,13 @@ def test_execute_memory_calls_memory_scan_memory(tmp_path) -> None:
 # ── SkillsTelemetry.fold_used_count_into_sidecar analytics seeding ─────────
 
 
-def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path) -> None:
+def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path, monkeypatch) -> None:
     """UT-OBS-008: SkillsTelemetry.fold_used_count_into_sidecar writes sessions/last_used/via fields."""
     import json
 
     from observability.src.capabilities_skills_telemetry import SkillsTelemetry
-    from shared.src.maintenance.utility_lifecycle_support import pack_usage_path
 
-    sidecar = pack_usage_path()
+    sidecar = tmp_path / ".usage.json"
     sidecar.parent.mkdir(parents=True, exist_ok=True)
     sidecar.write_text(json.dumps({
         "my-skill": {
@@ -370,6 +369,10 @@ def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path) -> None:
             "pinned": False,
         }
     }))
+    monkeypatch.setattr(
+        "observability.src.capabilities_skills_telemetry.pack_usage_path",
+        lambda pack_root=None: sidecar,
+    )
     usage_dir = tmp_path / "run"
     usage_dir.mkdir()
     (usage_dir / "usage.json").write_text(json.dumps({

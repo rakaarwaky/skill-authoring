@@ -21,7 +21,7 @@ def test_observability_agent_coordinates_capabilities() -> None:
     assert agent is not None
 
 
-def test_scan_sessions_usage_writes_usage_json(tmp_path) -> None:
+def test_scan_sessions_usage_writes_usage_json(tmp_path, monkeypatch) -> None:
     """IT-OBS-001: Full agent flow — scan_sessions → write_usage → fold_used_count_into_sidecar writes usage.json."""
     import json
     from pathlib import Path
@@ -29,6 +29,7 @@ def test_scan_sessions_usage_writes_usage_json(tmp_path) -> None:
     from observability.src.capabilities_observability_usage import (
         SkillsObservabilityUsage,
     )
+    from shared.src.maintenance.utility_lifecycle_support import pack_usage_path
 
     agent = ObservabilityAgent(
         telemetry=SkillsTelemetry(),
@@ -37,6 +38,12 @@ def test_scan_sessions_usage_writes_usage_json(tmp_path) -> None:
     )
     run_dir = str(tmp_path / "usage-run")
     Path(run_dir).mkdir(parents=True, exist_ok=True)
+    grok_home = str(tmp_path / "grok")
+    sidecar = tmp_path / ".usage.json"
+    monkeypatch.setattr(
+        "observability.src.capabilities_skills_telemetry.pack_usage_path",
+        lambda pack_root=None: sidecar,
+    )
 
     # Exercise the agent's usage path: scan sessions → write usage.json → fold into sidecar.
     result = agent.execute(
@@ -44,7 +51,7 @@ def test_scan_sessions_usage_writes_usage_json(tmp_path) -> None:
             op=SkillsOp.TRACES,
             flags={
                 "traces_action": "usage",
-                "grok_home": "$HOME/.grok",
+                "grok_home": grok_home,
                 "run_dir": run_dir,
             },
         )
@@ -59,7 +66,7 @@ def test_scan_sessions_usage_writes_usage_json(tmp_path) -> None:
     assert not (Path(run_dir) / "phrase.json").exists()
 
 
-def test_agent_routes_usage_traces_to_write_usage_and_telemetry(tmp_path) -> None:
+def test_agent_routes_usage_traces_to_write_usage_and_telemetry(tmp_path, monkeypatch) -> None:
     """IT-OBS-002: Agent routes TRACES usage action to write_usage + fold_used_count_into_sidecar."""
     import json
     from pathlib import Path
@@ -67,6 +74,7 @@ def test_agent_routes_usage_traces_to_write_usage_and_telemetry(tmp_path) -> Non
     from observability.src.capabilities_observability_usage import (
         SkillsObservabilityUsage,
     )
+    from shared.src.maintenance.utility_lifecycle_support import pack_usage_path
 
     agent = ObservabilityAgent(
         telemetry=SkillsTelemetry(),
@@ -75,13 +83,19 @@ def test_agent_routes_usage_traces_to_write_usage_and_telemetry(tmp_path) -> Non
     )
     run_dir = str(tmp_path / "usage-route-run")
     Path(run_dir).mkdir(parents=True, exist_ok=True)
+    grok_home = str(tmp_path / "grok")
+    sidecar = tmp_path / ".usage.json"
+    monkeypatch.setattr(
+        "observability.src.capabilities_skills_telemetry.pack_usage_path",
+        lambda pack_root=None: sidecar,
+    )
 
     result = agent.execute(
         SkillsRequest(
             op=SkillsOp.TRACES,
             flags={
                 "traces_action": "usage",
-                "grok_home": "$HOME/.grok",
+                "grok_home": grok_home,
                 "run_dir": run_dir,
             },
         )
@@ -108,6 +122,7 @@ def test_agent_routes_phrases_to_build_phrases(tmp_path) -> None:
         phrase=SkillsObservabilityPhrase(),
     )
     run_dir = str(tmp_path / "phrase-route-run")
+    grok_home = str(tmp_path / "grok")
     Path(run_dir).mkdir(parents=True, exist_ok=True)
     (Path(run_dir) / "sessions").mkdir(exist_ok=True)
 
@@ -116,7 +131,7 @@ def test_agent_routes_phrases_to_build_phrases(tmp_path) -> None:
             op=SkillsOp.TRACES,
             flags={
                 "traces_action": "phrases",
-                "grok_home": "$HOME/.grok",
+                "grok_home": grok_home,
                 "run_dir": run_dir,
             },
         )
@@ -141,6 +156,7 @@ def test_agent_routes_memory_to_scan_memory(tmp_path) -> None:
         memory=SkillsObservabilityMemory(),
     )
     run_dir = str(tmp_path / "memory-route-run")
+    grok_home = str(tmp_path / "grok")
     Path(run_dir).mkdir(parents=True, exist_ok=True)
 
     result = agent.execute(
@@ -148,7 +164,7 @@ def test_agent_routes_memory_to_scan_memory(tmp_path) -> None:
             op=SkillsOp.TRACES,
             flags={
                 "traces_action": "memory",
-                "grok_home": "$HOME/.grok",
+                "grok_home": grok_home,
                 "run_dir": run_dir,
             },
         )
@@ -171,8 +187,9 @@ def test_scan_memory_writes_memory_json_to_run_dir(tmp_path) -> None:
 
     memory = SkillsObservabilityMemory()
     run_dir = str(tmp_path / "memrun")
+    grok_home = str(tmp_path / "grok")
     memory.scan_memory(
-        "$HOME/.grok",
+        grok_home,
         run_dir,
     )
     # memory.json must exist next to the report.

@@ -23,12 +23,12 @@ def clear_run_dir(run_dir: str, action: str = "phrases") -> None:
     Clearing ownership:
       - scan_sessions owns sessions/ and manifest.json — it clears those itself
         before writing session records; phrase/usage capabilities never touch them.
-      - phrase capability clears only phrases.json.
+      - phrase capability clears only phrase.json.
       - usage capability clears only usage.json.
       - memory capability clears only memory.json.
 
     targets:
-      phrases -> phrases.json  (sessions/, manifest.json owned by scan_sessions)
+      phrases -> phrase.json  (sessions/, manifest.json owned by scan_sessions)
       phrase  -> phrase.json   (sessions/, manifest.json owned by scan_sessions)
       usage   -> usage.json     (sessions/, manifest.json owned by scan_sessions)
       memory  -> memory.json
@@ -40,7 +40,7 @@ def clear_run_dir(run_dir: str, action: str = "phrases") -> None:
         return
 
     targets = {
-        "phrases": ("phrases.json",),
+        "phrases": ("phrase.json",),
         "phrase": ("phrase.json",),
         "usage": ("usage.json",),
         "memory": ("memory.json",),

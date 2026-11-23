@@ -202,7 +202,7 @@ class ObservabilityAgent(IObservabilityAggregate):
             ok=True,
             op=op,
             exit_code=SkillsExitCode.CLEAN,
-            message=f"Phrases mined → {run_dir}/phrases.json",
+            message=f"Phrases mined → {run_dir}/phrase.json",
             phrases_exact=report.exact_prompts,
             phrases_stems=report.stems,
             phrases_lines=report.repeated_instruction_lines,
