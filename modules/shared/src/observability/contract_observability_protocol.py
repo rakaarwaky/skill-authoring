@@ -1,6 +1,6 @@
 """Observability-domain capability contracts (AES contract layer, ABC traits).
 
-One seam per observability-side capability: traces, telemetry, memory.
+One seam per observability-side capability: traces, usage, memory.
 Capabilities implement these; the composition root injects them into
 the agent. No import of sibling domain contracts — observability keeps
 its own seams.
