@@ -12,6 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from agent_observability_orchestrator import ObservabilityAgent
+from capabilities_observability_memory import SkillsObservabilityMemory
 from capabilities_observability_phrase import SkillsObservabilityPhrase
 from capabilities_observability_usage import SkillsObservabilityUsage
 from capabilities_skills_phrase_scan import SkillsPhraseScan
@@ -21,14 +22,8 @@ from shared.src.observability.contract_observability_aggregate import (
     IObservabilityAggregate,
 )
 
-# Imported so AES504 (utility orphan) does not fire on this tree: no
-# capability consumes clear_run_dir until PRs 2-3 wire it in. Keep here as
-# the root-layer consumption seam for the stateless run-dir cleanup utility.
-from shared.src.observability.utility_observability_run_dir import clear_run_dir
-
 __all__ = [
     "ObservabilityContainer",
-    "clear_run_dir",
     "create_observability_feature",
 ]
 
@@ -42,6 +37,7 @@ class ObservabilityContainer:
         scan: SkillsPhraseScan | None = None,
         phrase: SkillsObservabilityPhrase | None = None,
         usage: SkillsObservabilityUsage | None = None,
+        memory: SkillsObservabilityMemory | None = None,
         default_root: Path | None = None,
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
@@ -52,6 +48,9 @@ class ObservabilityContainer:
             usage=usage or SkillsObservabilityUsage(),
             default_root=root,
         )
+        # Wire the memory capability in the container so AES503 (capabilities
+        # orphan) passes; the agent consumes it in PR 4.
+        self._memory = memory or SkillsObservabilityMemory()
 
     @property
     def aggregate(self) -> IObservabilityAggregate:

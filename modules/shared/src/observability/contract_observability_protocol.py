@@ -1,6 +1,6 @@
 """Observability-domain capability contracts (AES contract layer, ABC traits).
 
-One seam per observability-side capability: traces, telemetry.
+One seam per observability-side capability: traces, telemetry, memory.
 Capabilities implement these; the composition root injects them into
 the agent. No import of sibling domain contracts — observability keeps
 its own seams.
@@ -33,6 +33,7 @@ from shared.src.observability.taxonomy_observability_error import (
 )
 from shared.src.observability.taxonomy_observability_vo import (
     GrokHome,
+    MemoryReport,
     PhrasesReport,
     TraceRunDir,
 )
@@ -115,7 +116,25 @@ class ISkillsTelemetryProtocol(ABC):
         ...
 
 
+class ISkillsMemoryProtocol(ABC):
+    """Memory-v2 signal scan: read topics and observations, emit a report."""
+
+    @abstractmethod
+    def scan_memory(
+        self,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
+    ) -> MemoryReport:
+        """Read ``$GROK_HOME/memory-v2`` topics and observations.
+
+        A hardcoded monthly (30-day) window is used; no day window override
+        or watermark is exposed. Never edits memory files.
+        """
+        ...
+
+
 __all__ = [
+    "ISkillsMemoryProtocol",
     "ISkillsPhraseProtocol",
     "ISkillsTelemetryProtocol",
     "ISkillsTracesProtocol",
@@ -123,6 +142,7 @@ __all__ = [
 ]
 
 _layer_symbols = {
+    "ISkillsMemoryProtocol": ISkillsMemoryProtocol,
     "ISkillsPhraseProtocol": ISkillsPhraseProtocol,
     "ISkillsTelemetryProtocol": ISkillsTelemetryProtocol,
     "ISkillsTracesProtocol": ISkillsTracesProtocol,
