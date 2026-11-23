@@ -1,6 +1,6 @@
 """Observability-domain capability contracts (AES contract layer, ABC traits).
 
-One seam per observability-side capability: traces, telemetry, memory.
+One seam per observability-side capability: traces, usage, memory.
 Capabilities implement these; the composition root injects them into
 the agent. No import of sibling domain contracts — observability keeps
 its own seams.
@@ -70,7 +70,7 @@ class ISkillsPhraseProtocol(ABC):
 
 
 class ISkillsUsageProtocol(ABC):
-    """Compute per-skill usage analytics from session records and write ``usage.json``."""
+    """Compute usage analytics, write ``usage.json``, and manage the sidecar."""
 
     @abstractmethod
     def write_usage(
@@ -81,10 +81,6 @@ class ISkillsUsageProtocol(ABC):
     ) -> list[dict]:
         """Compute per-skill usage analytics; write ``usage.json``; return items."""
         ...
-
-
-class ISkillsTelemetryProtocol(ABC):
-    """Telemetry capability: usage tracking and status reports."""
 
     @abstractmethod
     def seed_record_if_missing(self, skill: SkillName, root: SkillsRoot) -> None:
@@ -142,7 +138,6 @@ class ISkillsMemoryProtocol(ABC):
 __all__ = [
     "ISkillsMemoryProtocol",
     "ISkillsPhraseProtocol",
-    "ISkillsTelemetryProtocol",
     "ISkillsTracesProtocol",
     "ISkillsUsageProtocol",
 ]
@@ -150,7 +145,6 @@ __all__ = [
 _layer_symbols = {
     "ISkillsMemoryProtocol": ISkillsMemoryProtocol,
     "ISkillsPhraseProtocol": ISkillsPhraseProtocol,
-    "ISkillsTelemetryProtocol": ISkillsTelemetryProtocol,
     "ISkillsTracesProtocol": ISkillsTracesProtocol,
     "ISkillsUsageProtocol": ISkillsUsageProtocol,
     "GROK_HOME_ENV": GROK_HOME_ENV,

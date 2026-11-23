@@ -1,7 +1,7 @@
 """Observability-domain aggregate contract (AES contract layer, ABC trait).
 
 Single entry point over the observability-side capabilities:
-telemetry, and traces (phrase scan). The merged
+usage, and traces (phrase scan). The merged
 ``IObservabilityAggregate`` replaces ``ISkillsObservabilityAggregate``
 and ``ISkillsTracesAggregate``; one agent handles usage, and
 traces/phrases ops through the shared ``SkillsRequest``/``SkillsResult``
@@ -19,7 +19,6 @@ from shared.src.design.taxonomy_design_response import (
     SkillsResult,
 )
 from shared.src.observability.contract_observability_protocol import (
-    ISkillsTelemetryProtocol,
     ISkillsTracesProtocol,
 )
 from shared.src.observability.taxonomy_observability_request import (
@@ -43,7 +42,6 @@ __all__ = [
     "OBSERVABILITY_EXIT_CODES",
     "OBSERVABILITY_OPS",
     "IObservabilityAggregate",
-    "ISkillsTelemetryProtocol",
     "ISkillsTracesProtocol",
 ]
 

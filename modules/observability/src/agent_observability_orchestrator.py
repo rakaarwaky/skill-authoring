@@ -32,7 +32,6 @@ from shared.src.observability.contract_observability_aggregate import (
 from shared.src.observability.contract_observability_protocol import (
     ISkillsMemoryProtocol,
     ISkillsPhraseProtocol,
-    ISkillsTelemetryProtocol,
     ISkillsTracesProtocol,
     ISkillsUsageProtocol,
 )
@@ -43,20 +42,18 @@ __all__ = ["IObservabilityAggregate", "ObservabilityAgent"]
 class ObservabilityAgent(IObservabilityAggregate):
     """Merged observability agent: usage / traces.
 
-    Dispatches ``SkillsOp.USAGE`` to the telemetry capability,
+    Dispatches ``SkillsOp.USAGE`` to the usage capability,
     and ``SkillsOp.TRACES`` to the phrase-scan capability.
     """
 
     def __init__(
         self,
-        telemetry: ISkillsTelemetryProtocol | None = None,
         scan: ISkillsTracesProtocol | None = None,
         usage: ISkillsUsageProtocol | None = None,
         phrase: ISkillsPhraseProtocol | None = None,
         memory: ISkillsMemoryProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
-        self._telemetry = telemetry
         self._scan = scan
         self._usage = usage
         self._phrase = phrase
@@ -119,24 +116,24 @@ class ObservabilityAgent(IObservabilityAggregate):
     # ─── Block 3: Module Helpers ────────────────────────────────
     def _execute_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """USAGE: bump/report per-skill telemetry sidecar."""
-        telemetry = self._require(self._telemetry, "telemetry")
+        usage = self._require(self._usage, "usage")
         root = self._root(request)
         verb = request.flags.get("verb", "report")
         skill = str(request.query or "")
         if verb == "seed":
-            telemetry.seed_record_if_missing(skill, root)
+            usage.seed_record_if_missing(skill, root)
             return SkillsResult(ok=True, op=op, message=f"seeded {skill}")
         if verb == "reanchor":
-            telemetry.reanchor_clock(skill, root)
+            usage.reanchor_clock(skill, root)
             return SkillsResult(ok=True, op=op, message=f"reanchored {skill}")
-        report = telemetry.curated_report(root)
+        report = usage.curated_report(root)
         return SkillsResult(ok=True, op=op, records=report, root=root)
 
     def _execute_status(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """STATUS: inspect lifecycle state for all skills in the pack."""
-        telemetry = self._require(self._telemetry, "telemetry")
+        usage = self._require(self._usage, "usage")
         root = self._root(request)
-        report = telemetry.curated_report(root)
+        report = usage.curated_report(root)
         return SkillsResult(
             ok=True,
             op=op,
@@ -217,7 +214,7 @@ class ObservabilityAgent(IObservabilityAggregate):
 
         Scans sessions only (no build_phrases), writes usage.json via
         ``self._usage.write_usage``, then folds used_count into the
-        ``.usage.json`` sidecar via ``self._telemetry.fold_used_count_into_sidecar``.
+        ``.usage.json`` sidecar via ``self._usage.fold_used_count_into_sidecar``.
         No direct sidecar write in the agent.
         """
         scan = self._require(self._scan, "scan")
@@ -232,8 +229,7 @@ class ObservabilityAgent(IObservabilityAggregate):
         usage = self._require(self._usage, "usage")
         usage.write_usage(grok_home, run_dir, records)
 
-        telemetry = self._require(self._telemetry, "telemetry")
-        telemetry.fold_used_count_into_sidecar(grok_home, run_dir, records)
+        usage.fold_used_count_into_sidecar(grok_home, run_dir, records)
 
         return SkillsResult(
             ok=True,
@@ -246,10 +242,10 @@ class ObservabilityAgent(IObservabilityAggregate):
 
     def record_use(self, skill: str, root: SkillsRoot | None = None) -> None:
         """Public seam: bump the ``used_count`` counter for *skill* in ``.usage.json``."""
-        telemetry = self._require(self._telemetry, "telemetry")
+        usage = self._require(self._usage, "usage")
         target_root = (
             root
             if root is not None
             else self._root(SkillsRequest(op=SkillsOp.USAGE, query=skill))
         )
-        telemetry.record_use(skill, target_root)
+        usage.record_use(skill, target_root)
