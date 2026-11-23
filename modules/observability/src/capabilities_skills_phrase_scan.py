@@ -70,6 +70,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         self,
         grok_home: GrokHome,
         run_dir: TraceRunDir,
+        action: str = "phrases",
     ) -> ScanResult:
         """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
 
@@ -80,7 +81,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         sessions_root = os.path.join(grok_home, "sessions")
         run_dir = os.path.abspath(run_dir)
-        _clear_run_dir(run_dir)
+        _clear_run_dir(run_dir, action=action)
         os.makedirs(os.path.join(run_dir, "sessions"), exist_ok=True)
 
         exclude_cwd = _default_exclude_cwd()
@@ -248,7 +249,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         memory_root = os.path.join(grok_home, "memory-v2")
         run_dir = os.path.abspath(run_dir)
-        _clear_run_dir(run_dir)
+        _clear_run_dir(run_dir, action="memory")
         os.makedirs(run_dir, exist_ok=True)
 
         # Hardcoded 30-day window: keep memory items mtime >= now - 30 days.
@@ -717,18 +718,28 @@ def _write_manifest(
         json.dump(manifest, f, indent=1, ensure_ascii=False)
 
 
-def _clear_run_dir(run_dir: str) -> None:
-    """Remove all existing files under *run_dir* before a fresh write.
+def _clear_run_dir(run_dir: str, action: str = "phrases") -> None:
+    """Remove existing files under *run_dir* before a fresh write.
 
-    The ``learn`` folder itself is kept; only its contents (manifest.json,
-    usage.json, phrase.json, memory.json, sessions/) are wiped. This runs at
-    the start of ``scan_sessions`` and ``scan_memory`` so a new invocation
-    never leaves stale session records from a prior run behind.
+    The run dir itself is kept; only the artifacts relevant to *action* are
+    wiped so a new invocation never leaves stale records from a prior run
+    behind. ``phrases`` clears sessions/, manifest.json, phrases.json;
+    ``usage`` clears sessions/, manifest.json, usage.json; ``memory`` clears
+    memory.json. The three traces actions share sessions/ and manifest.json
+    (sac phrases and sac usage both scan sessions), so each clears its own
+    JSON artifact but not the other action's JSON.
     """
     run_dir = os.path.abspath(run_dir)
     if not os.path.isdir(run_dir):
         return
+    targets = {
+        "phrases": ("sessions", "manifest.json", "phrases.json"),
+        "usage": ("sessions", "manifest.json", "usage.json"),
+        "memory": ("memory.json",),
+    }[action]
     for entry in os.listdir(run_dir):
+        if entry not in targets:
+            continue
         path = os.path.join(run_dir, entry)
         if os.path.isdir(path):
             shutil.rmtree(path)
@@ -907,7 +918,7 @@ def _fold_used_count_into_sidecar(
     sidecar_data: dict[str, dict],
     items: list[dict],
 ) -> None:
-    """Write the scan's 30-day ``used_count`` into the ``.usage.json`` sidecar.
+    """Write the scan's 30-day ``used_count`` plus analytics into ``.usage.json``.
 
     The scan is the single source of truth: every skill present in the pack
     gets its sidecar ``used_count`` set to the value computed from session
@@ -918,6 +929,10 @@ def _fold_used_count_into_sidecar(
     fields (``state``, ``pinned``, ``archived_at``, ``created_*``) are
     preserved from the existing sidecar record, or seeded from a baseline when
     the skill has no record yet.
+
+    Analytics fields (``sessions``, ``last_used``, ``via``) are written even
+    when ``used_count`` is unchanged, so each re-scan refreshes the durable
+    sidecar from the latest session traces.
     """
     if not sidecar_path:
         return
@@ -943,11 +958,19 @@ def _fold_used_count_into_sidecar(
             and "used_count" in record
             and existing is not None
             and not had_legacy
+            # Analytics (sessions/last_used/via) always refresh from the scan
+            # even when the counter is unchanged — do not skip here.
+            and record.get("sessions") == item.get("sessions", [])
+            and record.get("last_used") == item.get("last_used")
+            and record.get("via") == item.get("via", {})
         ):
             continue
         for f in legacy_count_fields:
             record.pop(f, None)
         record["used_count"] = count
+        record["sessions"] = item.get("sessions", [])
+        record["last_used"] = item.get("last_used")
+        record["via"] = item.get("via", {})
         last_used = item.get("last_used")
         if last_used:
             record["last_activity_at"] = last_used

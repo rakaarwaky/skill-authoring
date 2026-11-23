@@ -85,6 +85,9 @@ FIELDS = (
     "archived_at",
     "used_count",
     "activity_window_start",
+    "sessions",
+    "last_used",
+    "via",
 )
 
 DEFAULT_STATE = "active"
@@ -315,6 +318,9 @@ def _baseline_record() -> dict:
         "archived_at": _DEFAULT_TIMESTAMP,
         "used_count": 0,
         "activity_window_start": now,
+        "sessions": [],
+        "last_used": None,
+        "via": {},
     }
 
 
