@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 import shutil
 
-_KNOWN_ACTIONS = frozenset({"phrases", "usage", "memory"})
+_KNOWN_ACTIONS = frozenset({"phrases", "phrase", "usage", "memory"})
 
 
 def clear_run_dir(run_dir: str, action: str = "phrases") -> None:
@@ -29,6 +29,7 @@ def clear_run_dir(run_dir: str, action: str = "phrases") -> None:
 
     targets:
       phrases -> phrases.json  (sessions/, manifest.json owned by scan_sessions)
+      phrase  -> phrase.json   (sessions/, manifest.json owned by scan_sessions)
       usage   -> usage.json     (sessions/, manifest.json owned by scan_sessions)
       memory  -> memory.json
     """
@@ -40,6 +41,7 @@ def clear_run_dir(run_dir: str, action: str = "phrases") -> None:
 
     targets = {
         "phrases": ("phrases.json",),
+        "phrase": ("phrase.json",),
         "usage": ("usage.json",),
         "memory": ("memory.json",),
     }.get(action)

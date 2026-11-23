@@ -55,7 +55,7 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
         No ``.get()`` / dict access is used — ``TraceSessionRecord`` is a frozen
         dataclass with no mapping interface. Returns per-skill records
         (used_count, sessions, last_used, via, pinned) for the agent to hand to
-        telemetry.fold_used_count_into_sidecar.
+        telemetry; sidecar fold delegated to telemetry in PR 4.
 
         Clearing ownership: clears ONLY ``usage.json`` via
         ``clear_run_dir(run_dir, action="usage")``. It never clears ``sessions/``

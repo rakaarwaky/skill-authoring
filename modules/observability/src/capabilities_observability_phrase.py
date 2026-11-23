@@ -43,11 +43,8 @@ class SkillsObservabilityPhrase(ISkillsPhraseProtocol):
     _STEM_MIN_SESSIONS = 3
     _LINE_MIN_SESSIONS = 3
     _TOP = 60
-    USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
     SLASH_RE = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")
     SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}$")
-    DEFAULT_DROP_PATTERNS = (r"^the user invoked `/feedback`",)
-    TURN_CAP = 2000
 
     # ─── Block 2: Module Contract ─────────────
     def build_phrases(
@@ -58,13 +55,13 @@ class SkillsObservabilityPhrase(ISkillsPhraseProtocol):
         """Read session records from ``run_dir``; mine repeated phrases; write ``phrase.json``.
 
         Clearing ownership: clears ONLY ``phrase.json`` via
-        ``clear_run_dir(run_dir, action="phrases")``. It never clears ``sessions/``
+        ``clear_run_dir(run_dir, action="phrase")``. It never clears ``sessions/``
         or ``manifest.json`` — those are owned by ``scan_sessions`` (which already
         ran). Re-wiping ``sessions/`` here would delete the records this capability
         is about to read.
         """
         # Clears phrase.json only; never sessions/ or manifest.json.
-        clear_run_dir(run_dir, action="phrases")
+        clear_run_dir(run_dir, action="phrase")
         sessions_dir = os.path.join(run_dir, "sessions")
         exact: dict[str, list[str]] = defaultdict(list)
         stems: dict[str, list[str]] = defaultdict(list)
@@ -104,18 +101,16 @@ class SkillsObservabilityPhrase(ISkillsPhraseProtocol):
                         ):
                             lines[ln_n].add(rid)
         report = PhrasesReport(
-            exact_prompts=self._top(exact, min_sessions, "phrase"),
-            stems=self._top(stems, self._STEM_MIN_SESSIONS, "stem"),
-            repeated_instruction_lines=self._top(
-                lines, self._LINE_MIN_SESSIONS, "line"
-            ),
+            exact_prompts=self._top(exact, min_sessions),
+            stems=self._top(stems, self._STEM_MIN_SESSIONS),
+            repeated_instruction_lines=self._top(lines, self._LINE_MIN_SESSIONS),
         )
         _write_phrase(run_dir, report)
         return report
 
     # ─── Block 3: Module Helpers ─────────
     @staticmethod
-    def _top(data: dict, min_count: int, key_name: str) -> tuple[PhraseRow, ...]:
+    def _top(data: dict, min_count: int) -> tuple[PhraseRow, ...]:
         rows: list[PhraseRow] = []
         for k, ids in data.items():
             id_list = list(ids)
