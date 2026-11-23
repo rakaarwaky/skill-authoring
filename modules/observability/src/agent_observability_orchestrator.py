@@ -29,8 +29,10 @@ from shared.src.observability.contract_observability_aggregate import (
     IObservabilityAggregate,
 )
 from shared.src.observability.contract_observability_protocol import (
+    ISkillsPhraseProtocol,
     ISkillsTelemetryProtocol,
     ISkillsTracesProtocol,
+    ISkillsUsageProtocol,
 )
 
 __all__ = ["IObservabilityAggregate", "ObservabilityAgent"]
@@ -47,10 +49,14 @@ class ObservabilityAgent(IObservabilityAggregate):
         self,
         telemetry: ISkillsTelemetryProtocol | None = None,
         scan: ISkillsTracesProtocol | None = None,
+        usage: ISkillsUsageProtocol | None = None,
+        phrase: ISkillsPhraseProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._telemetry = telemetry
         self._scan = scan
+        self._usage = usage
+        self._phrase = phrase
         self._default_root = default_root
 
     # ─── Block 1: Module Declaration ────────────────────────────────────────

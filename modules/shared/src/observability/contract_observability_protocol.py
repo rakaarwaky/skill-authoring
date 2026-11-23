@@ -22,7 +22,10 @@ from shared.src.observability.taxonomy_observability_constant import (
     MIN_SESSIONS_DEFAULT,
     MIN_TURNS_DEFAULT,
 )
-from shared.src.observability.taxonomy_observability_entity import ScanResult
+from shared.src.observability.taxonomy_observability_entity import (
+    ScanResult,
+    TraceSessionRecord,
+)
 from shared.src.observability.taxonomy_observability_error import (
     GrokHomeMissingError,
     NoSessionsError,
@@ -61,6 +64,33 @@ class ISkillsTracesProtocol(ABC):
         ...
 
 
+class ISkillsPhraseProtocol(ABC):
+    """Mine repeated phrases from session records and write ``phrase.json``."""
+
+    @abstractmethod
+    def build_phrases(
+        self,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
+    ) -> PhrasesReport:
+        """Read session records from ``run_dir``; write ``phrase.json``; return report."""
+        ...
+
+
+class ISkillsUsageProtocol(ABC):
+    """Compute per-skill usage analytics from session records and write ``usage.json``."""
+
+    @abstractmethod
+    def write_usage(
+        self,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
+        records: tuple[TraceSessionRecord, ...],
+    ) -> list[dict]:
+        """Compute per-skill usage analytics; write ``usage.json``; return items."""
+        ...
+
+
 class ISkillsTelemetryProtocol(ABC):
     """Telemetry capability: usage tracking and status reports."""
 
@@ -86,13 +116,17 @@ class ISkillsTelemetryProtocol(ABC):
 
 
 __all__ = [
+    "ISkillsPhraseProtocol",
     "ISkillsTelemetryProtocol",
     "ISkillsTracesProtocol",
+    "ISkillsUsageProtocol",
 ]
 
 _layer_symbols = {
+    "ISkillsPhraseProtocol": ISkillsPhraseProtocol,
     "ISkillsTelemetryProtocol": ISkillsTelemetryProtocol,
     "ISkillsTracesProtocol": ISkillsTracesProtocol,
+    "ISkillsUsageProtocol": ISkillsUsageProtocol,
     "GROK_HOME_ENV": GROK_HOME_ENV,
     "MIN_SESSIONS_DEFAULT": MIN_SESSIONS_DEFAULT,
     "MIN_TURNS_DEFAULT": MIN_TURNS_DEFAULT,

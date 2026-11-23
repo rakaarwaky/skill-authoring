@@ -12,6 +12,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from agent_observability_orchestrator import ObservabilityAgent
+from capabilities_observability_phrase import SkillsObservabilityPhrase
+from capabilities_observability_usage import SkillsObservabilityUsage
 from capabilities_skills_phrase_scan import SkillsPhraseScan
 from capabilities_skills_telemetry import SkillsTelemetry
 from shared.src.common.utility_common_skills import default_pack_root
@@ -38,12 +40,16 @@ class ObservabilityContainer:
         self,
         telemetry: SkillsTelemetry | None = None,
         scan: SkillsPhraseScan | None = None,
+        phrase: SkillsObservabilityPhrase | None = None,
+        usage: SkillsObservabilityUsage | None = None,
         default_root: Path | None = None,
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
         self._observability = ObservabilityAgent(
             telemetry=telemetry or SkillsTelemetry(),
             scan=scan or SkillsPhraseScan(),
+            phrase=phrase or SkillsObservabilityPhrase(),
+            usage=usage or SkillsObservabilityUsage(),
             default_root=root,
         )
 
