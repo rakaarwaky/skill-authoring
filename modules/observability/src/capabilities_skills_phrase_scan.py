@@ -1,5 +1,4 @@
 """Phrase scan capability (AES capabilities layer, self-contained in ``app``).
-
 Scans ``$GROK_HOME/sessions`` and mines repeated prompts from ``<user_query>``
 tags in session chat history. Depends only on the trace contract + taxonomy
 from the shared kernel. Never imports ``skill-traces``.
@@ -38,6 +37,7 @@ from shared.src.observability.taxonomy_observability_vo import (
 
 __all__ = ["SkillsPhraseScan"]
 
+
 # ─── Block 1: Module Declaration ──────────────
 class SkillsPhraseScan(ISkillsTracesProtocol):
     """Scans sessions and mines repeated phrases."""
@@ -49,18 +49,22 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
     _STEM_MIN_SESSIONS = 3
     _LINE_MIN_SESSIONS = 3
     _TOP = 60
-
     USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
     SLASH_RE = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")
     SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}$")
     DEFAULT_DROP_PATTERNS = (r"^the user invoked `/feedback`",)
     TURN_CAP = 2000
     _MEMORY_MAX_QUOTE = 200
-
     # Memory-v2 signal patterns (deterministic, no agent judgment).
     SKILL_PATH_RE = re.compile(r"[/\\]skills[/\\]([^/\\-][^/\\]*)[/\\]SKILL\.md$")
     SIGNAL_SECTION_RE = re.compile(r"(?m)^(##?\s+)(.*?)$")
-    _KEEP_HINTS = ("never delete", "do not delete", "must keep", "keep-list", "keep list")
+    _KEEP_HINTS = (
+        "never delete",
+        "do not delete",
+        "must keep",
+        "keep-list",
+        "keep list",
+    )
     _LEARN_HINTS = ("learn", "new skill", "create skill", "repeat", "habit")
     _STALE_HINTS = ("stale", "outdated", "wrong", "no longer")
     _UNLEARN_HINTS = ("unlearn", "retire", "remove", "delete")
@@ -73,7 +77,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         action: str = "phrases",
     ) -> ScanResult:
         """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
-
         A monthly (30-day) window is hardcoded — only sessions updated within
         the last 30 days are kept. ``since_last``, minimum-turn filter, and
         limit are removed; nothing is configurable by the caller.
@@ -83,18 +86,16 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         run_dir = os.path.abspath(run_dir)
         _clear_run_dir(run_dir, action=action)
         os.makedirs(os.path.join(run_dir, "sessions"), exist_ok=True)
-
         exclude_cwd = _default_exclude_cwd()
-        drop_patterns = [re.compile(p, re.IGNORECASE) for p in self.DEFAULT_DROP_PATTERNS]
-
+        drop_patterns = [
+            re.compile(p, re.IGNORECASE) for p in self.DEFAULT_DROP_PATTERNS
+        ]
         # Hardcoded 30-day window: keep sessions newer than now - 30 days.
         cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=30)
-
         kept: list[dict] = []
         records: list[TraceSessionRecord] = []
         seen = 0
         dropped: Counter[str] = Counter()
-
         if os.path.isdir(sessions_root):
             for enc_cwd in sorted(os.listdir(sessions_root)):
                 cwd_dir = os.path.join(sessions_root, enc_cwd)
@@ -134,7 +135,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                         dropped["no_human_turns"] += 1
                         continue
                     kept.append(rec)
-
             kept.sort(key=lambda r: r.get("updated_at") or "", reverse=True)
             single = Counter(
                 _normalize(r["turns"][0]) for r in kept if r["human_turns"] == 1
@@ -145,7 +145,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                 )
             kept = [r for r in kept if not r["repeated_single_turn"]]
             kept = [r for r in kept if not r["smoke_test"]]
-
             for i, r in enumerate(kept):
                 r["index"] = i
                 session_file = os.path.join(
@@ -154,7 +153,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                 with open(session_file, "w", encoding="utf-8") as f:
                     json.dump(r, f, indent=1, ensure_ascii=False)
                 records.append(_record_from_dict(r))
-
         _write_manifest(
             grok_home,
             run_dir,
@@ -169,7 +167,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         )
         if action == "usage":
             _write_usage(grok_home, run_dir, kept)
-
         return ScanResult(
             records=tuple(records),
             sessions_seen=seen,
@@ -184,7 +181,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         run_dir: TraceRunDir,
     ) -> PhrasesReport:
         """Read session records from ``run_dir`` and return repeated phrases.
-
         ``min_sessions`` is hardcoded to ``_EXACT_MIN_SESSIONS`` (2); nothing is
         configurable by the caller.
         """
@@ -192,9 +188,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         exact: dict[str, list[str]] = defaultdict(list)
         stems: dict[str, list[str]] = defaultdict(list)
         lines: dict[str, set[str]] = defaultdict(set)
-
         min_sessions = self._EXACT_MIN_SESSIONS
-
         if os.path.isdir(sessions_dir):
             for name in sorted(os.listdir(sessions_dir)):
                 if not name.endswith(".json"):
@@ -213,7 +207,9 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                     if len(n) < self._MIN_PHRASE_LEN:
                         continue
                     stripped = t.strip()
-                    if self.SLASH_RE.fullmatch(stripped) or self.SLASH_ONLY.fullmatch(n):
+                    if self.SLASH_RE.fullmatch(stripped) or self.SLASH_ONLY.fullmatch(
+                        n
+                    ):
                         continue
                     exact[n].append(rid)
                     words = n.split(" ")
@@ -226,11 +222,12 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                             and len(ln_n) >= self._MIN_LINE_CHARS
                         ):
                             lines[ln_n].add(rid)
-
         report = PhrasesReport(
             exact_prompts=self._top(exact, min_sessions, "phrase"),
             stems=self._top(stems, self._STEM_MIN_SESSIONS, "stem"),
-            repeated_instruction_lines=self._top(lines, self._LINE_MIN_SESSIONS, "line"),
+            repeated_instruction_lines=self._top(
+                lines, self._LINE_MIN_SESSIONS, "line"
+            ),
         )
         _write_phrases(run_dir, report)
         return report
@@ -241,7 +238,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         run_dir: TraceRunDir,
     ) -> MemoryReport:
         """Read ``$GROK_HOME/memory-v2`` topics and observations.
-
         A monthly (30-day) window is hardcoded — only memory items modified
         within the last 30 days are kept. ``since_last`` and ``days`` are
         removed; nothing is configurable by the caller. Never edits memory
@@ -252,10 +248,8 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         run_dir = os.path.abspath(run_dir)
         _clear_run_dir(run_dir, action="memory")
         os.makedirs(run_dir, exist_ok=True)
-
         # Hardcoded 30-day window: keep memory items mtime >= now - 30 days.
         cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=30)
-
         topics: list[MemoryTopicRow] = []
         observations: list[MemoryObservationRow] = []
         keep_skills: list[str] = []
@@ -271,14 +265,15 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
 
         topic_roots = []
         if os.path.isdir(os.path.join(memory_root, "global", "topics")):
-            topic_roots.append(("global", os.path.join(memory_root, "global", "topics")))
+            topic_roots.append(
+                ("global", os.path.join(memory_root, "global", "topics"))
+            )
         workspaces_root = os.path.join(memory_root, "workspaces")
         if os.path.isdir(workspaces_root):
             for ws in sorted(os.listdir(workspaces_root)):
                 tdir = os.path.join(workspaces_root, ws, "topics")
                 if os.path.isdir(tdir):
                     topic_roots.append((ws, tdir))
-
         for ws, tdir in topic_roots:
             for name in sorted(os.listdir(tdir)):
                 if not name.endswith(".md"):
@@ -291,13 +286,11 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                         text = f.read()
                 except OSError:
                     continue
-
                 # H1 title
                 title = ""
                 title_m = re.match(r"^#\s+(.+?)\s*$", text, re.MULTILINE)
                 if title_m:
                     title = title_m.group(1).strip()
-
                 skill_names: list[str] = []
                 quoted: list[str] = []
                 matched_section: str | None = None
@@ -318,13 +311,11 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                     if hint in low:
                         matched_section = "keep"
                         break
-
                 # Skill names: lines that name a skill-like token.
                 for m in self.SKILL_PATH_RE.finditer(text):
                     candidate = m.group(1)
                     if candidate not in skill_names:
                         skill_names.append(candidate)
-
                 # Short quotes of lines that mention a skill or a known hint.
                 for line in text.splitlines():
                     ln = line.strip()
@@ -332,9 +323,12 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                         continue
                     ln_low = ln.lower()
                     if any(s in ln_low for s in skill_names) or any(
-                        h in ln_low for h in (
-                            *self._KEEP_HINTS, *self._LEARN_HINTS,
-                            *self._STALE_HINTS, *self._UNLEARN_HINTS,
+                        h in ln_low
+                        for h in (
+                            *self._KEEP_HINTS,
+                            *self._LEARN_HINTS,
+                            *self._STALE_HINTS,
+                            *self._UNLEARN_HINTS,
                         )
                     ):
                         q = ln[: self._MEMORY_MAX_QUOTE]
@@ -342,7 +336,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                             quoted.append(q)
                         if len(quoted) >= 6:
                             break
-
                 topics.append(
                     MemoryTopicRow(
                         workspace=ws,
@@ -356,7 +349,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                         matched_section=matched_section,
                     )
                 )
-
         if os.path.isdir(workspaces_root):
             for ws in sorted(os.listdir(workspaces_root)):
                 inbox = os.path.join(workspaces_root, ws, "observations", "_inbox")
@@ -388,15 +380,12 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                             session_id=str(front.get("session_id") or ""),
                         )
                     )
-
         for t in topics:
             if t.matched_section == "keep":
                 for s in t.skill_names:
                     if s not in keep_skills:
                         keep_skills.append(s)
-
         keep_skills.sort()
-
         report = MemoryReport(
             topics=tuple(topics),
             observations=tuple(observations),
@@ -405,7 +394,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
             watermark=cutoff.isoformat(),
             generated_at=dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
         )
-
         # Persist memory.json into the run dir (deterministic material).
         with open(os.path.join(run_dir, "memory.json"), "w", encoding="utf-8") as f:
             json.dump(
@@ -443,7 +431,6 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                 indent=1,
                 ensure_ascii=False,
             )
-
         return report
 
     # ─── Block 3: Module Helpers ─────────
@@ -489,7 +476,9 @@ def _split_frontmatter(text: str) -> tuple[dict, str]:
         val = val.strip()
         if val.startswith("[") and val.endswith("]"):
             inner = val[1:-1]
-            front[key] = [x.strip().strip('"').strip("'") for x in inner.split(",") if x.strip()]
+            front[key] = [
+                x.strip().strip('"').strip("'") for x in inner.split(",") if x.strip()
+            ]
         elif val.startswith('"') and val.endswith('"'):
             front[key] = val[1:-1]
         else:
@@ -507,8 +496,9 @@ def _parse_time(s):
 
 
 def _under(path: str, base: str) -> bool:
-    path, base = os.path.normcase(os.path.normpath(path)), os.path.normcase(
-        os.path.normpath(base)
+    path, base = (
+        os.path.normcase(os.path.normpath(path)),
+        os.path.normcase(os.path.normpath(base)),
     )
     return path == base or path.startswith(base.rstrip(os.sep) + os.sep)
 
@@ -532,12 +522,13 @@ def _normalize(s: str) -> str:
     return " ".join(s.strip().lower().split())
 
 
-def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern]) -> dict | None:
+def _scan_session(
+    sess_dir: str, summary: dict, drop_patterns: list[re.Pattern]
+) -> dict | None:
     """Scan one session dir; return a compact record dict or None."""
     chat = os.path.join(sess_dir, "chat_history.jsonl")
     if not os.path.isfile(chat):
         return None
-
     turns: list[str] = []
     tools: Counter[str] = Counter()
     skill_loads: Counter[str] = Counter()
@@ -548,9 +539,7 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
     workflow_launches = 0
     parse_errors = 0
     dropped_turns = 0
-
     skill_path_re = re.compile(r"[/\\]skills[/\\]([^/\\]+)[/\\]SKILL\.md$")
-
     with open(chat, encoding="utf-8", errors="replace") as f:
         for line in f:
             try:
@@ -594,13 +583,10 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
                             skill_load_paths.setdefault(sm.group(1), target)
                         elif name in ("read_file", "write", "search_replace"):
                             paths_touched[target] += 1
-
     if not turns:
         return None
-
     real_tools = sum(n for name, n in tools.items() if name != "send_feedback")
     smoke_test = real_tools == 0 and all(len(t.split()) < 3 for t in turns)
-
     info = summary.get("info") or {}
     cwd = info.get("cwd") or ""
     git_root = summary.get("git_root_dir") or ""
@@ -613,7 +599,6 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
         parts = [x for x in re.split(r"[\\/]+", rel) if x]
         key = "/".join(parts[:2]) if len(parts) > 2 else (parts[0] if parts else rel)
         dirs[key] += n
-
     capped_turns = [
         (
             t[: SkillsPhraseScan.TURN_CAP]
@@ -621,7 +606,6 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
         )
         for t in turns
     ]
-
     return {
         "id": summary.get("id") or os.path.basename(sess_dir),
         "cwd": cwd,
@@ -721,7 +705,6 @@ def _write_manifest(
 
 def _clear_run_dir(run_dir: str, action: str = "phrases") -> None:
     """Remove existing files under *run_dir* before a fresh write.
-
     The run dir itself is kept; only the artifacts relevant to *action* are
     wiped so a new invocation never leaves stale records from a prior run
     behind. ``phrases`` clears sessions/, manifest.json, phrases.json;
@@ -768,9 +751,7 @@ def _write_usage(
             with open(sidecar_path, encoding="utf-8") as f:
                 loaded = json.load(f)
             if isinstance(loaded, dict):
-                sidecar_data = {
-                    k: v for k, v in loaded.items() if isinstance(v, dict)
-                }
+                sidecar_data = {k: v for k, v in loaded.items() if isinstance(v, dict)}
         except (OSError, ValueError):
             sidecar_data = {}
     pinned: set[str] = {
@@ -801,7 +782,6 @@ def _write_usage(
                     }
         except (OSError, ValueError):
             pass
-
     bundled_dir = os.path.join(grok_home, "bundled", "skills")
     if os.path.isdir(bundled_dir):
         for name in sorted(os.listdir(bundled_dir)):
@@ -820,7 +800,6 @@ def _write_usage(
                     "disabled_by_name": False,
                     "in_slash_mru": False,
                 }
-
     skill_bodies: dict[str, str] = {}
     for name, item in skills_map.items():
         try:
@@ -828,7 +807,6 @@ def _write_usage(
                 skill_bodies[name] = f.read()
         except OSError:
             pass
-
     for name, item in skills_map.items():
         pat = re.compile(
             r"(`/?"
@@ -845,7 +823,6 @@ def _write_usage(
             if other != name and pat.search(body)
         ]
         item["referenced_by"] = sorted(set(refs))
-
     usage: dict[str, dict] = defaultdict(
         lambda: {
             "used_count": 0,
@@ -855,7 +832,6 @@ def _write_usage(
         }
     )
     unknown_slash: Counter[str] = Counter()
-
     for r in kept:
         sid = r.get("id") or ""
         updated = r.get("updated_at") or ""
@@ -878,7 +854,6 @@ def _write_usage(
                 u["via"]["slash"] += n
             else:
                 unknown_slash[name] += n
-
     items = []
     for name, item in sorted(skills_map.items()):
         u = usage.get(name)
@@ -889,7 +864,6 @@ def _write_usage(
         rec["last_used"] = u["last_used"] if u else None
         rec["via"] = dict(u["via"]) if u else {}
         items.append(rec)
-
     unused = [
         i["name"]
         for i in items
@@ -899,7 +873,6 @@ def _write_usage(
         and not i["in_slash_mru"]
         and not i.get("pinned")
     ]
-
     usage_data = {
         "kept_sessions": len(kept),
         "items": items,
@@ -910,7 +883,6 @@ def _write_usage(
     }
     with open(os.path.join(run_dir, "usage.json"), "w", encoding="utf-8") as f:
         json.dump(usage_data, f, indent=1, ensure_ascii=False)
-
     _fold_used_count_into_sidecar(sidecar_path, sidecar_data, items)
 
 
@@ -920,17 +892,14 @@ def _fold_used_count_into_sidecar(
     items: list[dict],
 ) -> None:
     """Write the scan's 30-day ``used_count`` plus analytics into ``.usage.json``.
-
     The scan is the single source of truth: every skill present in the pack
     gets its sidecar ``used_count`` set to the value computed from session
     traces over the same 30-day window that produced ``learn/usage.json``.
     This keeps the two files matching 1:1 by construction.
-
     Only the counter and its companion activity stamps are touched; lifecycle
     fields (``state``, ``pinned``, ``archived_at``, ``created_*``) are
     preserved from the existing sidecar record, or seeded from a baseline when
     the skill has no record yet.
-
     Analytics fields (``sessions``, ``last_used``, ``via``) are written even
     when ``used_count`` is unchanged, so each re-scan refreshes the durable
     sidecar from the latest session traces.
@@ -981,7 +950,6 @@ def _fold_used_count_into_sidecar(
             record["activity_window_start"] = now
         sidecar_data[name] = record
         changed = True
-
     if not changed:
         return
     try:
@@ -1029,4 +997,3 @@ def _write_phrases(run_dir: str, report: PhrasesReport) -> None:
     }
     with open(os.path.join(run_dir, "phrases.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=1, ensure_ascii=False)
-

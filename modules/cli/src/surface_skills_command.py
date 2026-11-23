@@ -91,7 +91,9 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
     rest = args[1:]
 
     if sub == "skills":
-        err("Remove the legacy 'skills' subcommand: use 'sac list' instead of 'sac skills list'")
+        err(
+            "Remove the legacy 'skills' subcommand: use 'sac list' instead of 'sac skills list'"
+        )
         return _EXIT_USAGE
     if sub in ("list", "ls"):
         return _cmd_list(rest, aggregate)
@@ -131,7 +133,9 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
             if value is not None:
                 flags[key] = value
 
-    request = SkillsRequest(op=op, query=query, flags=flags, apply=bool(flags.get("apply", False)))
+    request = SkillsRequest(
+        op=op, query=query, flags=flags, apply=bool(flags.get("apply", False))
+    )
     result = aggregate.execute(request)
 
     return _render_lifecycle(sub, op, result)
@@ -140,7 +144,6 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
 def _cmd_phrases(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac phrases`` to the traces agent; render repeated phrases."""
     parser = argparse.ArgumentParser(prog="sac phrases", add_help=True)
-    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON output")
     try:
         parser.parse_args(rest)
     except SystemExit as exit_exc:
@@ -162,7 +165,6 @@ def _cmd_phrases(rest: list[str], aggregate: ISkillsAggregate) -> int:
 def _cmd_usage(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac usage`` to the traces agent; render usage scan items."""
     parser = argparse.ArgumentParser(prog="sac usage", add_help=True)
-    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON output")
     try:
         parser.parse_args(rest)
     except SystemExit as exit_exc:
@@ -201,6 +203,10 @@ def _render_usage_scan(result: SkillsResult, run_dir: str) -> int:
             indent=2,
             ensure_ascii=False,
         )
+    )
+    info(
+        f"[OK] Scanned {summary.sessions_seen if summary is not None else 0} sessions, "
+        f"folded {len(summary.records) if summary is not None else 0} skills into .usage.json"
     )
     return 0
 
@@ -255,7 +261,6 @@ def _render_phrases(result: SkillsResult, run_dir: str) -> int:
 def _cmd_memory(rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Route ``sac memory`` to the traces agent; render memory-v2 signals."""
     parser = argparse.ArgumentParser(prog="sac memory", add_help=True)
-    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON output")
     try:
         parser.parse_args(rest)
     except SystemExit as exit_exc:
@@ -445,43 +450,81 @@ def _render_prune(result: SkillsResult) -> int:
 def _print_usage() -> None:
     banner()
     info(f"{BOLD()}Discovery:{RESET()}")
-    info(f"{BOLD()}sac list{RESET()}                          List all skills in the pack")
+    info(
+        f"{BOLD()}sac list{RESET()}                          List all skills in the pack"
+    )
     info(f"{BOLD()}sac read <name>{RESET()}                   Print a skill's SKILL.md")
-    info(f"{BOLD()}sac export <name>{RESET()}                 Export skill into single Markdown file")
-    info(f"{BOLD()}sac lint [--category NAME]{RESET()}        Lint scan all skills (optionally filter by category)")
-    info(f"{BOLD()}sac catalog [--build] [--read]{RESET()}    Build and/or print catalog.json")
+    info(
+        f"{BOLD()}sac export <name>{RESET()}                 Export skill into single Markdown file"
+    )
+    info(
+        f"{BOLD()}sac lint [--category NAME]{RESET()}        Lint scan all skills (optionally filter by category)"
+    )
+    info(
+        f"{BOLD()}sac catalog [--build] [--read]{RESET()}    Build and/or print catalog.json"
+    )
     info(f"{BOLD()}sac discover <query>{RESET()}             Search the catalog")
     print()
     info(f"{BOLD()}Observation:{RESET()}")
-    info(f"{BOLD()}sac phrases [--json]{RESET()}   "
-         "Mine repeated user prompts from session traces (hardcoded 30-day window)")
-    info(f"{BOLD()}sac usage [--json]{RESET()}   "
-         "Scan sessions and fold usage analytics into .usage.json sidecar")
-    info(f"{BOLD()}sac memory [--json]{RESET()}    "
-         "Mine memory-v2 topics & observations (hardcoded 30-day window)")
+    info(
+        f"{BOLD()}sac phrases{RESET()}                       "
+        "Mine repeated user prompts from session traces (hardcoded 30-day window)"
+    )
+    info(
+        f"{BOLD()}sac usage{RESET()}                        "
+        "Scan sessions and fold usage analytics into .usage.json sidecar"
+    )
+    info(
+        f"{BOLD()}sac memory{RESET()}                       "
+        "Mine memory-v2 topics & observations (hardcoded 30-day window)"
+    )
     print()
     info(f"{BOLD()}Mutations:{RESET()}")
-    info(f"{BOLD()}sac move <name> <category> [--apply]{RESET()}  Move a skill to a category")
-    info(f"{BOLD()}sac archive <name> [--apply]{RESET()}     Archive a skill into ~/.agents/skills/.archive/")
-    info(f"{BOLD()}sac create <kind> <name> [--category C] [--apply]{RESET()}  "
-         "Create a skill or category")
+    info(
+        f"{BOLD()}sac move <name> <category> [--apply]{RESET()}  Move a skill to a category"
+    )
+    info(
+        f"{BOLD()}sac archive <name> [--apply]{RESET()}     Archive a skill into ~/.agents/skills/.archive/"
+    )
+    info(
+        f"{BOLD()}sac create <kind> <name> [--category C] [--apply]{RESET()}  "
+        "Create a skill or category"
+    )
     print()
     info(f"{BOLD()}Lifecycle:{RESET()}")
-    info(f"{BOLD()}sac status{RESET()}                        Show per-skill lifecycle states")
-    info(f"{BOLD()}sac run{RESET()}                           Run automated state transitions")
-    info(f"{BOLD()}sac pause{RESET()}                         Pause automatic transitions")
-    info(f"{BOLD()}sac resume{RESET()}                        Resume automatic transitions")
-    info(f"{BOLD()}sac pin <skill>{RESET()}                   Pin a skill in active state")
+    info(
+        f"{BOLD()}sac status{RESET()}                        Show per-skill lifecycle states"
+    )
+    info(
+        f"{BOLD()}sac run{RESET()}                           Run automated state transitions"
+    )
+    info(
+        f"{BOLD()}sac pause{RESET()}                         Pause automatic transitions"
+    )
+    info(
+        f"{BOLD()}sac resume{RESET()}                        Resume automatic transitions"
+    )
+    info(
+        f"{BOLD()}sac pin <skill>{RESET()}                   Pin a skill in active state"
+    )
     info(f"{BOLD()}sac unpin <skill>{RESET()}                 Unpin a skill")
 
     print()
     info(f"{BOLD()}Archive & Restore:{RESET()}")
-    info(f"{BOLD()}sac restore <skill>{RESET()}               Restore an archived skill")
-    info(f"{BOLD()}sac list-unmanaged{RESET()}                List skills without telemetry")
+    info(
+        f"{BOLD()}sac restore <skill>{RESET()}               Restore an archived skill"
+    )
+    info(
+        f"{BOLD()}sac list-unmanaged{RESET()}                List skills without telemetry"
+    )
     info(f"{BOLD()}sac list-archived{RESET()}                 List archived skills")
-    info(f"{BOLD()}sac prune [--days N] [--purge-days N] [--apply]{RESET()}  Archive idle skills, purge old archives")
+    info(
+        f"{BOLD()}sac prune [--days N] [--purge-days N] [--apply]{RESET()}  Archive idle skills, purge old archives"
+    )
     print()
-    info(f"{BOLD()}Note:{RESET()} move/archive/create are dry-run by default; pass --apply to write.")
+    info(
+        f"{BOLD()}Note:{RESET()} move/archive/create are dry-run by default; pass --apply to write."
+    )
     info(
         f"{BOLD()}Exit codes:{RESET()} 0 clean | 1 issues found | 2 usage error | 3 catalog drift"
     )
@@ -529,9 +572,7 @@ def _cmd_read(args: list[str], aggregate: ISkillsAggregate) -> int:
         info("Usage: sac read <name>")
         return 0
     name = args[0]
-    result = aggregate.execute(
-        SkillsRequest(op=SkillsOp.READ, query=SkillQuery(name))
-    )
+    result = aggregate.execute(SkillsRequest(op=SkillsOp.READ, query=SkillQuery(name)))
     if not result.ok or result.content is None:
         err("Skill not found")
         return 1
@@ -582,7 +623,9 @@ def _authoring_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    sub = subparsers.add_parser("lint", help="Lint scan all skills (optionally filter by category)")
+    sub = subparsers.add_parser(
+        "lint", help="Lint scan all skills (optionally filter by category)"
+    )
     sub.add_argument(
         "--category",
         metavar="NAME",
@@ -621,7 +664,9 @@ def _authoring_parser() -> argparse.ArgumentParser:
     sub.add_argument("category", help="Target category")
     sub.add_argument("--apply", action="store_true", help="Apply the move")
 
-    sub = subparsers.add_parser("archive", help="Archive a skill into ~/.agents/skills/.archive/")
+    sub = subparsers.add_parser(
+        "archive", help="Archive a skill into ~/.agents/skills/.archive/"
+    )
     sub.add_argument("skill", help="Skill name to archive")
     sub.add_argument("--apply", action="store_true", help="Apply the archive")
 
@@ -742,7 +787,6 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
         )
 
 
-
 # ─── Renderers ───────────────────────────────────────────────────────
 def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the catalog build / read output."""
@@ -824,9 +868,13 @@ def _render_lint(result: SkillsResult, request: SkillsRequest) -> int:
     if request.flags.get("category"):
         category = request.flags["category"]
         if in_scope == 0 and total > 0:
-            print(f"No issues in category '{category}'. {total} issue(s) in other categories:")
+            print(
+                f"No issues in category '{category}'. {total} issue(s) in other categories:"
+            )
         else:
-            print(f"{total} lint issue(s) found ({in_scope} in scope category={category}):")
+            print(
+                f"{total} lint issue(s) found ({in_scope} in scope category={category}):"
+            )
     else:
         print(f"{total} lint issue(s) found:")
 
@@ -889,7 +937,9 @@ def _print_mutation_plan(sub: str, plan: object) -> None:
         if plan.description:
             print(f"[DRY-RUN] description: {plan.description}")
         if not plan.will_write:
-            print("[DRY-RUN] DESCRIPTION.md already present — kept (use --force to overwrite)")
+            print(
+                "[DRY-RUN] DESCRIPTION.md already present — kept (use --force to overwrite)"
+            )
         return
 
     # MutationPlan (move / archive)
