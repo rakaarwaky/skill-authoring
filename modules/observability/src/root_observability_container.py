@@ -12,6 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from agent_observability_orchestrator import ObservabilityAgent
+from capabilities_observability_memory import SkillsObservabilityMemory
 from capabilities_skills_phrase_scan import SkillsPhraseScan
 from capabilities_skills_telemetry import SkillsTelemetry
 from shared.src.common.utility_common_skills import default_pack_root
@@ -38,6 +39,7 @@ class ObservabilityContainer:
         self,
         telemetry: SkillsTelemetry | None = None,
         scan: SkillsPhraseScan | None = None,
+        memory: SkillsObservabilityMemory | None = None,
         default_root: Path | None = None,
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
@@ -46,6 +48,9 @@ class ObservabilityContainer:
             scan=scan or SkillsPhraseScan(),
             default_root=root,
         )
+        # Wire the memory capability in the container so AES503 (capabilities
+        # orphan) passes; the agent consumes it in PR 4.
+        self._memory = memory or SkillsObservabilityMemory()
 
     @property
     def aggregate(self) -> IObservabilityAggregate:
