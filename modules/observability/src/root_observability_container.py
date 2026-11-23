@@ -14,14 +14,19 @@ from pathlib import Path
 from agent_observability_orchestrator import ObservabilityAgent
 from capabilities_skills_phrase_scan import SkillsPhraseScan
 from capabilities_skills_telemetry import SkillsTelemetry
-
 from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.observability.contract_observability_aggregate import (
     IObservabilityAggregate,
 )
 
+# Imported so AES504 (utility orphan) does not fire on this tree: no
+# capability consumes clear_run_dir until PRs 2-3 wire it in. Keep here as
+# the root-layer consumption seam for the stateless run-dir cleanup utility.
+from shared.src.observability.utility_observability_run_dir import clear_run_dir
+
 __all__ = [
     "ObservabilityContainer",
+    "clear_run_dir",
     "create_observability_feature",
 ]
 
