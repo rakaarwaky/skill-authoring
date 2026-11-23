@@ -720,7 +720,7 @@ def _clear_run_dir(run_dir: str, action: str = "phrases") -> None:
         "phrases": ("sessions", "manifest.json", "phrases.json"),
         "usage": ("sessions", "manifest.json", "usage.json"),
         "memory": ("memory.json",),
-    }[action]
+    }.get(action, ())
     for entry in os.listdir(run_dir):
         if entry not in targets:
             continue

@@ -36,6 +36,7 @@ Data rows carry no prefix; status lines always do.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 
@@ -189,11 +190,9 @@ def _render_usage_scan(result: SkillsResult, run_dir: str) -> int:
         err(result.message)
         return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
 
-    import json as _json
-
     summary = result.scan_summary
     print(
-        _json.dumps(
+        json.dumps(
             {
                 "run_dir": run_dir,
                 "sessions_seen": summary.sessions_seen if summary is not None else 0,
@@ -204,10 +203,6 @@ def _render_usage_scan(result: SkillsResult, run_dir: str) -> int:
             ensure_ascii=False,
         )
     )
-    info(
-        f"[OK] Scanned {summary.sessions_seen if summary is not None else 0} sessions, "
-        f"folded {len(summary.records) if summary is not None else 0} skills into .usage.json"
-    )
     return 0
 
 
@@ -217,10 +212,8 @@ def _render_phrases(result: SkillsResult, run_dir: str) -> int:
         err(result.message)
         return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
 
-    import json as _json
-
     print(
-        _json.dumps(
+        json.dumps(
             {
                 "run_dir": run_dir,
                 "exact_prompts": [
@@ -285,12 +278,10 @@ def _render_memory(result: SkillsResult, run_dir: str) -> int:
         err(result.message)
         return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
 
-    import json as _json
-
     memory = result.memory
     if memory is None:
         print(
-            _json.dumps(
+            json.dumps(
                 {
                     "run_dir": run_dir,
                     "topics": [],
@@ -307,7 +298,7 @@ def _render_memory(result: SkillsResult, run_dir: str) -> int:
         return 0
 
     print(
-        _json.dumps(
+        json.dumps(
             {
                 "run_dir": run_dir,
                 "topics": [
