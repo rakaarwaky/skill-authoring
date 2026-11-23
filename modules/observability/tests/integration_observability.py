@@ -9,13 +9,11 @@ from observability.src.agent_observability_orchestrator import (
     ObservabilityAgent,
 )
 from observability.src.capabilities_skills_phrase_scan import SkillsPhraseScan
-from observability.src.capabilities_skills_telemetry import SkillsTelemetry
 from shared.src.design.taxonomy_design_request import SkillsOp, SkillsRequest
 
 
 def test_observability_agent_coordinates_capabilities() -> None:
     agent = ObservabilityAgent(
-        telemetry=SkillsTelemetry(),
         scan=SkillsPhraseScan(),
     )
     assert agent is not None
@@ -29,10 +27,8 @@ def test_scan_sessions_usage_writes_usage_json(tmp_path, monkeypatch) -> None:
     from observability.src.capabilities_observability_usage import (
         SkillsObservabilityUsage,
     )
-    from shared.src.maintenance.utility_lifecycle_support import pack_usage_path
 
     agent = ObservabilityAgent(
-        telemetry=SkillsTelemetry(),
         scan=SkillsPhraseScan(),
         usage=SkillsObservabilityUsage(),
     )
@@ -41,7 +37,7 @@ def test_scan_sessions_usage_writes_usage_json(tmp_path, monkeypatch) -> None:
     grok_home = str(tmp_path / "grok")
     sidecar = tmp_path / ".usage.json"
     monkeypatch.setattr(
-        "observability.src.capabilities_skills_telemetry.pack_usage_path",
+        "observability.src.capabilities_observability_usage.pack_usage_path",
         lambda pack_root=None: sidecar,
     )
 
@@ -74,10 +70,8 @@ def test_agent_routes_usage_traces_to_write_usage_and_telemetry(tmp_path, monkey
     from observability.src.capabilities_observability_usage import (
         SkillsObservabilityUsage,
     )
-    from shared.src.maintenance.utility_lifecycle_support import pack_usage_path
 
     agent = ObservabilityAgent(
-        telemetry=SkillsTelemetry(),
         scan=SkillsPhraseScan(),
         usage=SkillsObservabilityUsage(),
     )
@@ -86,7 +80,7 @@ def test_agent_routes_usage_traces_to_write_usage_and_telemetry(tmp_path, monkey
     grok_home = str(tmp_path / "grok")
     sidecar = tmp_path / ".usage.json"
     monkeypatch.setattr(
-        "observability.src.capabilities_skills_telemetry.pack_usage_path",
+        "observability.src.capabilities_observability_usage.pack_usage_path",
         lambda pack_root=None: sidecar,
     )
 
