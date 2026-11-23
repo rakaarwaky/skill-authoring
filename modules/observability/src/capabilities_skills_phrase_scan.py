@@ -31,6 +31,10 @@ from shared.src.observability.taxonomy_observability_vo import (
     PhrasesReport,
     TraceRunDir,
 )
+from shared.src.maintenance.utility_lifecycle_support import (
+    _baseline_record,
+    _now_iso,
+)
 
 __all__ = ["SkillsPhraseScan"]
 
@@ -69,8 +73,8 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
     ) -> ScanResult:
         """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
 
-        A weekly (7-day) window is hardcoded — only sessions updated within
-        the last 7 days are kept. ``since_last``, minimum-turn filter, and
+        A monthly (30-day) window is hardcoded — only sessions updated within
+        the last 30 days are kept. ``since_last``, minimum-turn filter, and
         limit are removed; nothing is configurable by the caller.
         """
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
@@ -82,8 +86,8 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         exclude_cwd = _default_exclude_cwd()
         drop_patterns = [re.compile(p, re.IGNORECASE) for p in self.DEFAULT_DROP_PATTERNS]
 
-        # Hardcoded 7-day window: keep sessions newer than now - 7 days.
-        cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=7)
+        # Hardcoded 30-day window: keep sessions newer than now - 30 days.
+        cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=30)
 
         kept: list[dict] = []
         seen = 0
@@ -157,7 +161,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
                 kept,
                 seen,
                 dropped,
-                days=7,
+                days=30,
                 since_last=False,
                 min_turns=1,
                 limit=0,
@@ -236,8 +240,8 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
     ) -> MemoryReport:
         """Read ``$GROK_HOME/memory-v2`` topics and observations.
 
-        A weekly (7-day) window is hardcoded — only memory items modified
-        within the last 7 days are kept. ``since_last`` and ``days`` are
+        A monthly (30-day) window is hardcoded — only memory items modified
+        within the last 30 days are kept. ``since_last`` and ``days`` are
         removed; nothing is configurable by the caller. Never edits memory
         files.
         """
@@ -247,8 +251,8 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         _clear_run_dir(run_dir)
         os.makedirs(run_dir, exist_ok=True)
 
-        # Hardcoded 7-day window: keep memory items mtime >= now - 7 days.
-        cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=7)
+        # Hardcoded 30-day window: keep memory items mtime >= now - 30 days.
+        cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=30)
 
         topics: list[MemoryTopicRow] = []
         observations: list[MemoryObservationRow] = []
@@ -739,18 +743,27 @@ def _write_usage(
 ) -> None:
     catalog_path = os.path.expanduser("~/.agents/skills/catalog.json")
     # Pinned skills (sac pin) live in the centralized .usage.json sidecar.
-    # Fold the flag into usage.json so downstream curation (skill-traces)
-    # can exclude pinned skills from unused/delete actions.
+    # Read the sidecar once so we can fold the ``pinned`` flag into
+    # usage.json (downstream curation excludes pinned skills from
+    # unused/delete actions) AND write the scan's 30-day ``used_count``
+    # back into it. The scan is the single source of truth for used_count:
+    # both learn/usage.json and the sidecar carry the same value computed
+    # here from session traces over the same 30-day window.
     sidecar_path = os.path.expanduser("~/.agents/skills/.usage.json")
-    pinned: set[str] = set()
+    sidecar_data: dict[str, dict] = {}
     if os.path.isfile(sidecar_path):
         try:
             with open(sidecar_path, encoding="utf-8") as f:
-                for sname, rec in json.load(f).items():
-                    if isinstance(rec, dict) and rec.get("pinned"):
-                        pinned.add(sname)
+                loaded = json.load(f)
+            if isinstance(loaded, dict):
+                sidecar_data = {
+                    k: v for k, v in loaded.items() if isinstance(v, dict)
+                }
         except (OSError, ValueError):
-            pass
+            sidecar_data = {}
+    pinned: set[str] = {
+        sname for sname, rec in sidecar_data.items() if rec.get("pinned")
+    }
     skills_map: dict[str, dict] = {}
     if os.path.isfile(catalog_path):
         try:
@@ -885,6 +898,78 @@ def _write_usage(
     }
     with open(os.path.join(run_dir, "usage.json"), "w", encoding="utf-8") as f:
         json.dump(usage_data, f, indent=1, ensure_ascii=False)
+
+    _fold_used_count_into_sidecar(sidecar_path, sidecar_data, items)
+
+
+def _fold_used_count_into_sidecar(
+    sidecar_path: str,
+    sidecar_data: dict[str, dict],
+    items: list[dict],
+) -> None:
+    """Write the scan's 30-day ``used_count`` into the ``.usage.json`` sidecar.
+
+    The scan is the single source of truth: every skill present in the pack
+    gets its sidecar ``used_count`` set to the value computed from session
+    traces over the same 30-day window that produced ``learn/usage.json``.
+    This keeps the two files matching 1:1 by construction.
+
+    Only the counter and its companion activity stamps are touched; lifecycle
+    fields (``state``, ``pinned``, ``archived_at``, ``created_*``) are
+    preserved from the existing sidecar record, or seeded from a baseline when
+    the skill has no record yet.
+    """
+    if not sidecar_path:
+        return
+    now = _now_iso()
+    changed = False
+    # Legacy counter fields retired in favour of the single ``used_count``.
+    # They are stripped from every record so the sidecar carries one counter
+    # that the scan owns end to end.
+    legacy_count_fields = ("views", "uses", "use_count", "view_count")
+    for item in items:
+        name = item["name"]
+        if item.get("kind") != "skill":
+            continue
+        count = int(item.get("used_count", 0) or 0)
+        existing = sidecar_data.get(name)
+        if existing is None:
+            record = _baseline_record()
+        else:
+            record = dict(existing)
+        had_legacy = any(f in record for f in legacy_count_fields)
+        if (
+            record.get("used_count") == count
+            and "used_count" in record
+            and existing is not None
+            and not had_legacy
+        ):
+            continue
+        for f in legacy_count_fields:
+            record.pop(f, None)
+        record["used_count"] = count
+        last_used = item.get("last_used")
+        if last_used:
+            record["last_activity_at"] = last_used
+            record["activity_window_start"] = last_used
+        else:
+            record["last_activity_at"] = now
+            record["activity_window_start"] = now
+        sidecar_data[name] = record
+        changed = True
+
+    if not changed:
+        return
+    try:
+        tmp = sidecar_path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(sidecar_data, f, indent=1, ensure_ascii=False, sort_keys=True)
+        os.replace(tmp, sidecar_path)
+    except OSError:
+        try:
+            os.remove(sidecar_path + ".tmp")
+        except OSError:
+            pass
 
 
 def _write_phrases(run_dir: str, report: PhrasesReport) -> None:

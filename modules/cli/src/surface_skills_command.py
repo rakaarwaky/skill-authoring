@@ -419,9 +419,9 @@ def _print_usage() -> None:
     print()
     info(f"{BOLD()}Observation:{RESET()}")
     info(f"{BOLD()}sac phrases [--json]{RESET()}   "
-         "Mine repeated user prompts from session traces (hardcoded 7-day window)")
+         "Mine repeated user prompts from session traces (hardcoded 30-day window)")
     info(f"{BOLD()}sac memory [--json]{RESET()}    "
-         "Mine memory-v2 topics & observations (hardcoded 7-day window)")
+         "Mine memory-v2 topics & observations (hardcoded 30-day window)")
     print()
     info(f"{BOLD()}Mutations:{RESET()}")
     info(f"{BOLD()}sac move <name> <category> [--apply]{RESET()}  Move a skill to a category")

@@ -46,7 +46,7 @@ class ISkillsTracesProtocol(ABC):
     ) -> ScanResult:
         """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
 
-        A hardcoded weekly (7-day) window is used; no day window override,
+        A hardcoded monthly (30-day) window is used; no day window override,
         minimum-turn filter, limit, or watermark is exposed.
         """
         ...

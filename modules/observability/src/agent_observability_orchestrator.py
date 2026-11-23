@@ -167,7 +167,7 @@ class ObservabilityAgent(IObservabilityAggregate):
             run_dir = tempfile.mkdtemp(prefix="sac-memory-")
             request.flags["run_dir"] = run_dir
 
-        # A hardcoded 7-day window is used inside the capability; no day
+        # A hardcoded 30-day window is used inside the capability; no day
         # window or watermark is exposed to the caller.
         report = scan.scan_memory(
             grok_home,
@@ -200,7 +200,7 @@ class ObservabilityAgent(IObservabilityAggregate):
             request.flags["run_dir"] = run_dir
 
         # Scan sessions first (builds session records in run_dir).
-        # A hardcoded 7-day window is used inside the capability; no day
+        # A hardcoded 30-day window is used inside the capability; no day
         # window, minimum-turn filter, or limit is exposed to the caller.
         scan_result = scan.scan_sessions(
             grok_home,
