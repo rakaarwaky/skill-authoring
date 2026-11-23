@@ -96,76 +96,260 @@ def test_execute_tool_empty_message_fallback() -> None:
     assert out["content"][0]["text"] == "No skills in the pack yet."
 
 
-# ── _clear_run_dir per-action scoping ─────────────────────────────────────
+# ── clear_run_dir per-action scoping (shared utility) ─────────────────────
 
 
-def test_clear_run_dir_usage_preserves_phrases_json(tmp_path) -> None:
-    """UT-OBS-005: _clear_run_dir('usage') wipes sessions/manifest/usage.json only."""
+def test_clear_run_dir_usage_preserves_phrase_json(tmp_path) -> None:
+    """UT-OBS-005: clear_run_dir('usage') wipes usage.json only, preserves phrase.json."""
     import json
 
-    from observability.src.capabilities_skills_phrase_scan import _clear_run_dir
+    from shared.src.observability.utility_observability_run_dir import clear_run_dir
 
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     (run_dir / "sessions").mkdir()
     (run_dir / "sessions" / "0001-s.json").write_text("{}")
     (run_dir / "manifest.json").write_text("{}")
-    (run_dir / "phrases.json").write_text("{}")
+    (run_dir / "phrase.json").write_text("{}")
     (run_dir / "usage.json").write_text("{}")
     (run_dir / "memory.json").write_text("{}")
 
-    _clear_run_dir(str(run_dir), action="usage")
+    clear_run_dir(str(run_dir), action="usage")
 
-    assert not (run_dir / "sessions").exists()
-    assert not (run_dir / "manifest.json").exists()
+    # sessions/ and manifest.json are owned by scan_sessions, not clear_run_dir.
+    assert (run_dir / "sessions").exists()
+    assert (run_dir / "manifest.json").exists()
     assert not (run_dir / "usage.json").exists()
-    assert (run_dir / "phrases.json").exists()
-    assert json.loads((run_dir / "phrases.json").read_text()) == {}
+    assert (run_dir / "phrase.json").exists()
+    assert json.loads((run_dir / "phrase.json").read_text()) == {}
     # memory.json must survive a usage clear.
     assert (run_dir / "memory.json").exists()
     assert json.loads((run_dir / "memory.json").read_text()) == {}
 
 
-def test_clear_run_dir_phrases_preserves_usage_json(tmp_path) -> None:
-    """UT-OBS-006: _clear_run_dir('phrases') wipes sessions/manifest/phrases.json only."""
-    from observability.src.capabilities_skills_phrase_scan import _clear_run_dir
+def test_clear_run_dir_phrase_preserves_usage_json(tmp_path) -> None:
+    """UT-OBS-006: clear_run_dir('phrase') wipes phrase.json only, preserves usage.json."""
+    from shared.src.observability.utility_observability_run_dir import clear_run_dir
 
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     (run_dir / "sessions").mkdir()
     (run_dir / "sessions" / "0001-s.json").write_text("{}")
     (run_dir / "manifest.json").write_text("{}")
-    (run_dir / "phrases.json").write_text("{}")
+    (run_dir / "phrase.json").write_text("{}")
     (run_dir / "usage.json").write_text("{}")
     (run_dir / "memory.json").write_text("{}")
 
-    _clear_run_dir(str(run_dir), action="phrases")
+    clear_run_dir(str(run_dir), action="phrase")
 
-    assert not (run_dir / "sessions").exists()
-    assert not (run_dir / "manifest.json").exists()
-    assert not (run_dir / "phrases.json").exists()
+    # sessions/ and manifest.json are owned by scan_sessions, not clear_run_dir.
+    assert (run_dir / "sessions").exists()
+    assert (run_dir / "manifest.json").exists()
+    assert not (run_dir / "phrase.json").exists()
     assert (run_dir / "usage.json").exists()
-    # memory.json must survive a phrases clear.
+    # memory.json must survive a phrase clear.
     assert (run_dir / "memory.json").exists()
 
 
 def test_clear_run_dir_memory_only_clears_memory_json(tmp_path) -> None:
-    """UT-OBS-007: _clear_run_dir('memory') only wipes memory.json."""
-    from observability.src.capabilities_skills_phrase_scan import _clear_run_dir
+    """UT-OBS-007: clear_run_dir('memory') only wipes memory.json."""
+    from shared.src.observability.utility_observability_run_dir import clear_run_dir
 
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     (run_dir / "memory.json").write_text("{}")
-    (run_dir / "phrases.json").write_text("{}")
+    (run_dir / "phrase.json").write_text("{}")
     (run_dir / "usage.json").write_text("{}")
     (run_dir / "manifest.json").write_text("{}")
 
-    _clear_run_dir(str(run_dir), action="memory")
+    clear_run_dir(str(run_dir), action="memory")
 
     assert not (run_dir / "memory.json").exists()
-    assert (run_dir / "phrases.json").exists()
+    assert (run_dir / "phrase.json").exists()
     assert (run_dir / "usage.json").exists()
     assert (run_dir / "manifest.json").exists()
+
+
+# ── New capability artifact tests ─────────────────────────────────────────
+
+
+def test_build_phrases_writes_phrase_json(tmp_path) -> None:
+    """UT-OBS-012: SkillsObservabilityPhrase.build_phrases writes phrase.json to run_dir."""
+    import json
+    from pathlib import Path
+
+    from observability.src.capabilities_observability_phrase import (
+        SkillsObservabilityPhrase,
+    )
+
+    phrase = SkillsObservabilityPhrase()
+    run_dir = str(tmp_path / "phrase-run")
+    Path(run_dir).mkdir(parents=True, exist_ok=True)
+    (Path(run_dir) / "sessions").mkdir(exist_ok=True)
+
+    report = phrase.build_phrases("$HOME/.grok", run_dir)
+
+    assert (Path(run_dir) / "phrase.json").is_file()
+    data = json.loads((Path(run_dir) / "phrase.json").read_text())
+    assert "exact_prompts" in data
+    assert "prompt_stems_12_words" in data
+    assert "repeated_instruction_lines" in data
+
+
+def test_write_usage_writes_usage_json(tmp_path) -> None:
+    """UT-OBS-013: SkillsObservabilityUsage.write_usage writes usage.json to run_dir."""
+    import json
+    from pathlib import Path
+
+    from observability.src.capabilities_observability_usage import (
+        SkillsObservabilityUsage,
+    )
+    from shared.src.observability.taxonomy_observability_entity import (
+        TraceSessionRecord,
+    )
+
+    usage = SkillsObservabilityUsage()
+    run_dir = str(tmp_path / "usage-run")
+    Path(run_dir).mkdir(parents=True, exist_ok=True)
+
+    records: tuple[TraceSessionRecord, ...] = ()
+    usage.write_usage("$HOME/.grok", run_dir, records)
+
+    assert (Path(run_dir) / "usage.json").is_file()
+    data = json.loads((Path(run_dir) / "usage.json").read_text())
+    assert "items" in data
+    assert "kept_sessions" in data
+
+
+def test_scan_memory_writes_memory_json(tmp_path) -> None:
+    """UT-OBS-014: SkillsObservabilityMemory.scan_memory writes memory.json to run_dir."""
+    import json
+    from pathlib import Path
+
+    from observability.src.capabilities_observability_memory import (
+        SkillsObservabilityMemory,
+    )
+
+    memory = SkillsObservabilityMemory()
+    run_dir = str(tmp_path / "mem-run")
+    Path(run_dir).mkdir(parents=True, exist_ok=True)
+
+    memory.scan_memory("$HOME/.grok", run_dir)
+
+    assert (Path(run_dir) / "memory.json").is_file()
+    data = json.loads((Path(run_dir) / "memory.json").read_text())
+    assert data["source"] == "memory-v2"
+    assert "topics" in data
+    assert "observations" in data
+    assert "keep_list" in data
+
+
+# ── Agent-to-capability routing tests ─────────────────────────────────────
+
+
+def test_execute_phrases_calls_phrase_build_phrases(tmp_path) -> None:
+    """UT-OBS-015: _execute_phrases calls self._phrase.build_phrases."""
+    from observability.src.agent_observability_orchestrator import ObservabilityAgent
+    from shared.src.design.taxonomy_design_request import SkillsOp, SkillsRequest
+    from shared.src.observability.taxonomy_observability_entity import ScanResult
+    from shared.src.observability.taxonomy_observability_vo import PhrasesReport
+
+    calls = []
+
+    class FakePhrase:
+        def build_phrases(self, grok_home, run_dir):
+            calls.append((grok_home, run_dir))
+            return PhrasesReport()
+
+    class FakeScan:
+        def scan_sessions(self, grok_home, run_dir):
+            return ScanResult(records=(), sessions_seen=0)
+
+    agent = ObservabilityAgent(scan=FakeScan(), phrase=FakePhrase())
+    run_dir = str(tmp_path / "run")
+    result = agent.execute(
+        SkillsRequest(
+            op=SkillsOp.TRACES,
+            flags={
+                "traces_action": "phrases",
+                "grok_home": "$HOME/.grok",
+                "run_dir": run_dir,
+            },
+        )
+    )
+
+    assert result.ok
+    assert calls == [("$HOME/.grok", run_dir)]
+
+
+def test_execute_usage_traces_calls_usage_and_telemetry(tmp_path) -> None:
+    """UT-OBS-016: _execute_usage_traces calls write_usage + fold_used_count_into_sidecar."""
+    from observability.src.agent_observability_orchestrator import ObservabilityAgent
+    from shared.src.design.taxonomy_design_request import SkillsOp, SkillsRequest
+    from shared.src.observability.taxonomy_observability_entity import ScanResult
+
+    usage_calls = []
+    telemetry_calls = []
+
+    class FakeUsage:
+        def write_usage(self, grok_home, run_dir, records):
+            usage_calls.append((grok_home, run_dir, records))
+            return []
+
+    class FakeTelemetry:
+        def fold_used_count_into_sidecar(self, grok_home, run_dir, records):
+            telemetry_calls.append((grok_home, run_dir, records))
+
+    class FakeScan:
+        def scan_sessions(self, grok_home, run_dir):
+            return ScanResult(records=(), sessions_seen=0)
+
+    agent = ObservabilityAgent(scan=FakeScan(), usage=FakeUsage(), telemetry=FakeTelemetry())
+    run_dir = str(tmp_path / "run")
+    result = agent.execute(
+        SkillsRequest(
+            op=SkillsOp.TRACES,
+            flags={
+                "traces_action": "usage",
+                "grok_home": "$HOME/.grok",
+                "run_dir": run_dir,
+            },
+        )
+    )
+
+    assert result.ok
+    assert usage_calls == [("$HOME/.grok", run_dir, ())]
+    assert telemetry_calls == [("$HOME/.grok", run_dir, ())]
+
+
+def test_execute_memory_calls_memory_scan_memory(tmp_path) -> None:
+    """UT-OBS-017: _execute_memory calls self._memory.scan_memory."""
+    from observability.src.agent_observability_orchestrator import ObservabilityAgent
+    from shared.src.design.taxonomy_design_request import SkillsOp, SkillsRequest
+    from shared.src.observability.taxonomy_observability_vo import MemoryReport
+
+    memory_calls = []
+
+    class FakeMemory:
+        def scan_memory(self, grok_home, run_dir):
+            memory_calls.append((grok_home, run_dir))
+            return MemoryReport()
+
+    agent = ObservabilityAgent(memory=FakeMemory())
+    run_dir = str(tmp_path / "run")
+    result = agent.execute(
+        SkillsRequest(
+            op=SkillsOp.TRACES,
+            flags={
+                "traces_action": "memory",
+                "grok_home": "$HOME/.grok",
+                "run_dir": run_dir,
+            },
+        )
+    )
+
+    assert result.ok
+    assert memory_calls == [("$HOME/.grok", run_dir)]
 
 
 # ── SkillsTelemetry.fold_used_count_into_sidecar analytics seeding ─────────
@@ -215,11 +399,10 @@ def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path) -> None:
     assert rec["pinned"] is False
 
 
-# ── scan_sessions with action="usage" writes usage.json not phrases.json ──
-
+# ── scan_sessions with action="usage" writes usage.json not phrase.json ──
 
 def test_scan_sessions_usage_action_writes_usage_not_phrases(tmp_path) -> None:
-    """UT-OBS-009: scan_sessions + write_usage writes usage.json, not phrases.json."""
+    """UT-OBS-009: scan_sessions + write_usage writes usage.json, not phrase.json."""
     from pathlib import Path
 
     from observability.src.capabilities_observability_usage import (
@@ -235,7 +418,7 @@ def test_scan_sessions_usage_action_writes_usage_not_phrases(tmp_path) -> None:
     usage.write_usage("$HOME/.grok", run_dir, scan_result.records)
 
     assert (Path(run_dir) / "usage.json").is_file()
-    assert not (Path(run_dir) / "phrases.json").exists()
+    assert not (Path(run_dir) / "phrase.json").exists()
 
 
 # ── _baseline_record() defaults ─────────────────────────────────────────────
