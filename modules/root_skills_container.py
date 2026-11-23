@@ -208,7 +208,7 @@ class _ComposedAggregate(ISkillsAggregate):
         if result.ok and op == SkillsOp.READ:
             skill_name = str(request.query or "").strip()
             if skill_name:
-                self._observability.record_view(skill_name)
+                self._observability.record_use(skill_name)
         return result
 
 

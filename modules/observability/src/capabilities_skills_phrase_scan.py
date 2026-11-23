@@ -823,7 +823,7 @@ def _write_usage(
 
     usage: dict[str, dict] = defaultdict(
         lambda: {
-            "count": 0,
+            "used_count": 0,
             "sessions": [],
             "last_used": None,
             "via": Counter(),
@@ -836,7 +836,7 @@ def _write_usage(
         updated = r.get("updated_at") or ""
         for name, n in (r.get("skills_loaded") or {}).items():
             u = usage[name]
-            u["count"] += n
+            u["used_count"] += n
             if sid and sid not in u["sessions"] and len(u["sessions"]) < 8:
                 u["sessions"].append(sid)
             if updated > (u["last_used"] or ""):
@@ -845,7 +845,7 @@ def _write_usage(
         for name, n in (r.get("slash_commands") or {}).items():
             if name in skills_map:
                 u = usage[name]
-                u["count"] += n
+                u["used_count"] += n
                 if sid and sid not in u["sessions"] and len(u["sessions"]) < 8:
                     u["sessions"].append(sid)
                 if updated > (u["last_used"] or ""):
@@ -859,7 +859,7 @@ def _write_usage(
         u = usage.get(name)
         rec = dict(item)
         rec["pinned"] = name in pinned
-        rec["count"] = u["count"] if u else 0
+        rec["used_count"] = u["used_count"] if u else 0
         rec["sessions"] = u["sessions"] if u else []
         rec["last_used"] = u["last_used"] if u else None
         rec["via"] = dict(u["via"]) if u else {}
@@ -870,7 +870,7 @@ def _write_usage(
         for i in items
         if i["kind"] == "skill"
         and i["loaded"]
-        and i["count"] == 0
+        and i["used_count"] == 0
         and not i["in_slash_mru"]
         and not i.get("pinned")
     ]

@@ -226,10 +226,10 @@ class ObservabilityAgent(IObservabilityAggregate):
             root=self._root(request),
         )
 
-    def record_view(self, skill: str, root: SkillsRoot | None = None) -> None:
-        """Public seam: bump the ``views`` counter for *skill* in ``.usage.json``."""
+    def record_use(self, skill: str, root: SkillsRoot | None = None) -> None:
+        """Public seam: bump the ``used_count`` counter for *skill* in ``.usage.json``."""
         telemetry = self._require(self._telemetry, "telemetry")
         target_root = root if root is not None else self._root(
             SkillsRequest(op=SkillsOp.USAGE, query=skill)
         )
-        telemetry.view(skill, target_root)
+        telemetry.record_use(skill, target_root)

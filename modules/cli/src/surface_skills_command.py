@@ -353,10 +353,9 @@ def _render_usage(result: SkillsResult) -> int:
     if records:
         for rec in records:
             name = getattr(rec, "name", "unknown")
-            views = getattr(rec, "views", 0)
-            uses = getattr(rec, "uses", 0)
+            used_count = getattr(rec, "used_count", 0)
             state = getattr(rec, "state", "active")
-            info(f"  {name}: views={views} uses={uses} state={state}")
+            info(f"  {name}: used_count={used_count} state={state}")
     return 0
 
 

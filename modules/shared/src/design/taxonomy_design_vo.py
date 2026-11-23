@@ -348,8 +348,7 @@ class TelemetryRow:
     first_seen_at: str | None
     last_activity_at: str | None
     archived_at: str | None
-    views: int
-    uses: int
+    used_count: int
     activity_window_start: str | None
 
 

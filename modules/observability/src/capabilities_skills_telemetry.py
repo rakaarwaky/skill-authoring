@@ -1,7 +1,7 @@
 """Skill telemetry capability (AES capabilities layer).
 
 Reads and bumps the per-skill ``.usage.json`` sidecar: seeding the record,
-reanchoring the clock, counting views, and emitting the curated
+reanchoring the clock, counting uses, and emitting the curated
 report consumed by the ``status`` / ``usage`` surface verbs.
 """
 
@@ -89,16 +89,15 @@ class SkillsTelemetry(ISkillsTelemetryProtocol):
                     first_seen_at=rec.get("first_seen_at"),
                     last_activity_at=rec.get("last_activity_at"),
                     archived_at=rec.get("archived_at"),
-                    views=int(rec.get("views", 0)),
-                    uses=int(rec.get("uses", 0)),
+                    used_count=int(rec.get("used_count", 0)),
                     activity_window_start=rec.get("activity_window_start"),
                 )
             )
         rows.sort(key=lambda r: r.name)
         return tuple(rows)
 
-    def view(self, skill: str, root: SkillsRoot) -> None:
-        self._bump(skill, root, "views")
+    def record_use(self, skill: str, root: SkillsRoot) -> None:
+        self._bump(skill, root, "used_count")
 
     # ─── Block 3: Module Helpers ─────────
     def _bump(

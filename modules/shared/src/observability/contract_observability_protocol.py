@@ -80,8 +80,8 @@ class ISkillsTelemetryProtocol(ABC):
         ...
 
     @abstractmethod
-    def view(self, skill: SkillName, root: SkillsRoot) -> None:
-        """Bump the views counter for *skill*."""
+    def record_use(self, skill: SkillName, root: SkillsRoot) -> None:
+        """Bump the used_count counter for *skill*."""
         ...
 
 
