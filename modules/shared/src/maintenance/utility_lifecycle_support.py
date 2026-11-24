@@ -108,6 +108,7 @@ EXCLUDED_PATHS: frozenset[str] = frozenset(
         ".git",
         ".archive",
         ARCHIVE_DIRNAME,
+        ".session",
         "venv",
         "node_modules",
     }

@@ -1,7 +1,7 @@
 """Phrase-scan trace capability (AES capabilities layer).
 
 Produces ``phrase.json`` run-dir artifact from session records. Reads session
-records already written to ``run_dir/sessions/`` by ``scan_sessions`` and mines
+records already written to ``run_dir/.session/`` by ``scan_sessions`` and mines
 repeated exact prompts, stems, and instruction lines.
 Depends only on the trace contract + taxonomy from the shared kernel plus the
 shared run-dir clearing utility. Never imports other capabilities (AES201).
@@ -55,23 +55,23 @@ class SkillsObservabilityPhrase(ISkillsPhraseProtocol):
         """Read session records from ``run_dir``; mine repeated phrases; write ``phrase.json``.
 
         Clearing ownership: clears ONLY ``phrase.json`` via
-        ``clear_run_dir(run_dir, action="phrase")``. It never clears ``sessions/``
+        ``clear_run_dir(run_dir, action="phrase")``. It never clears ``.session/``
         or ``manifest.json`` — those are owned by ``scan_sessions`` (which already
-        ran). Re-wiping ``sessions/`` here would delete the records this capability
+        ran). Re-wiping ``.session/`` here would delete the records this capability
         is about to read.
         """
-        # Clears phrase.json only; never sessions/ or manifest.json.
+        # Clears phrase.json only; never .session/ or manifest.json.
         clear_run_dir(run_dir, action="phrase")
-        sessions_dir = os.path.join(run_dir, "sessions")
+        session_dir = os.path.join(run_dir, ".session")
         exact: dict[str, list[str]] = defaultdict(list)
         stems: dict[str, list[str]] = defaultdict(list)
         lines: dict[str, set[str]] = defaultdict(set)
         min_sessions = self._EXACT_MIN_SESSIONS
-        if os.path.isdir(sessions_dir):
-            for name in sorted(os.listdir(sessions_dir)):
+        if os.path.isdir(session_dir):
+            for name in sorted(os.listdir(session_dir)):
                 if not name.endswith(".json"):
                     continue
-                path = os.path.join(sessions_dir, name)
+                path = os.path.join(session_dir, name)
                 try:
                     with open(path, encoding="utf-8") as f:
                         rec = json.load(f)

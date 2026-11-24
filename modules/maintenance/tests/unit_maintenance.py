@@ -42,6 +42,13 @@ def test_unknown_verb_returns_usage_error() -> None:
     assert result.ok is False
 
 
+def test_excluded_paths_includes_session() -> None:
+    """UT-MAINTENANCE-002: .session is excluded from pack lifecycle walks."""
+    from shared.src.maintenance.utility_lifecycle_support import EXCLUDED_PATHS
+
+    assert ".session" in EXCLUDED_PATHS
+
+
 # ── Maintenance capability unit tests ──────────────────────────────────
 
 def test_prune_report_includes_dry_run_flag() -> None:

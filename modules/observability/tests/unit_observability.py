@@ -99,6 +99,13 @@ def test_execute_tool_empty_message_fallback() -> None:
 # ── clear_run_dir per-action scoping (shared utility) ─────────────────────
 
 
+def test_ignored_category_dirs_includes_session() -> None:
+    """UT-OBS-008: .session is in the shared ignored-category-dir set."""
+    from shared.src.common.taxonomy_common_constant import IGNORED_CATEGORY_DIRS
+
+    assert ".session" in IGNORED_CATEGORY_DIRS
+
+
 def test_clear_run_dir_usage_preserves_phrase_json(tmp_path) -> None:
     """UT-OBS-005: clear_run_dir('usage') wipes usage.json only, preserves phrase.json."""
     import json
@@ -107,8 +114,8 @@ def test_clear_run_dir_usage_preserves_phrase_json(tmp_path) -> None:
 
     run_dir = tmp_path / "run"
     run_dir.mkdir()
-    (run_dir / "sessions").mkdir()
-    (run_dir / "sessions" / "0001-s.json").write_text("{}")
+    (run_dir / ".session").mkdir()
+    (run_dir / ".session" / "0001-s.json").write_text("{}")
     (run_dir / "manifest.json").write_text("{}")
     (run_dir / "phrase.json").write_text("{}")
     (run_dir / "usage.json").write_text("{}")
@@ -116,8 +123,9 @@ def test_clear_run_dir_usage_preserves_phrase_json(tmp_path) -> None:
 
     clear_run_dir(str(run_dir), action="usage")
 
-    # sessions/ and manifest.json are owned by scan_sessions, not clear_run_dir.
-    assert (run_dir / "sessions").exists()
+    # .session/ and manifest.json are owned by scan_sessions, not clear_run_dir.
+    assert (run_dir / ".session").exists()
+    assert (run_dir / ".session" / "0001-s.json").read_text() == "{}"
     assert (run_dir / "manifest.json").exists()
     assert not (run_dir / "usage.json").exists()
     assert (run_dir / "phrase.json").exists()
@@ -133,8 +141,8 @@ def test_clear_run_dir_phrase_preserves_usage_json(tmp_path) -> None:
 
     run_dir = tmp_path / "run"
     run_dir.mkdir()
-    (run_dir / "sessions").mkdir()
-    (run_dir / "sessions" / "0001-s.json").write_text("{}")
+    (run_dir / ".session").mkdir()
+    (run_dir / ".session" / "0001-s.json").write_text("{}")
     (run_dir / "manifest.json").write_text("{}")
     (run_dir / "phrase.json").write_text("{}")
     (run_dir / "usage.json").write_text("{}")
@@ -142,8 +150,9 @@ def test_clear_run_dir_phrase_preserves_usage_json(tmp_path) -> None:
 
     clear_run_dir(str(run_dir), action="phrase")
 
-    # sessions/ and manifest.json are owned by scan_sessions, not clear_run_dir.
-    assert (run_dir / "sessions").exists()
+    # .session/ and manifest.json are owned by scan_sessions, not clear_run_dir.
+    assert (run_dir / ".session").exists()
+    assert (run_dir / ".session" / "0001-s.json").read_text() == "{}"
     assert (run_dir / "manifest.json").exists()
     assert not (run_dir / "phrase.json").exists()
     assert (run_dir / "usage.json").exists()
@@ -185,7 +194,7 @@ def test_build_phrases_writes_phrase_json(tmp_path) -> None:
     phrase = SkillsObservabilityPhrase()
     run_dir = str(tmp_path / "phrase-run")
     Path(run_dir).mkdir(parents=True, exist_ok=True)
-    (Path(run_dir) / "sessions").mkdir(exist_ok=True)
+    (Path(run_dir) / ".session").mkdir(exist_ok=True)
 
     phrase.build_phrases("$HOME/.grok", run_dir)
 

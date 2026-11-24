@@ -12,7 +12,7 @@ from typing import NewType
 
 #: The ``$GROK_HOME`` directory the phrase pipeline reads session traces from.
 GrokHome = NewType("GrokHome", str)
-#: The run directory one trace scan writes into (``report.md``, ``sessions/``).
+#: The run directory one trace scan writes into (``report.md``, ``.session/``).
 TraceRunDir = NewType("TraceRunDir", str)
 #: A turn is one user utterance in a trace session. ``Turns`` carries the
 #: ordered tuple of turn strings instead of a bare primitive ``tuple``.
