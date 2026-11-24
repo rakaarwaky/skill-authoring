@@ -27,7 +27,7 @@ CATEGORY_DESCRIPTION_FILENAME: Final = "DESCRIPTION.md"
 
 #: Category directories the walker skips.
 IGNORED_CATEGORY_DIRS: Final = frozenset(
-    {".git", ".hg", ".svn", "__pycache__", ".archive"}
+    {".git", ".hg", ".svn", "__pycache__", ".archive", ".session"}
 )
 
 # ─── Archive ───────────────────────────────────────────────────────────

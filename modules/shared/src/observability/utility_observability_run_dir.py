@@ -5,7 +5,7 @@ capabilities (phrase / usage / memory) can clear run-dir artifacts without
 cross-capability imports. Owned by observability shared kernel; consumed by
 trace capabilities and re-exported by the root container for AES504 wiring.
 
-Does NOT clear sessions/ or manifest.json — those are owned by
+Does NOT clear .session/ or manifest.json — those are owned by
 scan_sessions which clears them itself.
 """
 
@@ -21,16 +21,16 @@ def clear_run_dir(run_dir: str, action: str = "phrases") -> None:
     """Remove existing run-dir artifacts relevant to *action* before a fresh write.
 
     Clearing ownership:
-      - scan_sessions owns sessions/ and manifest.json — it clears those itself
+      - scan_sessions owns .session/ and manifest.json — it clears those itself
         before writing session records; phrase/usage capabilities never touch them.
       - phrase capability clears only phrase.json.
       - usage capability clears only usage.json.
       - memory capability clears only memory.json.
 
     targets:
-      phrases -> phrase.json  (sessions/, manifest.json owned by scan_sessions)
-      phrase  -> phrase.json   (sessions/, manifest.json owned by scan_sessions)
-      usage   -> usage.json     (sessions/, manifest.json owned by scan_sessions)
+      phrases -> phrase.json  (.session/, manifest.json owned by scan_sessions)
+      phrase  -> phrase.json   (.session/, manifest.json owned by scan_sessions)
+      usage   -> usage.json     (.session/, manifest.json owned by scan_sessions)
       memory  -> memory.json
     """
     if not run_dir:

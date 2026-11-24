@@ -74,7 +74,7 @@ prompts, stems, and instruction lines.
   excluded cwds, smoke-test and below-1-turn sessions, and writes session
   records plus a `manifest.json` into `run_dir`. Before writing, every
   existing file under `run_dir` is cleared (manifest.json, usage.json,
-  phrase.json, memory.json, sessions/) so stale records from a prior run do
+  phrase.json, memory.json, .session/) so stale records from a prior run do
   not linger. No day window override, minimum-turn filter, limit, or watermark
   is exposed to the caller — every tunable is hardcoded inside the capability.
 - `build_phrases` reads session records from `run_dir` and groups repeated

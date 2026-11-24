@@ -80,12 +80,12 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
         ``fold_used_count_into_sidecar``.
 
         Clearing ownership: clears ONLY ``usage.json`` via
-        ``clear_run_dir(run_dir, action="usage")``. It never clears ``sessions/``
+        ``clear_run_dir(run_dir, action="usage")``. It never clears ``.session/``
         or ``manifest.json`` — those are owned by ``scan_sessions`` (which already
-        ran). Re-wiping ``sessions/`` here would delete the records this capability
+        ran). Re-wiping ``.session/`` here would delete the records this capability
         is about to read.
         """
-        # Clears usage.json only; never sessions/ or manifest.json.
+        # Clears usage.json only; never .session/ or manifest.json.
         clear_run_dir(run_dir, action="usage")
         catalog_path = os.path.expanduser("~/.agents/skills/catalog.json")
         # Pinned skills (sac pin) live in the centralized .usage.json sidecar.

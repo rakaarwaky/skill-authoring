@@ -118,7 +118,7 @@ def test_agent_routes_phrases_to_build_phrases(tmp_path) -> None:
     run_dir = str(tmp_path / "phrase-route-run")
     grok_home = str(tmp_path / "grok")
     Path(run_dir).mkdir(parents=True, exist_ok=True)
-    (Path(run_dir) / "sessions").mkdir(exist_ok=True)
+    (Path(run_dir) / ".session").mkdir(exist_ok=True)
 
     result = agent.execute(
         SkillsRequest(

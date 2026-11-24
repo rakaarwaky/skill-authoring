@@ -52,7 +52,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
         sessions_root = os.path.join(grok_home, "sessions")
         run_dir = os.path.abspath(run_dir)
         _clear_run_dir(run_dir)
-        os.makedirs(os.path.join(run_dir, "sessions"), exist_ok=True)
+        os.makedirs(os.path.join(run_dir, ".session"), exist_ok=True)
         exclude_cwd = _default_exclude_cwd()
         drop_patterns = [
             re.compile(p, re.IGNORECASE) for p in self.DEFAULT_DROP_PATTERNS
@@ -115,7 +115,7 @@ class SkillsPhraseScan(ISkillsTracesProtocol):
             for i, r in enumerate(kept):
                 r["index"] = i
                 session_file = os.path.join(
-                    run_dir, "sessions", f"{i:04d}-{r['id']}.json"
+                    run_dir, ".session", f"{i:04d}-{r['id']}.json"
                 )
                 with open(session_file, "w", encoding="utf-8") as f:
                     json.dump(r, f, indent=1, ensure_ascii=False)
@@ -369,9 +369,9 @@ def _clear_run_dir(run_dir: str, action: str = "phrases") -> None:
     """Remove existing files under *run_dir* before a fresh write.
     The run dir itself is kept; only the artifacts relevant to *action* are
     wiped so a new invocation never leaves stale records from a prior run
-    behind. ``phrases`` clears sessions/, manifest.json, phrases.json;
-    ``usage`` clears sessions/, manifest.json, usage.json; ``memory`` clears
-    memory.json. The three traces actions share sessions/ and manifest.json
+    behind. ``phrases`` clears .session/, manifest.json, phrases.json;
+    ``usage`` clears .session/, manifest.json, usage.json; ``memory`` clears
+    memory.json. The three traces actions share .session/ and manifest.json
     (sac phrases and sac usage both scan sessions), so each clears its own
     JSON artifact but not the other action's JSON.
     """
@@ -379,8 +379,8 @@ def _clear_run_dir(run_dir: str, action: str = "phrases") -> None:
     if not os.path.isdir(run_dir):
         return
     targets = {
-        "phrases": ("sessions", "manifest.json", "phrases.json"),
-        "usage": ("sessions", "manifest.json", "usage.json"),
+        "phrases": (".session", "manifest.json", "phrases.json"),
+        "usage": (".session", "manifest.json", "usage.json"),
         "memory": ("memory.json",),
     }.get(action, ())
     for entry in os.listdir(run_dir):
