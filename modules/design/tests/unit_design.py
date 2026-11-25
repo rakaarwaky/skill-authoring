@@ -5,11 +5,51 @@ Verifies the agent's op-handler dispatch and error propagation.
 
 from __future__ import annotations
 
+import tempfile
+from pathlib import Path
 from typing import cast
 
 from design.src.agent_design_orchestrator import SkillsDesignAgent
 from shared.src.design.taxonomy_design_request import SkillsOp, SkillsRequest
 from shared.src.design.taxonomy_design_response import SkillsExitCode
+
+# Canonical valid SKILL.md fixture — single source for the body-shape tests.
+_VALID_SKILL_MD = (
+    "---\nname: my-skill\n"
+    'description: "a skill"\n'
+    'when-to-use: "t"\n'
+    'argument-hint: "h"\n'
+    "---\n\n"
+    "# My Skill\n\n"
+    "You run this skill.\n\n"
+    "## Rules\n\n"
+    "| ID | Rule | Check |\n"
+    "|----|------|-------|\n"
+    "| R1 | x | y |\n\n"
+    "## Routing\n\n"
+    "| Scenario | File | Purpose |\n"
+    "|------|------|---------|\n"
+    "| 0 | ref.md | purpose |\n"
+)
+
+
+def _write_skill(root: Path, text: str) -> None:
+    """Write *text* to <root>/cat/my-skill/SKILL.md, creating directories."""
+    cat = root / "cat"
+    cat.mkdir()
+    skill_dir = cat / "my-skill"
+    skill_dir.mkdir()
+    (skill_dir / "SKILL.md").write_text(text, encoding="utf-8")
+
+
+def _lint_body(tmp: str, text: str):
+    """Lint a SKILL.md written under *tmp*; return the LintReport."""
+    from design.src.capabilities_skills_linter import SkillsLinter
+    from shared.src.common.taxonomy_common_vo import SkillsRoot
+
+    linter = SkillsLinter()
+    _write_skill(Path(tmp), text)
+    return linter.lint(SkillsRoot(Path(tmp)))
 
 
 def test_unknown_op_returns_usage_error() -> None:
@@ -45,9 +85,6 @@ def test_linter_category_filter_matches_only_in_scope() -> None:
 
 def test_creator_path_traversal_rejected() -> None:
     """UT-DESIGN-002: create_skill refuses to write outside the skills root."""
-    import tempfile
-    from pathlib import Path
-
     from design.src.capabilities_skills_creator import SkillsCreator
     from shared.src.common.taxonomy_common_vo import SkillsRoot
 
@@ -73,8 +110,6 @@ def test_creator_path_traversal_rejected() -> None:
 
 def test_iter_relative_skill_mds_min_depth() -> None:
     """UT-DESIGN-003: min_depth=3 yields depth >= 3 and skips standard category/skill/SKILL.md."""
-    import tempfile
-    from pathlib import Path
     from design.src.capabilities_skills_linter import iter_relative_skill_mds
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -101,9 +136,6 @@ def test_iter_relative_skill_mds_min_depth() -> None:
 
 def test_creator_inside_root_writes_ok() -> None:
     """UT-DESIGN-003: create_skill writes inside the skills root when apply=True."""
-    import tempfile
-    from pathlib import Path
-
     from design.src.capabilities_skills_creator import SkillsCreator
     from shared.src.common.taxonomy_common_vo import SkillsRoot
 
@@ -132,54 +164,34 @@ def test_creator_inside_root_writes_ok() -> None:
 
 def test_linter_flags_missing_title_heading() -> None:
     """UT-DESIGN-004: missing '# <Skill Name>' heading raises missing-title-heading."""
-    import tempfile
-    from pathlib import Path
-
-    from design.src.capabilities_skills_linter import SkillsLinter
-    from shared.src.common.taxonomy_common_vo import SkillsRoot
     from shared.src.design.taxonomy_design_vo import IssueType
 
-    linter = SkillsLinter()
     with tempfile.TemporaryDirectory() as tmp:
-        cat = Path(tmp) / "cat"
-        cat.mkdir()
-        skill_dir = cat / "my-skill"
-        skill_dir.mkdir()
-        (skill_dir / "SKILL.md").write_text(
+        text = (
             "---\nname: my-skill\n"
             'description: "a"\n'
-            "when-to-use: \"t\"\n"
-            "argument-hint: \"h\"\n"
-            "---\n\n## Rules\n",
-            encoding="utf-8",
+            'when-to-use: "t"\n'
+            'argument-hint: "h"\n'
+            "---\n\n## Rules\n"
         )
-        report = linter.lint(SkillsRoot(Path(tmp)))
+        report = _lint_body(tmp, text)
         issue_types = {issue.type for issue in report.issues}
-        assert IssueType.MISSING_TITLE_HEADING in issue_types or IssueType.MISSING_TITLE_HEADING.value in issue_types
+        assert IssueType.MISSING_TITLE_HEADING.value in issue_types
 
 
 def test_linter_flags_missing_frontmatter_keys() -> None:
     """UT-DESIGN-005: missing when-to-use or argument-hint flags issues."""
-    import tempfile
-    from pathlib import Path
-
-    from design.src.capabilities_skills_linter import SkillsLinter
-    from shared.src.common.taxonomy_common_vo import SkillsRoot
     from shared.src.design.taxonomy_design_vo import IssueType
 
-    linter = SkillsLinter()
     with tempfile.TemporaryDirectory() as tmp:
-        cat = Path(tmp) / "cat"
-        cat.mkdir()
-        skill_dir = cat / "my-skill"
-        skill_dir.mkdir()
-        (skill_dir / "SKILL.md").write_text(
+        # Valid shape minus when-to-use / argument-hint frontmatter keys.
+        text = (
             "---\nname: my-skill\n"
-            'description: "a"\n'
-            "---\n\n# My Skill\n\nIntro.\n\n## Rules\n\n| ID | Rule | Check |\n|---|---|---|\n\n## Routing\n\n| Step | File | Purpose |\n|---|---|---|\n",
-            encoding="utf-8",
+            'description: "a skill"\n'
+            "---\n\n"
+            + _VALID_SKILL_MD.split("---\n\n", 1)[1]
         )
-        report = linter.lint(SkillsRoot(Path(tmp)))
+        report = _lint_body(tmp, text)
         issue_types = {issue.type for issue in report.issues}
         assert IssueType.MISSING_WHEN_TO_USE.value in issue_types
         assert IssueType.MISSING_ARGUMENT_HINT.value in issue_types
@@ -187,34 +199,96 @@ def test_linter_flags_missing_frontmatter_keys() -> None:
 
 def test_linter_passes_valid_shape() -> None:
     """UT-DESIGN-006: a valid SKILL.md raises no body-shape issues."""
-    import tempfile
-    from pathlib import Path
+    from shared.src.design.taxonomy_design_vo import IssueType
 
-    from design.src.capabilities_skills_linter import SkillsLinter
-    from shared.src.common.taxonomy_common_vo import SkillsRoot
-
-    linter = SkillsLinter()
     with tempfile.TemporaryDirectory() as tmp:
-        cat = Path(tmp) / "cat"
-        cat.mkdir()
-        skill_dir = cat / "my-skill"
-        skill_dir.mkdir()
-        (skill_dir / "SKILL.md").write_text(
-            "---\nname: my-skill\n"
-            'description: "a skill"\n'
-            "when-to-use: \"t\"\n"
-            "argument-hint: \"h\"\n"
-            "---\n\n# My Skill\n\nYou run this skill.\n\n## Rules\n\n| ID | Rule | Check |\n|----|------|-------|\n| R1 | x | y |\n\n## Routing\n\n| Step | File | Purpose |\n|------|------|---------|\n| 0 | ref.md | purpose |\n",
-            encoding="utf-8",
-        )
-        report = linter.lint(SkillsRoot(Path(tmp)))
+        report = _lint_body(tmp, _VALID_SKILL_MD)
+        # Body-shape IssueType members — derived from the enum, not a hand-maintained set.
+        body_shape_types = {
+            it.value
+            for it in IssueType
+            if it.name in (
+                "MISSING_TITLE_HEADING",
+                "MISSING_RULES_HEADING",
+                "MISSING_ROUTING_HEADING",
+                "DUPLICATE_TITLE_HEADING",
+                "UNEXPECTED_HEADING",
+                "RULES_TABLE_MISSING",
+                "ROUTING_TABLE_MISSING",
+                "MISSING_INTRO_PARAGRAPH",
+                "MISSING_WHEN_TO_USE",
+                "MISSING_ARGUMENT_HINT",
+            )
+        }
         body_shape_issues = {
-            issue.type for issue in report.issues
-            if getattr(issue.type, "value", issue.type) in {
-                "missing-title-heading", "missing-rules-heading",
-                "missing-routing-heading", "rules-table-missing",
-                "routing-table-missing", "missing-intro-paragraph",
-                "missing-when-to-use", "missing-argument-hint",
-            }
+            i.type for i in report.issues
+            if i.type in body_shape_types
         }
         assert body_shape_issues == set()
+
+
+def test_linter_flags_unexpected_heading() -> None:
+    """UT-DESIGN-007: an extra H2 heading outside the template set flags unexpected-heading."""
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    with tempfile.TemporaryDirectory() as tmp:
+        text = _VALID_SKILL_MD + "\n## Notes\n\nextra.\n"
+        report = _lint_body(tmp, text)
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.UNEXPECTED_HEADING.value in issue_types
+        unexpected_issues = [
+            i for i in report.issues if i.type == IssueType.UNEXPECTED_HEADING.value
+        ]
+        assert len(unexpected_issues) == 1
+        assert "## Notes" in unexpected_issues[0].message
+        assert IssueType.MISSING_RULES_HEADING.value not in issue_types
+        assert IssueType.MISSING_ROUTING_HEADING.value not in issue_types
+        assert IssueType.DUPLICATE_TITLE_HEADING.value not in issue_types
+
+
+def test_linter_flags_duplicate_h1() -> None:
+    """UT-DESIGN-008: two H1 headings flag duplicate-title-heading."""
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    with tempfile.TemporaryDirectory() as tmp:
+        text = _VALID_SKILL_MD.replace(
+            "You run this skill.\n", "You run this skill.\n\n# My Skill\n"
+        )
+        report = _lint_body(tmp, text)
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.DUPLICATE_TITLE_HEADING.value in issue_types
+        duplicate_issues = [
+            i for i in report.issues if i.type == IssueType.DUPLICATE_TITLE_HEADING.value
+        ]
+        assert len(duplicate_issues) == 1
+        assert "found 2 H1 heading(s)" in duplicate_issues[0].message
+        assert IssueType.MISSING_TITLE_HEADING.value not in issue_types
+        assert IssueType.UNEXPECTED_HEADING.value not in issue_types
+
+
+def test_linter_lowercase_headings_pass() -> None:
+    """UT-DESIGN-009: ## rules / ## routing lowercase match is accepted (case-insensitive)."""
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    with tempfile.TemporaryDirectory() as tmp:
+        text = (
+            _VALID_SKILL_MD.replace("## Rules", "## rules")
+            .replace("## Routing", "## routing")
+        )
+        report = _lint_body(tmp, text)
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.MISSING_RULES_HEADING.value not in issue_types
+        assert IssueType.MISSING_ROUTING_HEADING.value not in issue_types
+        assert IssueType.UNEXPECTED_HEADING.value not in issue_types
+
+
+def test_linter_fuzzy_heading_rejected() -> None:
+    """UT-DESIGN-010: ## Global Rules is not a fuzzy match — it flags both unexpected and missing."""
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    with tempfile.TemporaryDirectory() as tmp:
+        text = _VALID_SKILL_MD.replace("## Rules", "## Global Rules")
+        report = _lint_body(tmp, text)
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.UNEXPECTED_HEADING.value in issue_types
+        assert IssueType.MISSING_RULES_HEADING.value in issue_types

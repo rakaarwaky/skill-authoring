@@ -50,8 +50,10 @@ SUMMARIES: Final = {
     "title-heading": "SKILL.md starts with a `# <Skill Name>` heading",
     "rules-heading": "SKILL.md carries a `## Rules` heading",
     "routing-heading": "SKILL.md carries a `## Routing` heading",
+    "duplicate-title-heading": "SKILL.md has exactly one `# <Skill Name>` H1 heading",
+    "unexpected-heading": "SKILL.md carries only `## Rules` and `## Routing` as H2 headings",
     "rules-table": "## Rules carries a table with `| ID | Rule | Check |` header",
-    "routing-table": "## Routing carries a table with `| Step | File | Purpose |` header",
+    "routing-table": "## Routing carries a table with `| Scenario | File | Purpose |` header",
     "intro-paragraph": "SKILL.md contains an explanation paragraph under `# <Skill Name>`",
 }
 
@@ -100,6 +102,8 @@ CITATIONS: Final = {
     "title-heading": "`template/skill.md` (exact body heading shape)",
     "rules-heading": "`template/skill.md` (exact body heading shape)",
     "routing-heading": "`template/skill.md` (exact body heading shape)",
+    "duplicate-title-heading": "`template/skill.md` (exactly one H1 heading)",
+    "unexpected-heading": "`template/skill.md` (only `## Rules` and `## Routing` allowed)",
     "rules-table": "`template/skill.md` (Rules table columns)",
     "routing-table": "`template/skill.md` (Routing table columns)",
     "intro-paragraph": "`template/skill.md` (one paragraph explanation under title)",
