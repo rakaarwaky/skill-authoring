@@ -411,12 +411,19 @@ class SkillsLinter(ISkillsLinterProtocol):
             body_lines = [line.strip() for line in body.splitlines()]
 
             # 1. Heading check:
-            # First heading must be `# <Skill Name>`
-            # Then `## Rules` and `## Routing`
+            # Exactly one `# <Skill Name>` H1 heading, then exactly
+            # `## Rules` and `## Routing` as the only allowed H2 headings.
             h1_lines = [l for l in body_lines if l.startswith("# ")]
-            h2_lines = [l for l in body_lines if l.startswith("## ")]
+            h1_count = len(h1_lines)
+            h2_headings: set[str] = set()
+            h2_originals: dict[str, list[str]] = {}
+            for l in body_lines:
+                if l.startswith("## "):
+                    name = l[len("## "):].strip().lower()
+                    h2_headings.add(name)
+                    h2_originals.setdefault(name, []).append(l)
 
-            if not h1_lines:
+            if h1_count == 0:
                 issues.append(
                     Issue(
                         type=IssueType.MISSING_TITLE_HEADING.value,
@@ -424,10 +431,22 @@ class SkillsLinter(ISkillsLinterProtocol):
                         path=entry.path,
                     )
                 )
+            elif h1_count > 1:
+                issues.append(
+                    Issue(
+                        type=IssueType.DUPLICATE_TITLE_HEADING.value,
+                        message=issue_message(
+                            IssueType.DUPLICATE_TITLE_HEADING,
+                            count=h1_count,
+                            headings=", ".join(h1_lines),
+                        ),
+                        path=entry.path,
+                    )
+                )
 
-            # Check ## Rules heading
-            has_rules_h2 = any(l.lower().startswith("## rules") or l.lower().startswith("## global rules") for l in h2_lines)
-            if not has_rules_h2:
+            allowed_h2 = {"rules", "routing"}
+
+            if "rules" not in h2_headings:
                 issues.append(
                     Issue(
                         type=IssueType.MISSING_RULES_HEADING.value,
@@ -436,18 +455,29 @@ class SkillsLinter(ISkillsLinterProtocol):
                     )
                 )
 
-            # Check ## Routing heading
-            has_routing_h2 = any(
-                l.lower().startswith("## routing")
-                or l.lower().startswith("## steps")
-                or "routing" in l.lower()
-                for l in h2_lines
-            )
-            if not has_routing_h2:
+            if "routing" not in h2_headings:
                 issues.append(
                     Issue(
                         type=IssueType.MISSING_ROUTING_HEADING.value,
                         message=issue_message(IssueType.MISSING_ROUTING_HEADING),
+                        path=entry.path,
+                    )
+                )
+
+            unexpected = sorted(
+                line
+                for name in h2_headings
+                if name not in allowed_h2
+                for line in h2_originals[name]
+            )
+            if unexpected:
+                issues.append(
+                    Issue(
+                        type=IssueType.UNEXPECTED_HEADING.value,
+                        message=issue_message(
+                            IssueType.UNEXPECTED_HEADING,
+                            headings=", ".join(unexpected),
+                        ),
                         path=entry.path,
                     )
                 )

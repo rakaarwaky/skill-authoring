@@ -71,6 +71,8 @@ class IssueType(str, Enum):
     MISSING_TITLE_HEADING = "missing-title-heading"
     MISSING_RULES_HEADING = "missing-rules-heading"
     MISSING_ROUTING_HEADING = "missing-routing-heading"
+    DUPLICATE_TITLE_HEADING = "duplicate-title-heading"
+    UNEXPECTED_HEADING = "unexpected-heading"
     RULES_TABLE_MISSING = "rules-table-missing"
     ROUTING_TABLE_MISSING = "routing-table-missing"
     MISSING_INTRO_PARAGRAPH = "missing-intro-paragraph"
@@ -102,6 +104,8 @@ RULE_IDS: Final = {
     "title-heading": IssueType.MISSING_TITLE_HEADING,
     "rules-heading": IssueType.MISSING_RULES_HEADING,
     "routing-heading": IssueType.MISSING_ROUTING_HEADING,
+    "duplicate-title-heading": IssueType.DUPLICATE_TITLE_HEADING,
+    "unexpected-heading": IssueType.UNEXPECTED_HEADING,
     "rules-table": IssueType.RULES_TABLE_MISSING,
     "routing-table": IssueType.ROUTING_TABLE_MISSING,
     "intro-paragraph": IssueType.MISSING_INTRO_PARAGRAPH,
@@ -138,8 +142,22 @@ ISSUE_MESSAGES: Final = {
     IssueType.EMPTY_CATEGORY: "Category has no skills.",
     IssueType.REFERENCE_NOT_LINKED: "Unlinked reference file(s): {paths}",
     IssueType.MISSING_TITLE_HEADING: "SKILL.md must start with a '# <Skill Name>' heading.",
-    IssueType.MISSING_RULES_HEADING: "SKILL.md must contain a '## Rules' heading.",
-    IssueType.MISSING_ROUTING_HEADING: "SKILL.md must contain a '## Routing' heading.",
+    IssueType.MISSING_RULES_HEADING: (
+        "SKILL.md must contain an exactly-matching '## Rules' H2 heading."
+    ),
+    IssueType.MISSING_ROUTING_HEADING: (
+        "SKILL.md must contain an exactly-matching '## Routing' H2 heading."
+    ),
+    IssueType.DUPLICATE_TITLE_HEADING: (
+        "SKILL.md must contain exactly one '# <Skill Name>' H1 heading; "
+        "found {count} H1 heading(s): {headings}. "
+        "Keep one '# <Skill Name>' and remove the rest."
+    ),
+    IssueType.UNEXPECTED_HEADING: (
+        "SKILL.md contains unexpected heading(s) not in the template set: "
+        "{headings}. Allowed H2 headings are '## Rules' and '## Routing' only. "
+        "Rename matching headings to '## Rules' or '## Routing', or remove the rest."
+    ),
     IssueType.RULES_TABLE_MISSING: (
         "SKILL.md '## Rules' section must contain a table with header '| ID | Rule | Check |'."
     ),
