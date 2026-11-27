@@ -1,8 +1,8 @@
 """Usage-scan trace capability (AES capabilities layer).
 
 Produces the ``usage.json`` run-dir artifact from session records and owns
-the ``.usage.json`` sidecar lifecycle (seed, reanchor, curated report,
-``record_use``, ``fold_used_count_into_sidecar``). Reads the kept session
+the pack ``usage.json`` lifecycle (seed, reanchor, curated report,
+``record_use``, ``fold_used_count_into_usage``). Reads the kept session
 records returned by ``scan_sessions`` and computes per-skill usage analytics
 (used_count, sessions, last_used, via).
 Depends only on the trace contract + taxonomy from the shared kernel plus the
@@ -23,14 +23,16 @@ from shared.src.common.utility_common_skills import iter_skill_mds
 from shared.src.design.taxonomy_design_vo import TelemetryRow
 from shared.src.maintenance.utility_lifecycle_support import (
     DEFAULT_STATE,
+    FIELDS,
     _baseline_record,
+    _find_item,
     _normalize,
     _now_iso,
-    _read_sidecar,
+    _read_usage,
+    _write_usage,
     _with_lock,
     pack_usage_path,
 )
-from shared.src.maintenance.utility_skills_mutation import atomic_write_json
 from shared.src.observability.contract_observability_protocol import (
     ISkillsUsageProtocol,
 )
@@ -44,7 +46,6 @@ from shared.src.observability.taxonomy_observability_vo import (
 from shared.src.observability.utility_observability_run_dir import clear_run_dir
 from shared.src.observability.utility_observability_usage import (
     load_usage_sidecar,
-    read_telemetry,
 )
 
 __all__ = ["SkillsObservabilityUsage"]
@@ -56,7 +57,7 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
 
     Implements ISkillsUsageProtocol: write_usage plus the absorbed telemetry
     surface (seed_record_if_missing, reanchor_clock, curated_report, record_use,
-    fold_used_count_into_sidecar). No stubs, no NotImplementedError, no
+    fold_used_count_into_usage). No stubs, no NotImplementedError, no
     cross-capability imports (AES304 clean; AES403 single-contract; AES201
     allowed cell).
     """
@@ -76,8 +77,8 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
         No ``.get()`` / dict access is used — ``TraceSessionRecord`` is a frozen
         dataclass with no mapping interface. Returns per-skill records
         (used_count, sessions, last_used, via, pinned) for the agent to hand to
-        telemetry; sidecar fold is implemented on this class via
-        ``fold_used_count_into_sidecar``.
+        telemetry; the pack-file fold is implemented on this class via
+        ``fold_used_count_into_usage``.
 
         Clearing ownership: clears ONLY ``usage.json`` via
         ``clear_run_dir(run_dir, action="usage")``. It never clears ``.session/``
@@ -88,24 +89,24 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
         # Clears usage.json only; never .session/ or manifest.json.
         clear_run_dir(run_dir, action="usage")
         catalog_path = os.path.expanduser("~/.agents/skills/catalog.json")
-        # Pinned skills (sac pin) live in the centralized .usage.json sidecar.
-        # Read the sidecar once so we can fold the ``pinned`` flag into
-        # usage.json (downstream curation excludes pinned skills from
-        # unused/delete actions).
-        sidecar_path = os.path.expanduser("~/.agents/skills/.usage.json")
-        sidecar_data: dict[str, dict] = {}
-        if os.path.isfile(sidecar_path):
+        # Pinned skills (sac pin) live in the pack usage.json.
+        # Read its items once so we can fold the ``pinned`` flag and the
+        # lifecycle fields into the new items (downstream curation excludes
+        # pinned skills from unused/delete actions).
+        central_path = os.path.expanduser("~/.agents/skills/usage.json")
+        prev_items: dict[str, dict] = {}
+        if os.path.isfile(central_path):
             try:
-                with open(sidecar_path, encoding="utf-8") as f:
+                with open(central_path, encoding="utf-8") as f:
                     loaded = json.load(f)
                 if isinstance(loaded, dict):
-                    sidecar_data = {
-                        k: v for k, v in loaded.items() if isinstance(v, dict)
-                    }
+                    for entry in loaded.get("items", []):
+                        if isinstance(entry, dict) and "name" in entry:
+                            prev_items[entry["name"]] = entry
             except (OSError, ValueError):
-                sidecar_data = {}
+                pass
         pinned: set[str] = {
-            sname for sname, rec in sidecar_data.items() if rec.get("pinned")
+            sname for sname, rec in prev_items.items() if rec.get("pinned")
         }
         skills_map: dict[str, dict] = {}
         if os.path.isfile(catalog_path):
@@ -225,6 +226,16 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
                 rec["sessions"] = []
                 rec["last_used"] = None
                 rec["via"] = {}
+            # Seed lifecycle fields from the pack usage.json when present;
+            # baseline the rest so every item is flat and complete.
+            prev = prev_items.get(name)
+            if prev is not None:
+                for f in FIELDS:
+                    if f in prev and f not in rec:
+                        rec[f] = prev[f]
+            for f in FIELDS:
+                if f not in rec:
+                    rec[f] = _baseline_record()[f]
             items.append(rec)
         unused = [
             i["name"]
@@ -239,9 +250,6 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
             "kept_sessions": len(records),
             "items": items,
             "unused_loaded": unused,
-            "slash_commands_with_no_loaded_skill": dict(unknown_slash.most_common()),
-            "mcp_servers_used_but_not_in_local_config": {},
-            "note": "hooks and managed-gateway MCP servers are not visible in local config; count is None when it cannot be measured",
         }
         with open(os.path.join(run_dir, "usage.json"), "w", encoding="utf-8") as f:
             json.dump(usage_data, f, indent=1, ensure_ascii=False)
@@ -252,12 +260,14 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
         path = pack_usage_path(skills_root)
 
         def work() -> None:
-            data = _read_sidecar(path)
-            if skill in data:
+            data = _read_usage(path)
+            if _find_item(data, skill) is not None:
                 return
-            data[skill] = _baseline_record()
+            record = _baseline_record()
+            record["name"] = skill
+            data.setdefault("items", []).append(record)
             try:
-                atomic_write_json(path, data)
+                _write_usage(path, data)
             except OSError:
                 pass
 
@@ -268,17 +278,23 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
         path = pack_usage_path(skills_root)
 
         def work() -> None:
-            data = _read_sidecar(path)
-            record = data.get(skill, {})
-            record = _normalize(record) if record else _baseline_record()
+            data = _read_usage(path)
+            record = _find_item(data, skill)
+            if record is None:
+                record = _baseline_record()
+                record["name"] = skill
+                data.setdefault("items", []).append(record)
+            else:
+                normalized = _normalize(record)
+                for k, v in normalized.items():
+                    record[k] = v
             now = _now_iso()
             record["last_activity_at"] = now
             record["activity_window_start"] = now
             if not record.get("pinned", False):
                 record["state"] = DEFAULT_STATE
-            data[skill] = record
             try:
-                atomic_write_json(path, data)
+                _write_usage(path, data)
             except OSError:
                 pass
 
@@ -287,11 +303,11 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
     def curated_report(self, root: SkillsRoot) -> tuple[TelemetryRow, ...]:
         skills_root = Path(root)
         path = pack_usage_path(skills_root)
-        data = _read_sidecar(path)
+        data = _read_usage(path)
         rows: list[TelemetryRow] = []
         for skill_md in iter_skill_mds(skills_root):
             name = skill_md.parent.name
-            rec = _normalize(data.get(name, {})) if name in data else _baseline_record()
+            rec = _normalize(_find_item(data, name)) if _find_item(data, name) else _baseline_record()
             rows.append(
                 TelemetryRow(
                     name=name,
@@ -312,66 +328,58 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
     def record_use(self, skill: str, root: SkillsRoot) -> None:
         self._bump(skill, root, "used_count")
 
-    def fold_used_count_into_sidecar(
+    def fold_used_count_into_usage(
         self,
         grok_home: GrokHome,
         run_dir: TraceRunDir,
         records: tuple[TraceSessionRecord, ...],
     ) -> None:
-        """Fold per-skill ``used_count`` analytics into ``.usage.json`` sidecar.
+        """Fold per-skill ``used_count`` analytics into the pack ``usage.json``.
 
-        Reads telemetry via ``read_telemetry`` and the run-dir usage artifact
-        via ``load_usage_sidecar``, then writes the combined result back to the
-        sidecar.
+        Reads the run-dir ``usage.json`` artifact via ``load_usage_sidecar``
+        and merges each item's analytics fields (used_count, sessions,
+        last_used, via) into the corresponding entry in the central pack
+        ``usage.json`` (flat ``items[]``), preserving lifecycle fields.
         """
-        sidecar_path = pack_usage_path()
-        sidecar_data = read_telemetry(sidecar_path)
+        central_path = pack_usage_path()
+        central = _read_usage(central_path)
+        central_items: dict[str, dict] = {
+            i["name"]: i for i in central.get("items", []) if "name" in i
+        }
         usage_data = load_usage_sidecar(run_dir)
         items = usage_data.get("items", []) if isinstance(usage_data, dict) else []
 
         now = _now_iso()
-        legacy_count_fields = ("views", "uses", "use_count", "view_count")
         changed = False
         for item in items:
             if item.get("kind") != "skill":
                 continue
             name = item["name"]
             count = int(item.get("used_count", 0) or 0)
-            existing = sidecar_data.get(name)
+            existing = central_items.get(name)
             if existing is None:
                 record = _baseline_record()
+                record["name"] = name
+                central_items[name] = record
+                central.setdefault("items", []).append(record)
             else:
-                record = dict(existing)
-            had_legacy = any(f in record for f in legacy_count_fields)
-            if (
-                record.get("used_count") == count
-                and "used_count" in record
-                and existing is not None
-                and not had_legacy
-                and record.get("sessions") == item.get("sessions", [])
-                and record.get("last_used") == item.get("last_used")
-                and record.get("via") == item.get("via", {})
-            ):
-                continue
-            for f in legacy_count_fields:
-                record.pop(f, None)
+                record = existing
+            last_used = item.get("last_used")
             record["used_count"] = count
             record["sessions"] = item.get("sessions", [])
-            record["last_used"] = item.get("last_used")
+            record["last_used"] = last_used
             record["via"] = item.get("via", {})
-            last_used = item.get("last_used")
             if last_used:
                 record["last_activity_at"] = last_used
                 record["activity_window_start"] = last_used
             else:
                 record["last_activity_at"] = now
                 record["activity_window_start"] = now
-            sidecar_data[name] = record
             changed = True
         if not changed:
             return
         try:
-            atomic_write_json(sidecar_path, sidecar_data)
+            _write_usage(central_path, central)
         except OSError:
             pass
 
@@ -386,9 +394,16 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
         path = pack_usage_path(skills_root)
 
         def work() -> None:
-            data = _read_sidecar(path)
-            record = data.get(skill, {})
-            record = _normalize(record) if record else _baseline_record()
+            data = _read_usage(path)
+            record = _find_item(data, skill)
+            if record is None:
+                record = _baseline_record()
+                record["name"] = skill
+                data.setdefault("items", []).append(record)
+            else:
+                normalized = _normalize(record)
+                for k, v in normalized.items():
+                    record[k] = v
             current = record.get(counter_field, 0)
             record[counter_field] = (current if isinstance(current, int) else 0) + 1
             now = now_iso or _now_iso()
@@ -396,9 +411,8 @@ class SkillsObservabilityUsage(ISkillsUsageProtocol):
             record["activity_window_start"] = now
             if not record.get("pinned", False):
                 record["state"] = DEFAULT_STATE
-            data[skill] = record
             try:
-                atomic_write_json(path, data)
+                _write_usage(path, data)
             except OSError:
                 pass
 

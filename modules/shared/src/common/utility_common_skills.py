@@ -100,12 +100,16 @@ def set_field(
 ) -> None:
     """Set a single field on a skill's record in the centralized ``.usage.json``."""
     skill_name = skill_dir.name
-    path = (pack_root if pack_root is not None else default_pack_root()) / ".usage.json"
+    path = (pack_root if pack_root is not None else default_pack_root()) / "usage.json"
 
     def work() -> None:
-        data = _read_sidecar(path)
-        data.setdefault(skill_name, {})[field] = value
-        _write_sidecar(path, data)
+        data = _read_usage(path)
+        item = _find_item(data, skill_name)
+        if item is None:
+            item = {"name": skill_name}
+            data.setdefault("items", []).append(item)
+        item[field] = value
+        _write_usage(path, data)
 
     try:
         handle = path.with_name(path.name + ".lock").open("a+", encoding="utf-8")
@@ -185,24 +189,36 @@ def iter_skill_mds(pack_root: Path) -> list[Path]:
 # ── Private helpers (local to this utility module) ──
 
 
-def _read_sidecar(path: Path) -> dict:
+def _read_usage(path: Path) -> dict:
+    """Read ``usage.json``; always returns a dict with an ``items`` list."""
     import json
 
     if not path.is_file():
-        return {}
+        return {"items": []}
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
+        return {"items": []}
+    if not isinstance(data, dict):
+        return {"items": []}
+    if not isinstance(data.get("items"), list):
+        data["items"] = []
+    return data
 
 
-def _write_sidecar(path: Path, record: dict) -> None:
+def _find_item(data: dict, name: str) -> dict | None:
+    for item in data.get("items", []):
+        if isinstance(item, dict) and item.get("name") == name:
+            return item
+    return None
+
+
+def _write_usage(path: Path, data: dict) -> None:
     import json
 
     tmp = path.with_name(path.name + ".tmp")
     with tmp.open("w", encoding="utf-8") as handle:
-        json.dump(record, handle, ensure_ascii=False)
+        json.dump(data, handle, ensure_ascii=False)
         handle.flush()
         os.fsync(handle.fileno())
     os.replace(tmp, path)

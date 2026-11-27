@@ -292,7 +292,7 @@ def test_execute_phrases_calls_phrase_build_phrases(tmp_path) -> None:
 
 
 def test_execute_usage_traces_calls_usage_and_telemetry(tmp_path) -> None:
-    """UT-OBS-016: _execute_usage_traces calls write_usage + fold_used_count_into_sidecar."""
+    """UT-OBS-016: _execute_usage_traces calls write_usage + fold_used_count_into_usage."""
     from observability.src.agent_observability_orchestrator import ObservabilityAgent
     from shared.src.design.taxonomy_design_request import SkillsOp, SkillsRequest
     from shared.src.observability.taxonomy_observability_entity import ScanResult
@@ -305,7 +305,7 @@ def test_execute_usage_traces_calls_usage_and_telemetry(tmp_path) -> None:
             usage_calls.append((grok_home, run_dir, records))
             return []
 
-        def fold_used_count_into_sidecar(self, grok_home, run_dir, records):
+        def fold_used_count_into_usage(self, grok_home, run_dir, records):
             fold_calls.append((grok_home, run_dir, records))
 
     class FakeScan:
@@ -364,20 +364,23 @@ def test_execute_memory_calls_memory_scan_memory(tmp_path) -> None:
 
 
 def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path, monkeypatch) -> None:
-    """UT-OBS-008: SkillsObservabilityUsage.fold_used_count_into_sidecar writes sessions/last_used/via fields."""
+    """UT-OBS-008: SkillsObservabilityUsage.fold_used_count_into_usage writes sessions/last_used/via fields."""
     import json
 
     from observability.src.capabilities_observability_usage import (
         SkillsObservabilityUsage,
     )
 
-    sidecar = tmp_path / ".usage.json"
+    sidecar = tmp_path / "usage.json"
     sidecar.parent.mkdir(parents=True, exist_ok=True)
     sidecar.write_text(json.dumps({
-        "my-skill": {
-            "state": "active",
-            "pinned": False,
-        }
+        "items": [
+            {
+                "name": "my-skill",
+                "state": "active",
+                "pinned": False,
+            }
+        ]
     }))
     monkeypatch.setattr(
         "observability.src.capabilities_observability_usage.pack_usage_path",
@@ -399,10 +402,10 @@ def test_fold_used_count_into_sidecar_seeds_analytics(tmp_path, monkeypatch) -> 
     }))
 
     usage = SkillsObservabilityUsage()
-    usage.fold_used_count_into_sidecar(str(tmp_path), str(usage_dir), ())
+    usage.fold_used_count_into_usage(str(tmp_path), str(usage_dir), ())
 
     written = json.loads(sidecar.read_text())
-    rec = written["my-skill"]
+    rec = next(i for i in written["items"] if i["name"] == "my-skill")
     assert rec["used_count"] == 5
     assert rec["sessions"] == ["s1", "s2"]
     assert rec["last_used"] == "2026-11-20T10:00:00+00:00"
@@ -420,8 +423,8 @@ def test_seed_record_if_missing_creates_baseline(tmp_path, monkeypatch) -> None:
         SkillsObservabilityUsage,
     )
 
-    sidecar = tmp_path / ".usage.json"
-    sidecar.write_text(json.dumps({"existing-skill": {"state": "active"}}))
+    sidecar = tmp_path / "usage.json"
+    sidecar.write_text(json.dumps({"items": [{"name": "existing-skill", "state": "active"}]}))
     monkeypatch.setattr(
         "observability.src.capabilities_observability_usage.pack_usage_path",
         lambda pack_root=None: sidecar,
@@ -431,17 +434,19 @@ def test_seed_record_if_missing_creates_baseline(tmp_path, monkeypatch) -> None:
     usage.seed_record_if_missing("new-skill", str(tmp_path))
 
     data = json.loads(sidecar.read_text())
-    assert "new-skill" in data
-    assert data["new-skill"]["state"] == "active"
-    assert data["new-skill"]["used_count"] == 0
-    assert data["existing-skill"] == {"state": "active"}
+    new_rec = next(i for i in data["items"] if i["name"] == "new-skill")
+    assert new_rec["state"] == "active"
+    assert new_rec["used_count"] == 0
+    ex_rec = next(i for i in data["items"] if i["name"] == "existing-skill")
+    assert ex_rec == {"name": "existing-skill", "state": "active"}
 
     # Calling again does not overwrite existing record
-    data["new-skill"]["used_count"] = 42
+    new_rec["used_count"] = 42
     sidecar.write_text(json.dumps(data))
     usage.seed_record_if_missing("new-skill", str(tmp_path))
     data2 = json.loads(sidecar.read_text())
-    assert data2["new-skill"]["used_count"] == 42
+    new_rec2 = next(i for i in data2["items"] if i["name"] == "new-skill")
+    assert new_rec2["used_count"] == 42
 
 
 def test_reanchor_clock_updates_timestamps(tmp_path, monkeypatch) -> None:
@@ -452,13 +457,16 @@ def test_reanchor_clock_updates_timestamps(tmp_path, monkeypatch) -> None:
         SkillsObservabilityUsage,
     )
 
-    sidecar = tmp_path / ".usage.json"
+    sidecar = tmp_path / "usage.json"
     sidecar.write_text(json.dumps({
-        "my-skill": {
-            "state": "active",
-            "last_activity_at": "2026-01-01T00:00:00+00:00",
-            "activity_window_start": "2026-01-01T00:00:00+00:00",
-        }
+        "items": [
+            {
+                "name": "my-skill",
+                "state": "active",
+                "last_activity_at": "2026-01-01T00:00:00+00:00",
+                "activity_window_start": "2026-01-01T00:00:00+00:00",
+            }
+        ]
     }))
     monkeypatch.setattr(
         "observability.src.capabilities_observability_usage.pack_usage_path",
@@ -469,8 +477,9 @@ def test_reanchor_clock_updates_timestamps(tmp_path, monkeypatch) -> None:
     usage.reanchor_clock("my-skill", str(tmp_path))
 
     data = json.loads(sidecar.read_text())
-    assert data["my-skill"]["last_activity_at"] > "2026-01-01T00:00:00+00:00"
-    assert data["my-skill"]["activity_window_start"] > "2026-01-01T00:00:00+00:00"
+    rec = next(i for i in data["items"] if i["name"] == "my-skill")
+    assert rec["last_activity_at"] > "2026-01-01T00:00:00+00:00"
+    assert rec["activity_window_start"] > "2026-01-01T00:00:00+00:00"
 
 
 def test_curated_report_returns_rows(tmp_path, monkeypatch) -> None:
@@ -490,13 +499,16 @@ def test_curated_report_returns_rows(tmp_path, monkeypatch) -> None:
     skill_b_dir.mkdir(parents=True)
     (skill_b_dir / "SKILL.md").write_text("---\nname: skill-b\n---\n")
 
-    sidecar = tmp_path / ".usage.json"
+    sidecar = tmp_path / "usage.json"
     sidecar.write_text(json.dumps({
-        "skill-a": {
-            "state": "active",
-            "pinned": True,
-            "used_count": 10,
-        }
+        "items": [
+            {
+                "name": "skill-a",
+                "state": "active",
+                "pinned": True,
+                "used_count": 10,
+            }
+        ]
     }))
     monkeypatch.setattr(
         "observability.src.capabilities_observability_usage.pack_usage_path",
@@ -525,12 +537,15 @@ def test_record_use_bumps_used_count(tmp_path, monkeypatch) -> None:
         SkillsObservabilityUsage,
     )
 
-    sidecar = tmp_path / ".usage.json"
+    sidecar = tmp_path / "usage.json"
     sidecar.write_text(json.dumps({
-        "my-skill": {
-            "state": "active",
-            "used_count": 3,
-        }
+        "items": [
+            {
+                "name": "my-skill",
+                "state": "active",
+                "used_count": 3,
+            }
+        ]
     }))
     monkeypatch.setattr(
         "observability.src.capabilities_observability_usage.pack_usage_path",
@@ -541,10 +556,11 @@ def test_record_use_bumps_used_count(tmp_path, monkeypatch) -> None:
     usage.record_use("my-skill", str(tmp_path))
 
     data = json.loads(sidecar.read_text())
-    assert data["my-skill"]["used_count"] == 4
-    assert data["my-skill"]["last_activity_at"] is not None
-    assert data["my-skill"]["state"] == "active"
-    assert data["my-skill"]["pinned"] is False
+    rec = next(i for i in data["items"] if i["name"] == "my-skill")
+    assert rec["used_count"] == 4
+    assert rec["last_activity_at"] is not None
+    assert rec["state"] == "active"
+    assert rec["pinned"] is False
 
 
 # ── scan_sessions with action="usage" writes usage.json not phrase.json ──

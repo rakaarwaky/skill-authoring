@@ -210,12 +210,12 @@ class ObservabilityAgent(IObservabilityAggregate):
     def _execute_usage_traces(
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
-        """USAGE (traces): scan sessions and fold usage analytics into sidecar.
+        """USAGE (traces): scan sessions and fold usage analytics into the pack.
 
         Scans sessions only (no build_phrases), writes usage.json via
-        ``self._usage.write_usage``, then folds used_count into the
-        ``.usage.json`` sidecar via ``self._usage.fold_used_count_into_sidecar``.
-        No direct sidecar write in the agent.
+        ``self._usage.write_usage``, then folds used_count into the pack
+        ``usage.json`` via ``self._usage.fold_used_count_into_usage``.
+        No direct pack-file write in the agent.
         """
         scan = self._require(self._scan, "scan")
         grok_home = request.flags.get("grok_home", "")
@@ -229,7 +229,7 @@ class ObservabilityAgent(IObservabilityAggregate):
         usage = self._require(self._usage, "usage")
         usage.write_usage(grok_home, run_dir, records)
 
-        usage.fold_used_count_into_sidecar(grok_home, run_dir, records)
+        usage.fold_used_count_into_usage(grok_home, run_dir, records)
 
         return SkillsResult(
             ok=True,
@@ -241,7 +241,7 @@ class ObservabilityAgent(IObservabilityAggregate):
         )
 
     def record_use(self, skill: str, root: SkillsRoot | None = None) -> None:
-        """Public seam: bump the ``used_count`` counter for *skill* in ``.usage.json``."""
+        """Public seam: bump the ``used_count`` counter for *skill* in pack ``usage.json``."""
         usage = self._require(self._usage, "usage")
         target_root = (
             root

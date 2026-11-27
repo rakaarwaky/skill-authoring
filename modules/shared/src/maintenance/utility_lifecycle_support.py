@@ -282,30 +282,38 @@ def tar_data_filter(member: tarfile.TarInfo, dest_path: str) -> tarfile.TarInfo:
 
 
 def _usage_path(skill_dir: Path) -> Path:
-    return skill_dir / ".usage.json"
+    return skill_dir / "usage.json"
 
 
 def pack_usage_path(pack_root: Path | None = None) -> Path:
-    """Return the centralized usage sidecar path for *pack_root*."""
-    return (pack_root if pack_root is not None else default_pack_root()) / ".usage.json"
+    """Return the pack ``usage.json`` path (single file, flat ``items[]``)."""
+    return (pack_root if pack_root is not None else default_pack_root()) / "usage.json"
 
 
-def _read_central_usage(path: Path) -> dict[str, dict]:
-    return _read_sidecar(path)
-
-
-def _write_central_usage(path: Path, data: dict[str, dict]) -> None:
-    _atomic_write_json(path, data)
-
-
-def _read_sidecar(path: Path) -> dict:
+def _read_usage(path: Path) -> dict:
+    """Read ``usage.json``; always returns a dict with an ``items`` list."""
     if not path.is_file():
-        return {}
+        return {"items": []}
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
+        return {"items": []}
+    if not isinstance(data, dict):
+        return {"items": []}
+    if not isinstance(data.get("items"), list):
+        data["items"] = []
+    return data
+
+
+def _find_item(data: dict, name: str) -> dict | None:
+    for item in data.get("items", []):
+        if isinstance(item, dict) and item.get("name") == name:
+            return item
+    return None
+
+
+def _write_usage(path: Path, data: dict) -> None:
+    _atomic_write_json(path, data)
 
 
 def _baseline_record() -> dict:
@@ -335,7 +343,7 @@ def _normalize(raw: dict) -> dict:
 
 
 def _lock_path(usage_path: Path) -> Path:
-    return usage_path.parent / ".usage.json.lock"
+    return usage_path.parent / "usage.json.lock"
 
 
 def _lock_file(handle: Any) -> None:
@@ -404,35 +412,46 @@ def archive_root(skills_root: Path) -> Path:
 
 
 def read_record(skill_dir: Path, pack_root: Path | None = None) -> dict:
-    """Read a skill's record from the centralized ``.usage.json``."""
+    """Read a skill's record from the pack ``usage.json`` (flat ``items[]``)."""
     skill_name = skill_dir.name
     path = pack_usage_path(pack_root)
-    data = _read_central_usage(path)
-    return data.get(skill_name, {})
+    data = _read_usage(path)
+    item = _find_item(data, skill_name)
+    return dict(item) if item is not None else {}
 
 
 def write_record(skill_dir: Path, record: dict, pack_root: Path | None = None) -> None:
-    """Write a skill's record into the centralized ``.usage.json``."""
+    """Write a skill's record into the pack ``usage.json`` (flat ``items[]``)."""
     skill_name = skill_dir.name
     path = pack_usage_path(pack_root)
 
     def work() -> None:
-        data = _read_sidecar(path)
-        data[skill_name] = record
-        _atomic_write_json(path, data)
+        data = _read_usage(path)
+        item = _find_item(data, skill_name)
+        payload = dict(record)
+        payload["name"] = skill_name
+        if item is None:
+            data.setdefault("items", []).append(payload)
+        else:
+            item.clear()
+            item.update(payload)
+        _write_usage(path, data)
 
     _with_lock(path, work)
 
 
 def delete_record(skill_dir: Path, pack_root: Path | None = None) -> None:
-    """Remove a skill's record from the centralized ``.usage.json``."""
+    """Remove a skill's record from the pack ``usage.json`` (flat ``items[]``)."""
     skill_name = skill_dir.name
     path = pack_usage_path(pack_root)
 
     def work() -> None:
-        data = _read_sidecar(path)
-        data.pop(skill_name, None)
-        _atomic_write_json(path, data)
+        data = _read_usage(path)
+        data["items"] = [
+            i for i in data.get("items", [])
+            if not (isinstance(i, dict) and i.get("name") == skill_name)
+        ]
+        _write_usage(path, data)
 
     _with_lock(path, work)
 
@@ -443,18 +462,21 @@ def set_state(
     archived_at: str | None = None,
     pack_root: Path | None = None,
 ) -> None:
-    """Set *state* on a skill's record in the centralized ``.usage.json``."""
+    """Set *state* on a skill's record in the pack ``usage.json`` (flat ``items[]``)."""
     skill_name = skill_dir.name
     path = pack_usage_path(pack_root)
 
     def work() -> None:
-        data = _read_sidecar(path)
-        record = data.get(skill_name, {})
+        data = _read_usage(path)
+        record = _find_item(data, skill_name)
+        if record is None:
+            record = dict(_baseline_record())
+            record["name"] = skill_name
+            data.setdefault("items", []).append(record)
         record["state"] = state
         if archived_at is not None:
             record["archived_at"] = archived_at
-        data[skill_name] = record
-        _atomic_write_json(path, data)
+        _write_usage(path, data)
 
     _with_lock(path, work)
 

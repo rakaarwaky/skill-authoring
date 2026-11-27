@@ -103,17 +103,16 @@ class ISkillsUsageProtocol(ABC):
         ...
 
     @abstractmethod
-    def fold_used_count_into_sidecar(
+    def fold_used_count_into_usage(
         self,
         grok_home: GrokHome,
         run_dir: TraceRunDir,
         records: tuple[TraceSessionRecord, ...],
     ) -> None:
-        """Fold per-skill ``used_count`` analytics into ``.usage.json`` sidecar.
+        """Fold per-skill ``used_count`` analytics into the pack ``usage.json``.
 
-        Reads telemetry via ``read_telemetry`` and the run-dir usage artifact
-        via ``load_usage_sidecar``, then writes the combined result back to the
-        sidecar.
+        Merges the run-dir ``usage.json`` analytics fields into the central
+        pack ``usage.json`` (flat ``items[]``), preserving lifecycle fields.
         """
         ...
 

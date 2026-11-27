@@ -1,8 +1,8 @@
-"""Stateless helpers for reading telemetry sidecars and usage artifacts.
+"""Stateless helpers for reading the pack usage file and run-dir artifacts.
 
 Owned by the observability shared kernel; consumed by the usage capability
-(``SkillsObservabilityUsage.fold_used_count_into_sidecar``) and any other
-module that needs to read the centralized ``.usage.json`` sidecar or a
+(``SkillsObservabilityUsage.fold_used_count_into_usage``) and any other
+module that needs to read the pack ``usage.json`` (flat ``items[]``) or a
 run-dir ``usage.json`` artifact without importing a sibling capability.
 """
 
@@ -13,11 +13,10 @@ from pathlib import Path
 
 
 def read_telemetry(path: str | Path) -> dict:
-    """Read a telemetry JSON file (e.g. ``.usage.json`` sidecar).
+    """Read the pack ``usage.json``; return its ``items`` keyed by name.
 
-    Returns an empty dict when the file is missing or unreadable.
-    Sidecar values that are not dicts are skipped, matching the old
-    ``_write_usage`` filter behavior.
+    Returns an empty dict when the file is missing or unreadable. Each
+    entry in the returned mapping is a full item dict.
     """
     p = Path(path)
     if not p.is_file():
@@ -28,7 +27,10 @@ def read_telemetry(path: str | Path) -> dict:
         return {}
     if not isinstance(data, dict):
         return {}
-    return {k: v for k, v in data.items() if isinstance(v, dict)}
+    items = data.get("items")
+    if not isinstance(items, list):
+        return {}
+    return {i["name"]: i for i in items if isinstance(i, dict) and "name" in i}
 
 
 def load_usage_sidecar(run_dir: str | Path) -> dict:

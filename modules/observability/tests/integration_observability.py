@@ -20,7 +20,7 @@ def test_observability_agent_coordinates_capabilities() -> None:
 
 
 def test_scan_sessions_usage_writes_usage_json(tmp_path, monkeypatch) -> None:
-    """IT-OBS-001: Full agent flow — scan_sessions → write_usage → fold_used_count_into_sidecar writes usage.json."""
+    """IT-OBS-001: Full agent flow — scan_sessions → write_usage → fold_used_count_into_usage writes usage.json."""
     import json
     from pathlib import Path
 
@@ -35,13 +35,13 @@ def test_scan_sessions_usage_writes_usage_json(tmp_path, monkeypatch) -> None:
     run_dir = str(tmp_path / "usage-run")
     Path(run_dir).mkdir(parents=True, exist_ok=True)
     grok_home = str(tmp_path / "grok")
-    sidecar = tmp_path / ".usage.json"
+    sidecar = tmp_path / "usage.json"
     monkeypatch.setattr(
         "observability.src.capabilities_observability_usage.pack_usage_path",
         lambda pack_root=None: sidecar,
     )
 
-    # Exercise the agent's usage path: scan sessions → write usage.json → fold into sidecar.
+    # Exercise the agent's usage path: scan sessions → write usage.json → fold into pack.
     result = agent.execute(
         SkillsRequest(
             op=SkillsOp.TRACES,
@@ -63,7 +63,7 @@ def test_scan_sessions_usage_writes_usage_json(tmp_path, monkeypatch) -> None:
 
 
 def test_agent_routes_usage_traces_to_write_usage_and_telemetry(tmp_path, monkeypatch) -> None:
-    """IT-OBS-002: Agent routes TRACES usage action to write_usage + fold_used_count_into_sidecar."""
+    """IT-OBS-002: Agent routes TRACES usage action to write_usage + fold_used_count_into_usage."""
     import json
     from pathlib import Path
 
@@ -78,7 +78,7 @@ def test_agent_routes_usage_traces_to_write_usage_and_telemetry(tmp_path, monkey
     run_dir = str(tmp_path / "usage-route-run")
     Path(run_dir).mkdir(parents=True, exist_ok=True)
     grok_home = str(tmp_path / "grok")
-    sidecar = tmp_path / ".usage.json"
+    sidecar = tmp_path / "usage.json"
     monkeypatch.setattr(
         "observability.src.capabilities_observability_usage.pack_usage_path",
         lambda pack_root=None: sidecar,
