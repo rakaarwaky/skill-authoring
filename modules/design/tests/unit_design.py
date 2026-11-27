@@ -61,6 +61,7 @@ def test_unknown_op_returns_usage_error() -> None:
 
 # ── Design capability unit tests ────────────────────────────────────────
 
+
 def test_linter_category_filter_matches_only_in_scope() -> None:
     """UT-DESIGN-001: lint exit code reflects the filtered (in-scope) issue count."""
     from shared.src.design.taxonomy_design_vo import LintReport
@@ -162,6 +163,7 @@ def test_creator_inside_root_writes_ok() -> None:
 
 # ── Body-shape linter unit tests ───────────────────────────────────
 
+
 def test_linter_flags_missing_title_heading() -> None:
     """UT-DESIGN-004: missing '# <Skill Name>' heading raises missing-title-heading."""
     from shared.src.design.taxonomy_design_vo import IssueType
@@ -188,8 +190,7 @@ def test_linter_flags_missing_frontmatter_keys() -> None:
         text = (
             "---\nname: my-skill\n"
             'description: "a skill"\n'
-            "---\n\n"
-            + _VALID_SKILL_MD.split("---\n\n", 1)[1]
+            "---\n\n" + _VALID_SKILL_MD.split("---\n\n", 1)[1]
         )
         report = _lint_body(tmp, text)
         issue_types = {issue.type for issue in report.issues}
@@ -207,7 +208,8 @@ def test_linter_passes_valid_shape() -> None:
         body_shape_types = {
             it.value
             for it in IssueType
-            if it.name in (
+            if it.name
+            in (
                 "MISSING_TITLE_HEADING",
                 "MISSING_RULES_HEADING",
                 "MISSING_ROUTING_HEADING",
@@ -218,11 +220,11 @@ def test_linter_passes_valid_shape() -> None:
                 "MISSING_INTRO_PARAGRAPH",
                 "MISSING_WHEN_TO_USE",
                 "MISSING_ARGUMENT_HINT",
+                "FORBIDDEN_DEEP_HEADING",
             )
         }
         body_shape_issues = {
-            i.type for i in report.issues
-            if i.type in body_shape_types
+            i.type for i in report.issues if i.type in body_shape_types
         }
         assert body_shape_issues == set()
 
@@ -258,7 +260,9 @@ def test_linter_flags_duplicate_h1() -> None:
         issue_types = {issue.type for issue in report.issues}
         assert IssueType.DUPLICATE_TITLE_HEADING.value in issue_types
         duplicate_issues = [
-            i for i in report.issues if i.type == IssueType.DUPLICATE_TITLE_HEADING.value
+            i
+            for i in report.issues
+            if i.type == IssueType.DUPLICATE_TITLE_HEADING.value
         ]
         assert len(duplicate_issues) == 1
         assert "found 2 H1 heading(s)" in duplicate_issues[0].message
@@ -271,9 +275,8 @@ def test_linter_lowercase_headings_pass() -> None:
     from shared.src.design.taxonomy_design_vo import IssueType
 
     with tempfile.TemporaryDirectory() as tmp:
-        text = (
-            _VALID_SKILL_MD.replace("## Rules", "## rules")
-            .replace("## Routing", "## routing")
+        text = _VALID_SKILL_MD.replace("## Rules", "## rules").replace(
+            "## Routing", "## routing"
         )
         report = _lint_body(tmp, text)
         issue_types = {issue.type for issue in report.issues}
@@ -292,3 +295,73 @@ def test_linter_fuzzy_heading_rejected() -> None:
         issue_types = {issue.type for issue in report.issues}
         assert IssueType.UNEXPECTED_HEADING.value in issue_types
         assert IssueType.MISSING_RULES_HEADING.value in issue_types
+
+
+def test_linter_flags_h3_heading() -> None:
+    """UT-DESIGN-011: an H3 (###) heading flags forbidden-deep-heading."""
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    with tempfile.TemporaryDirectory() as tmp:
+        text = _VALID_SKILL_MD + "\n### Sub\n\ncontent.\n"
+        report = _lint_body(tmp, text)
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.FORBIDDEN_DEEP_HEADING.value in issue_types
+        deep_issues = [
+            i for i in report.issues if i.type == IssueType.FORBIDDEN_DEEP_HEADING.value
+        ]
+        assert len(deep_issues) == 1
+        assert "### Sub" in deep_issues[0].message
+        assert IssueType.UNEXPECTED_HEADING.value not in issue_types
+
+
+def test_linter_flags_h4_heading() -> None:
+    """UT-DESIGN-012: an H4 (####) heading flags forbidden-deep-heading."""
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    with tempfile.TemporaryDirectory() as tmp:
+        text = _VALID_SKILL_MD + "\n#### Deep\n\ncontent.\n"
+        report = _lint_body(tmp, text)
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.FORBIDDEN_DEEP_HEADING.value in issue_types
+        deep_issues = [
+            i for i in report.issues if i.type == IssueType.FORBIDDEN_DEEP_HEADING.value
+        ]
+        assert len(deep_issues) == 1
+        assert "#### Deep" in deep_issues[0].message
+        assert IssueType.UNEXPECTED_HEADING.value not in issue_types
+
+
+def test_linter_flags_h5_and_h6_headings() -> None:
+    """UT-DESIGN-013: H5 (#####) and H6 (######) headings flag forbidden-deep-heading."""
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    with tempfile.TemporaryDirectory() as tmp:
+        text = _VALID_SKILL_MD + "\n##### H5\n\ncontent.\n\n###### H6\n\nmore.\n"
+        report = _lint_body(tmp, text)
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.FORBIDDEN_DEEP_HEADING.value in issue_types
+        deep_issues = [
+            i for i in report.issues if i.type == IssueType.FORBIDDEN_DEEP_HEADING.value
+        ]
+        assert len(deep_issues) == 1
+        assert "##### H5" in deep_issues[0].message
+        assert "###### H6" in deep_issues[0].message
+        assert IssueType.UNEXPECTED_HEADING.value not in issue_types
+
+
+def test_linter_flags_multiple_deep_headings() -> None:
+    """UT-DESIGN-014: multiple deep headings in one file are all reported together."""
+    from shared.src.design.taxonomy_design_vo import IssueType
+
+    with tempfile.TemporaryDirectory() as tmp:
+        text = _VALID_SKILL_MD + "\n### A\n\ntext.\n\n### B\n\nmore.\n"
+        report = _lint_body(tmp, text)
+        issue_types = {issue.type for issue in report.issues}
+        assert IssueType.FORBIDDEN_DEEP_HEADING.value in issue_types
+        deep_issues = [
+            i for i in report.issues if i.type == IssueType.FORBIDDEN_DEEP_HEADING.value
+        ]
+        assert len(deep_issues) == 1
+        assert "### A" in deep_issues[0].message
+        assert "### B" in deep_issues[0].message
+        assert IssueType.UNEXPECTED_HEADING.value not in issue_types

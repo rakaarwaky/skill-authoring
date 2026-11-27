@@ -79,6 +79,7 @@ class IssueType(str, Enum):
     MISSING_WHEN_TO_USE = "missing-when-to-use"
     MISSING_ARGUMENT_HINT = "missing-argument-hint"
     WHEN_TO_USE_TOO_LONG = "when-to-use-too-long"
+    FORBIDDEN_DEEP_HEADING = "forbidden-deep-heading"
 
 
 #: Rule IDs are stable identifiers the skill bodies and the generated
@@ -109,6 +110,7 @@ RULE_IDS: Final = {
     "rules-table": IssueType.RULES_TABLE_MISSING,
     "routing-table": IssueType.ROUTING_TABLE_MISSING,
     "intro-paragraph": IssueType.MISSING_INTRO_PARAGRAPH,
+    "forbidden-deep-heading": IssueType.FORBIDDEN_DEEP_HEADING,
 }
 
 #: Verbatim message templates. Fields are exactly the ones
@@ -132,9 +134,7 @@ ISSUE_MESSAGES: Final = {
     IssueType.INVALID_PLACEMENT: (
         "SKILL.md is directly under a category; expected category/skill/SKILL.md."
     ),
-    IssueType.TOO_DEEP: (
-        "SKILL.md is nested deeper than category/skill/SKILL.md."
-    ),
+    IssueType.TOO_DEEP: ("SKILL.md is nested deeper than category/skill/SKILL.md."),
     IssueType.DUPLICATE_SKILL_NAME: "Skill name '{name}' appears in: {paths}.",
     IssueType.DUPLICATE_DESCRIPTION: "Identical description appears in: {paths}.",
     IssueType.MISSING_CATEGORY_DESCRIPTION: "DESCRIPTION.md is missing.",
@@ -172,11 +172,17 @@ ISSUE_MESSAGES: Final = {
     IssueType.WHEN_TO_USE_TOO_LONG: (
         "when-to-use is {length} chars; max is {max_len}."
     ),
+    IssueType.FORBIDDEN_DEEP_HEADING: (
+        "SKILL.md contains forbidden heading(s) deeper than H2: {headings}. "
+        "Only '# <Skill Name>' (H1), '## Rules', and '## Routing' (H2) are allowed. "
+        "Remove these deep headings, or fold their content into ## Rules or ## Routing. "
+        "Do not demote them to ## — only ## Rules and ## Routing are allowed H2 headings."
+    ),
 }
 
 
 #: Severity of a rule. Every check the validator performs today fails the
-#: skill outright, so all 13 rules are ERROR; the WARN level exists for
+#: skill outright, so all 14 rules are ERROR; the WARN level exists for
 #: future soft rules and is part of the published interface so the docs
 #: renderer does not need to change when the first soft rule lands.
 class Level(str, Enum):
@@ -241,7 +247,11 @@ def is_valid_skill_name(name: str) -> bool:
 
     ``NAME_RE`` match AND no double hyphen AND 2-64 chars.
     """
-    return bool(NAME_RE.match(name)) and "--" not in name and NAME_MIN <= len(name) <= NAME_MAX
+    return (
+        bool(NAME_RE.match(name))
+        and "--" not in name
+        and NAME_MIN <= len(name) <= NAME_MAX
+    )
 
 
 def issue_message(issue_type: IssueType, **fields: Any) -> str:
@@ -254,7 +264,7 @@ def issue_message(issue_type: IssueType, **fields: Any) -> str:
 
 @dataclass(frozen=True)
 class ValidationReport:
-    """The unfiltered result of the 13 validation checks."""
+    """The unfiltered result of the 14 validation checks."""
 
     skills_root: Path
     catalog: Path
@@ -282,7 +292,7 @@ class ValidationReport:
 
 @dataclass(frozen=True)
 class LintReport:
-    """The combined result of the lint scan (13-rule checks + weed report)."""
+    """The combined result of the lint scan (14-rule checks + weed report)."""
 
     skills_root: Path
     issues: tuple[Issue, ...] = ()

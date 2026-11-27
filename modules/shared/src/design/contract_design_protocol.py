@@ -67,7 +67,7 @@ class ISkillsCreatorProtocol(ABC):
 
 
 class ISkillsLinterProtocol(ABC):
-    """Combined lint scan: 13-rule checks + weed report in one pass."""
+    """Combined lint scan: 14-rule checks + weed report in one pass."""
 
     @abstractmethod
     def lint(
@@ -75,7 +75,7 @@ class ISkillsLinterProtocol(ABC):
     ) -> LintReport:
         """Run the full lint over *root*; optionally filter by *category*.
 
-        The lint combines the 13-rule validator (per-skill, category,
+        The lint combines the 14-rule validator (per-skill, category,
         placement, and duplicate checks) with the weed report (duplicate
         skill names, duplicate descriptions, empty categories, missing
         category descriptions). The result is a single ``LintReport``

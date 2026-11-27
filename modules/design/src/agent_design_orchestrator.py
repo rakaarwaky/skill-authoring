@@ -140,7 +140,7 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
 
     # ─── Block 3: Module Helpers ───
     def _execute_lint(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Run the full lint scan (13-rule checks + weed report)."""
+        """Run the full lint scan (14-rule checks + weed report)."""
         linter = self._require(self._linter, "linter")
         category = request.flags.get("category") or None
         report = linter.lint(self._root(request), category=category)
