@@ -56,9 +56,6 @@ Skill Authoring is the skill-authoring skill that keeps the skill tree clean, co
 | Command | Purpose |
 |---------|---------|
 | `sac status` | Show per-skill lifecycle states |
-| `sac run` | Run automated state transitions |
-| `sac pause` | Pause automatic transitions |
-| `sac resume` | Resume automatic transitions |
 | `sac pin <skill>` | Pin a skill in active state |
 | `sac unpin <skill>` | Unpin a skill |
 

@@ -1,7 +1,7 @@
 """Maintenance composition root (AES root layer).
 
-Wires the maintenance-side capabilities (prune, runner, piner, mover,
-usage) into the maintenance orchestrator and exposes the
+Wires the maintenance-side capabilities (prune, piner, mover, usage)
+into the maintenance orchestrator and exposes the
 ``ISkillsMaintenanceAggregate`` contract to the surface and entry layers.
 
 Wiring only: no business logic, no orchestration policy, no technical
@@ -16,7 +16,6 @@ from agent_maintenance_orchestrator import SkillsMaintenanceAgent
 from capabilities_skills_mover import SkillsMover
 from capabilities_skills_piner import SkillsPiner
 from capabilities_skills_prune import SkillsPrune
-from capabilities_skills_runner import SkillsRunner
 from capabilties_skills_usage import SkillsObservabilityUsage
 
 from shared.src.common.utility_common_skills import default_pack_root
@@ -31,12 +30,11 @@ __all__ = [
 
 
 class MaintenanceContainer:
-    """Construct the five capabilities and the maintenance orchestrator (wiring only)."""
+    """Construct the four capabilities and the maintenance orchestrator (wiring only)."""
 
     def __init__(
         self,
         prune: SkillsPrune | None = None,
-        runner: SkillsRunner | None = None,
         piner: SkillsPiner | None = None,
         mover: SkillsMover | None = None,
         usage: SkillsObservabilityUsage | None = None,
@@ -44,13 +42,11 @@ class MaintenanceContainer:
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
         self._prune = prune or SkillsPrune()
-        self._runner = runner or SkillsRunner()
         self._piner = piner or SkillsPiner()
         self._mover = mover or SkillsMover()
         self._usage = usage or SkillsObservabilityUsage()
         self._orchestrator = SkillsMaintenanceAgent(
             prune=self._prune,
-            runner=self._runner,
             piner=self._piner,
             mover=self._mover,
             usage=self._usage,
@@ -67,7 +63,6 @@ def create_maintenance_feature(
     root: Path | None = None,
     *,
     prune: SkillsPrune | None = None,
-    runner: SkillsRunner | None = None,
     piner: SkillsPiner | None = None,
     mover: SkillsMover | None = None,
     usage: SkillsObservabilityUsage | None = None,
@@ -79,7 +74,6 @@ def create_maintenance_feature(
     """
     return MaintenanceContainer(
         prune=prune,
-        runner=runner,
         piner=piner,
         mover=mover,
         usage=usage,

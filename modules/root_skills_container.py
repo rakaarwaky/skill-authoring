@@ -267,9 +267,6 @@ _DISCOVERY_OPS = frozenset(
 _MAINTENANCE_OPS = frozenset(
     {
         SkillsOp.PRUNE,
-        SkillsOp.PAUSE,
-        SkillsOp.RESUME,
-        SkillsOp.RUN,
         SkillsOp.MOVE,
         SkillsOp.PIN,
         SkillsOp.UNPIN,

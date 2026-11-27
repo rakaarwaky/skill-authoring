@@ -1,6 +1,6 @@
 """Unit tests: typed JSON inputSchema on every sac MCP tool descriptor.
 
-Verifies that ``SkillsMcpAdapter.list_tools()`` declares all 18 verbs and
+Verifies that ``SkillsMcpAdapter.list_tools()`` declares all 15 verbs and
 that each descriptor carries a draft-07 ``inputSchema`` with the required
 properties, correct types, and enums the CLI accepts.
 """
@@ -34,9 +34,6 @@ EXPECTED_TOOLS = (
     "sac_create",
     "sac_status",
     "sac_usage",
-    "sac_run",
-    "sac_pause",
-    "sac_resume",
     "sac_pin",
     "sac_unpin",
     "sac_restore",
@@ -75,7 +72,6 @@ PROPERTY_TYPES = {
     },
     "sac_status": {"query": "string"},
     "sac_usage": {"query": "string", "verb": "string"},
-    "sac_run": {"apply": "boolean"},
     "sac_pin": {"skill": "string"},
     "sac_unpin": {"skill": "string"},
     "sac_prune": {"days": "integer", "purge_days": "integer", "dry_run": "boolean"},
@@ -104,12 +100,12 @@ def _schema(tool: str) -> dict:
 # ─── Tests: registry coverage ────────────────────────────────────────
 
 def test_list_tools_declares_all_eighteen_verbs():
-    """UT-MCP-SCHEMA-001: list_tools returns exactly the 18 sac verbs."""
+    """UT-MCP-SCHEMA-001: list_tools returns exactly the 15 sac verbs."""
     names = [d["name"] for d in _adapter().list_tools()]
 
     assert names == list(EXPECTED_TOOLS)
-    assert len(names) == 18
-    assert len(set(names)) == 18
+    assert len(names) == 15
+    assert len(set(names)) == 15
 
 
 def test_every_descriptor_carries_an_object_schema():
@@ -154,9 +150,6 @@ def test_tools_without_required_args_omit_the_key():
         "sac_catalog",
         "sac_status",
         "sac_usage",
-        "sac_run",
-        "sac_pause",
-        "sac_resume",
         "sac_prune",
     ):
         assert "required" not in _schema(tool), tool
@@ -199,7 +192,7 @@ def test_enum_properties_are_constrained():
 
 def test_parameterless_tools_declare_empty_properties():
     """UT-MCP-SCHEMA-011: tools with no args declare empty properties."""
-    for tool in ("sac_list", "sac_pause", "sac_resume"):
+    for tool in ("sac_list",):
         assert _schema(tool)["properties"] == {}, tool
 
 
@@ -216,5 +209,5 @@ def test_empty_schemas_are_not_aliased_between_tools():
         if d["inputSchema"].get("properties") == {}
     ]
 
-    assert len(empty_tools) == 3
-    assert len({id(schema) for schema in empty_tools}) == 3
+    assert len(empty_tools) == 1
+    assert len({id(schema) for schema in empty_tools}) == 1

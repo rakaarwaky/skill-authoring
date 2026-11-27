@@ -17,9 +17,9 @@ and `SkillsLinter` (runs the 13-rule validator plus the weed report) — and
 exposes them through a single `execute` entry point that translates a
 `SkillsRequest` into the matching capability call and back into a
 `SkillsResult`. The agent performs no filesystem I/O; every write and every
-scan is delegated to a capability. The lifecycle verbs `run`, `pause`, and
-`resume` belong to the [maintenance module](../maintenance/FRD.md) via
-`ISkillsRunnerProtocol`; the design agent does not own them.
+scan is delegated to a capability. The lifecycle ops (RUN/PAUSE/RESUME) were
+routed to the maintenance aggregate via a runner capability; that capability
+was removed 2026-11-27, and the design agent does not own lifecycle ops.
 
 ## Functional Requirements
 

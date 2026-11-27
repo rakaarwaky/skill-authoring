@@ -4,8 +4,8 @@ Agent-oriented commands: read-only discovery (``list``/``read``), the lint
 scan (``lint``), the catalog builder/reader (``catalog``), the search
 (``discover``), the mutation verbs (``move``/``archive``/``create``), the
 usage verb (``usage``), and the lifecycle
-verbs (``status``/``run``/``pause``/``resume``/``pin``/``unpin``/
-``restore``/``list-unmanaged``/``list-archived``/``prune``).
+verbs (``status``/``pin``/``unpin``/``restore``/``list-unmanaged``/
+``list-archived``/``prune``).
 
 The pack root is always the repository's ``skills/`` pack; there is no
 ``--skills-root`` override and no JSON export — output is a terminal
@@ -65,9 +65,6 @@ _EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT
 #: Lifecycle verbs mapped to SkillsOp values — flat top-level commands.
 _LIFECYCLE_OPS = {
     "status": SkillsOp.STATUS,
-    "run": SkillsOp.RUN,
-    "pause": SkillsOp.PAUSE,
-    "resume": SkillsOp.RESUME,
     "pin": SkillsOp.PIN,
     "unpin": SkillsOp.UNPIN,
     "restore": SkillsOp.RESTORE,
@@ -190,10 +187,6 @@ def _render_lifecycle(sub: str, op: SkillsOp, result: SkillsResult) -> int:
 
     if sub == "status":
         return _render_status(result)
-    if sub == "run":
-        return _render_run(result)
-    if sub in ("pause", "resume"):
-        return _render_pause_resume(op, result)
     if sub in ("pin", "unpin"):
         return _render_bool(sub, result)
     if sub == "restore":
@@ -217,17 +210,6 @@ def _render_status(result: SkillsResult) -> int:
             state = getattr(rec, "state", "active")
             pinned = " (pinned)" if getattr(rec, "pinned", False) else ""
             info(f"  {name}: {state}{pinned}")
-    return 0
-
-
-def _render_run(result: SkillsResult) -> int:
-    info(f"[OK] run — {result.message}")
-    return 0
-
-
-def _render_pause_resume(op: SkillsOp, result: SkillsResult) -> int:
-    action = "paused" if op == SkillsOp.PAUSE else "resumed"
-    info(f"[OK] lifecycle {action}")
     return 0
 
 
@@ -307,15 +289,6 @@ def _print_usage() -> None:
     info(f"{BOLD()}Lifecycle:{RESET()}")
     info(
         f"{BOLD()}sac status{RESET()}                        Show per-skill lifecycle states"
-    )
-    info(
-        f"{BOLD()}sac run{RESET()}                           Run automated state transitions"
-    )
-    info(
-        f"{BOLD()}sac pause{RESET()}                         Pause automatic transitions"
-    )
-    info(
-        f"{BOLD()}sac resume{RESET()}                        Resume automatic transitions"
     )
     info(
         f"{BOLD()}sac pin <skill>{RESET()}                   Pin a skill in active state"

@@ -33,14 +33,12 @@ archives — and implements `ISkillsPrunerProtocol`.
 
 | Aspect      | Detail                                                 |
 | ----------- | ------------------------------------------------------ |
-| State       | Done                                                   |
-| Done        | `SkillsMaintenanceAgent.execute` routes `RUN`, `PAUSE` |
-|             | and `RESUME` to the runner capability via              |
-|             | `ISkillsRunnerProtocol`; transitions are applied,      |
-|             | paused, and resumed in one command                     |
+| State       | Removed (2026-11-27)                                   |
+| Done        | Runner capability and its `RUN`, `PAUSE`, and `RESUME` |
+|             | verbs removed; no longer available                     |
 | In Progress | None                                                   |
 | Risk        | None                                                   |
-| Updated     | 2026-11-16                                             |
+| Updated     | 2026-11-27                                             |
 
 ### FR-maintenance-003: Piner
 
