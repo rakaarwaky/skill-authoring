@@ -1,13 +1,11 @@
 """Skills-design root container (AES composition root).
 
-Wires the five module-side agents (design, discovery, storage,
-maintenance, observability) into a single composed aggregate.
+Wires the four module-side agents (design, discovery, storage,
+maintenance) into a single composed aggregate.
 
-The traces capability of the sibling traces app is NOT imported
-here — the two packages are independent (AES702). The composed agent
-routes each ``SkillsOp`` to its owning module agent; the CLI surface
-receives one ``ISkillsAggregate`` (the composed facade), injected at
-the call site, so no root→surface coupling exists.
+The composed agent routes each ``SkillsOp`` to its owning module agent;
+the CLI surface receives one ``ISkillsAggregate`` (the composed facade),
+injected at the call site, so no root→surface coupling exists.
 
 Discovery ops are translated at the boundary: ``SkillsRequest`` →
 ``DiscoveryRequest`` on the way in, ``DiscoveryResponse`` →
@@ -28,7 +26,6 @@ for _m in (
     "design",
     "discovery",
     "maintenance",
-    "observability",
     "shared",
     "cli",
     "storage",
@@ -48,9 +45,6 @@ from design.src.root_design_container import create_design_feature
 from discovery.src.root_discovery_container import create_discovery_feature
 from maintenance.src.root_maintenance_container import (
     create_maintenance_feature,
-)
-from observability.src.root_observability_container import (
-    create_observability_feature,
 )
 from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.design.contract_design_aggregate import ISkillsAggregate
@@ -132,9 +126,6 @@ def default_aggregate(
         root=root,
         mover=mover,
     )
-    observability = create_observability_feature(
-        root=root,
-    )
     storage = create_storage_feature(
         root=root,
         archiver=archiver,
@@ -145,7 +136,6 @@ def default_aggregate(
         design=design,
         discovery=discovery,
         maintenance=maintenance,
-        observability=observability,
         storage=storage,
     )
 
@@ -156,13 +146,11 @@ class _ComposedAggregate(ISkillsAggregate):
         design,
         discovery,
         maintenance,
-        observability,
         storage,
     ) -> None:
         self._design = design
         self._discovery = discovery
         self._maintenance = maintenance
-        self._observability = observability
         self._storage = storage
 
     def execute(self, request: SkillsRequest) -> SkillsResult:
@@ -187,8 +175,6 @@ class _ComposedAggregate(ISkillsAggregate):
             )
             mresp = self._maintenance.execute(mreq)
             result = _maintenance_response_to_result(mresp, op)
-        elif op in _OBSERVABILITY_OPS:
-            result = self._observability.execute(request)
         elif op in _STORAGE_OPS:
             sreq = StorageRequest(
                 verb=StorageVerb(op.value),
@@ -205,11 +191,6 @@ class _ComposedAggregate(ISkillsAggregate):
                 exit_code=2,
                 message=f"Unknown skills op: {op}",
             )
-        # used_count is owned by the session scan (SkillsPhraseScan), which
-        # recomputes it over a 30-day window and folds it into the sidecar.
-        # The READ op no longer bumps a live counter: doing so would make the
-        # sidecar diverge from learn/usage.json between scans. Refresh usage
-        # by running `sac phrases` (optionally scheduled).
         return result
 
 
@@ -292,10 +273,9 @@ _MAINTENANCE_OPS = frozenset(
         SkillsOp.MOVE,
         SkillsOp.PIN,
         SkillsOp.UNPIN,
+        SkillsOp.USAGE,
+        SkillsOp.STATUS,
     }
-)
-_OBSERVABILITY_OPS = frozenset(
-    {SkillsOp.USAGE, SkillsOp.TRACES, SkillsOp.STATUS}
 )
 _STORAGE_OPS = frozenset(
     {

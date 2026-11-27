@@ -6,7 +6,7 @@ returns the process exit code. This is the only module that knows both
 the root and surface packages exist and composes them at the call site.
 
 Dispatch table:
-  - <list|read|export|lint|catalog|discover|move|archive|create> [flags]
+  - <list|read|export|lint|catalog|discover|move|archive|create|status|usage|run|pause|resume|pin|unpin|restore|list-unmanaged|list-archived|prune> [flags]
 """
 
 from __future__ import annotations

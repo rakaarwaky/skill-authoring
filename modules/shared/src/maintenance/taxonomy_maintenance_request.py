@@ -28,6 +28,8 @@ class MaintenanceVerb(Enum):
     PIN = "pin"
     UNPIN = "unpin"
     MOVE = "move"
+    USAGE = "usage"
+    STATUS = "status"
 
 
 @dataclass(frozen=True)

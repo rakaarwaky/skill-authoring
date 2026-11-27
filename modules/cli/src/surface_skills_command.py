@@ -3,7 +3,7 @@
 Agent-oriented commands: read-only discovery (``list``/``read``), the lint
 scan (``lint``), the catalog builder/reader (``catalog``), the search
 (``discover``), the mutation verbs (``move``/``archive``/``create``), the
-observation verbs (``phrases``/``usage``/``memory``), and the lifecycle
+usage verb (``usage``), and the lifecycle
 verbs (``status``/``run``/``pause``/``resume``/``pin``/``unpin``/
 ``restore``/``list-unmanaged``/``list-archived``/``prune``).
 
@@ -36,7 +36,6 @@ Data rows carry no prefix; status lines always do.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 
@@ -104,12 +103,8 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_export(rest, aggregate)
     if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
-    if sub == "phrases":
-        return _cmd_phrases(rest, aggregate)
     if sub == "usage":
         return _cmd_usage(rest, aggregate)
-    if sub == "memory":
-        return _cmd_memory(rest, aggregate)
     if sub in _LIFECYCLE_OPS:
         return _cmd_lifecycle(sub, rest, aggregate)
     err(f"Unknown skills subcommand: {sub}")
@@ -142,29 +137,8 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
     return _render_lifecycle(sub, op, result)
 
 
-def _cmd_phrases(rest: list[str], aggregate: ISkillsAggregate) -> int:
-    """Route ``sac phrases`` to the traces agent; render repeated phrases."""
-    parser = argparse.ArgumentParser(prog="sac phrases", add_help=True)
-    try:
-        parser.parse_args(rest)
-    except SystemExit as exit_exc:
-        return int(exit_exc.code or 0)
-
-    grok_home = os.environ.get("GROK_HOME") or os.path.expanduser("~/.grok")
-    run_dir = os.path.join(os.path.expanduser("~/.agents"), "skills")
-    flags: dict[str, object] = {
-        "traces_action": "phrases",
-        "grok_home": grok_home,
-        "run_dir": run_dir,
-    }
-    request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
-    result = aggregate.execute(request)
-
-    return _render_phrases(result, run_dir)
-
-
 def _cmd_usage(rest: list[str], aggregate: ISkillsAggregate) -> int:
-    """Route ``sac usage`` to the traces agent; render usage scan items."""
+    """Route ``sac usage`` to the maintenance agent; render the scan summary."""
     parser = argparse.ArgumentParser(prog="sac usage", add_help=True)
     try:
         parser.parse_args(rest)
@@ -174,165 +148,21 @@ def _cmd_usage(rest: list[str], aggregate: ISkillsAggregate) -> int:
     grok_home = os.environ.get("GROK_HOME") or os.path.expanduser("~/.grok")
     run_dir = os.path.join(os.path.expanduser("~/.agents"), "skills")
     flags: dict[str, object] = {
-        "traces_action": "usage",
         "grok_home": grok_home,
         "run_dir": run_dir,
     }
-    request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
+    request = SkillsRequest(op=SkillsOp.USAGE, flags=flags)
     result = aggregate.execute(request)
+    return _render_usage(result, run_dir)
 
-    return _render_usage_scan(result, run_dir)
 
-
-def _render_usage_scan(result: SkillsResult, run_dir: str) -> int:
-    """Render an ``sac usage`` scan result as JSON and return its exit code."""
+def _render_usage(result: SkillsResult, run_dir: str) -> int:
+    """Render an ``sac usage`` result and return its exit code."""
     if not result.ok:
         err(result.message)
         return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
 
-    summary = result.scan_summary
-    print(
-        json.dumps(
-            {
-                "run_dir": run_dir,
-                "sessions_seen": summary.sessions_seen if summary is not None else 0,
-                "session_records": len(summary.records) if summary is not None else 0,
-                "dropped": dict(summary.dropped) if summary is not None else {},
-            },
-            indent=2,
-            ensure_ascii=False,
-        )
-    )
-    return 0
-
-
-def _render_phrases(result: SkillsResult, run_dir: str) -> int:
-    """Render a phrases result as JSON and return its exit code."""
-    if not result.ok:
-        err(result.message)
-        return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
-
-    print(
-        json.dumps(
-            {
-                "run_dir": run_dir,
-                "exact_prompts": [
-                    {
-                        "phrase": r.phrase,
-                        "sessions": r.sessions,
-                        "occurrences": r.occurrences,
-                        "session_ids": list(r.session_ids),
-                    }
-                    for r in result.phrases_exact or ()
-                ],
-                "prompt_stems_12_words": [
-                    {
-                        "phrase": r.phrase,
-                        "sessions": r.sessions,
-                        "occurrences": r.occurrences,
-                        "session_ids": list(r.session_ids),
-                    }
-                    for r in result.phrases_stems or ()
-                ],
-                "repeated_instruction_lines": [
-                    {
-                        "phrase": r.phrase,
-                        "sessions": r.sessions,
-                        "occurrences": r.occurrences,
-                        "session_ids": list(r.session_ids),
-                    }
-                    for r in result.phrases_lines or ()
-                ],
-            },
-            indent=2,
-            ensure_ascii=False,
-        )
-    )
-    return 0
-
-
-def _cmd_memory(rest: list[str], aggregate: ISkillsAggregate) -> int:
-    """Route ``sac memory`` to the traces agent; render memory-v2 signals."""
-    parser = argparse.ArgumentParser(prog="sac memory", add_help=True)
-    try:
-        parser.parse_args(rest)
-    except SystemExit as exit_exc:
-        return int(exit_exc.code or 0)
-
-    grok_home = os.environ.get("GROK_HOME") or os.path.expanduser("~/.grok")
-    run_dir = os.path.join(os.path.expanduser("~/.agents"), "skills")
-    flags: dict[str, object] = {
-        "traces_action": "memory",
-        "grok_home": grok_home,
-        "run_dir": run_dir,
-    }
-    request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
-    result = aggregate.execute(request)
-
-    return _render_memory(result, run_dir)
-
-
-def _render_memory(result: SkillsResult, run_dir: str) -> int:
-    """Render a memory result as JSON and return its exit code."""
-    if not result.ok:
-        err(result.message)
-        return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
-
-    memory = result.memory
-    if memory is None:
-        print(
-            json.dumps(
-                {
-                    "run_dir": run_dir,
-                    "topics": [],
-                    "observations": [],
-                    "keep_list": [],
-                    "since_last": False,
-                    "watermark": "",
-                    "generated_at": "",
-                },
-                indent=2,
-                ensure_ascii=False,
-            )
-        )
-        return 0
-
-    print(
-        json.dumps(
-            {
-                "run_dir": run_dir,
-                "topics": [
-                    {
-                        "workspace": t.workspace,
-                        "title": t.title,
-                        "path": t.path,
-                        "skill_names": list(t.skill_names),
-                        "quoted_lines": list(t.quoted_lines),
-                        "updated_at": t.updated_at,
-                        "matched_section": t.matched_section,
-                    }
-                    for t in memory.topics
-                ],
-                "observations": [
-                    {
-                        "type": o.type,
-                        "quoted": o.quoted,
-                        "workspace": o.workspace,
-                        "created_at": o.created_at,
-                        "topic_hint": o.topic_hint,
-                        "session_id": o.session_id,
-                    }
-                    for o in memory.observations
-                ],
-                "keep_list": list(memory.keep_list),
-                "since_last": memory.since_last,
-                "watermark": memory.watermark,
-                "generated_at": memory.generated_at,
-            },
-            indent=2,
-            ensure_ascii=False,
-        )
-    )
+    info(f"[OK] usage — {result.message}")
     return 0
 
 
@@ -456,18 +286,10 @@ def _print_usage() -> None:
     )
     info(f"{BOLD()}sac discover <query>{RESET()}             Search the catalog")
     print()
-    info(f"{BOLD()}Observation:{RESET()}")
-    info(
-        f"{BOLD()}sac phrases{RESET()}                       "
-        "Mine repeated user prompts from session traces (hardcoded 30-day window)"
-    )
+    info(f"{BOLD()}Usage:{RESET()}")
     info(
         f"{BOLD()}sac usage{RESET()}                        "
-        "Scan sessions and fold usage analytics into .usage.json sidecar"
-    )
-    info(
-        f"{BOLD()}sac memory{RESET()}                       "
-        "Mine memory-v2 topics & observations (hardcoded 30-day window)"
+        "Scan sessions and fold usage analytics into the pack usage.json"
     )
     print()
     info(f"{BOLD()}Mutations:{RESET()}")
