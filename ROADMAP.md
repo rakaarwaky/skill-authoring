@@ -46,12 +46,13 @@ The Skill Authoring pack ships three invocation modes — `--create`, `--improve
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
-### PR-SKILLDESIGN-006: observability
+### PR-SKILLDESIGN-006: observability (retired)
 
 | Aspect       | Detail                                                        |
 |--------------|---------------------------------------------------------------|
 | Priority     | P2                                                            |
-| State        | Done                                                          |
+| State        | Retired                                                       |
+| Note         | Capability merged into maintenance (`capabilties_skills_usage.py`); phrases/memory dropped |
 | Backlog      | [BACKLOG.md](modules/skills_design/BACKLOG.md)               |
 
 ### PR-SKILLDESIGN-007: storage

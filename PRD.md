@@ -146,24 +146,24 @@ The mcp surface exposes `surface_mcp_command.py` as the command router over the 
 2. The surface router dispatches to the matching aggregate capability.
 3. The result returns to the client over MCP.
 
-### PR-SKILLDESIGN-006: observability
+### PR-SKILLDESIGN-006: usage (retired observability module)
 <!-- Tier P2: observability entry. -->
 
 #### User Stories
 
 | As a | I want | So that | Priority |
 |------|--------|---------|----------|
-| Skill owner | Scan sessions and mine phrases | Repeated usage patterns surface | Observability feature traces and telemetry |
+| Skill owner | Scan sessions and fold usage analytics into the pack | Repeated usage patterns surface in `usage.json` | Maintenance capability owns session scan + usage fold |
 
 #### Proposed Solution
 
-The observability feature implements telemetry and traces capabilities behind `IObservabilityAggregate`, wired into `root_observability_container.py`. It imports `taxonomy_observability_constant` and `taxonomy_observability_error` for domain types.
+The observability module (`modules/observability`) is retired. The usage capability (`SkillsObservabilityUsage`) now lives in `modules/maintenance/src/capabilties_skills_usage.py` and owns `scan_sessions`, `write_usage`, `fold_used_count_into_usage`, and the lifecycle verbs (`seed`, `reanchor`, `curated_report`, `record_use`). Phrases and memory mining are out of scope and removed. The maintenance agent routes `USAGE` and `STATUS` ops to this capability.
 
 #### Main User Flow
 
-1. User invokes `--observability scan [--days N]`.
-2. Skill-design walks `$GROK_HOME/sessions` and returns a compact scan outcome.
-3. It mines repeated phrases and writes them to the report.
+1. User invokes `sac usage`.
+2. The maintenance agent calls `scan_sessions` (30-day window, `.session/` records, `manifest.json`), then `write_usage` + `fold_used_count_into_usage`.
+3. The scan writes session records and the pack `usage.json` is updated with analytics.
 
 ### PR-SKILLDESIGN-007: storage
 <!-- Tier P2: storage entry. -->

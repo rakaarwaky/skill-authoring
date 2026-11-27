@@ -66,6 +66,21 @@ archives — and implements `ISkillsPrunerProtocol`.
 | Risk        | None                                                   |
 | Updated     | 2026-11-16                                             |
 
+### FR-maintenance-005: Usage lifecycle + session scan
+
+| Aspect      | Detail                                                 |
+| ----------- | ------------------------------------------------------ |
+| State       | Done                                                   |
+| Done        | `SkillsMaintenanceAgent.execute` routes `USAGE` and    |
+|             | `STATUS` to the usage capability via                   |
+|             | `ISkillsUsageProtocol`; `scan_sessions`, `write_usage`, |
+|             | `fold_used_count_into_usage`, and `curated_report`     |
+|             | are implemented in `capabilties_skills_usage.py`.       |
+|             | Phrases/memory mining dropped with observability module |
+| In Progress | None                                                   |
+| Risk        | None                                                   |
+| Updated     | 2026-11-27                                             |
+
 ## Reference
 
 | Artifact     | Purpose                                           |

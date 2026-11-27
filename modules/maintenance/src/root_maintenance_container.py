@@ -1,7 +1,7 @@
 """Maintenance composition root (AES root layer).
 
-Wires the maintenance-side capabilities (prune, runner, piner, mover)
-into the maintenance orchestrator and exposes the
+Wires the maintenance-side capabilities (prune, runner, piner, mover,
+usage) into the maintenance orchestrator and exposes the
 ``ISkillsMaintenanceAggregate`` contract to the surface and entry layers.
 
 Wiring only: no business logic, no orchestration policy, no technical
@@ -17,6 +17,7 @@ from capabilities_skills_mover import SkillsMover
 from capabilities_skills_piner import SkillsPiner
 from capabilities_skills_prune import SkillsPrune
 from capabilities_skills_runner import SkillsRunner
+from capabilties_skills_usage import SkillsObservabilityUsage
 
 from shared.src.common.utility_common_skills import default_pack_root
 from shared.src.maintenance.contract_maintenance_aggregate import (
@@ -30,7 +31,7 @@ __all__ = [
 
 
 class MaintenanceContainer:
-    """Construct the four capabilities and the maintenance orchestrator (wiring only)."""
+    """Construct the five capabilities and the maintenance orchestrator (wiring only)."""
 
     def __init__(
         self,
@@ -38,6 +39,7 @@ class MaintenanceContainer:
         runner: SkillsRunner | None = None,
         piner: SkillsPiner | None = None,
         mover: SkillsMover | None = None,
+        usage: SkillsObservabilityUsage | None = None,
         default_root: Path | None = None,
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
@@ -45,11 +47,13 @@ class MaintenanceContainer:
         self._runner = runner or SkillsRunner()
         self._piner = piner or SkillsPiner()
         self._mover = mover or SkillsMover()
+        self._usage = usage or SkillsObservabilityUsage()
         self._orchestrator = SkillsMaintenanceAgent(
             prune=self._prune,
             runner=self._runner,
             piner=self._piner,
             mover=self._mover,
+            usage=self._usage,
             default_root=root,
         )
 
@@ -66,6 +70,7 @@ def create_maintenance_feature(
     runner: SkillsRunner | None = None,
     piner: SkillsPiner | None = None,
     mover: SkillsMover | None = None,
+    usage: SkillsObservabilityUsage | None = None,
 ) -> ISkillsMaintenanceAggregate:
     """Fully-wired maintenance feature aggregate (factory for entry / DI).
 
@@ -77,5 +82,6 @@ def create_maintenance_feature(
         runner=runner,
         piner=piner,
         mover=mover,
+        usage=usage,
         default_root=root,
     ).aggregate

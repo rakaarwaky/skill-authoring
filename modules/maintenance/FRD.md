@@ -230,6 +230,61 @@ moves via `ISkillsMoverProtocol`.
 | Unknown-op rejection rate      | 100 % |
 | Unhandled exception escape rate | 0 %  |
 
+### FR-maintenance-005: Usage lifecycle + session scan
+
+**Description:** `SkillsMaintenanceAgent.execute(request)` shall route the
+`USAGE` and `STATUS` maintenance ops to the usage capability
+(`SkillsObservabilityUsage` in `capabilties_skills_usage.py`) and return a
+typed `MaintenanceResponse`. The usage capability owns `scan_sessions`
+(30-day window, `.session/` records, `manifest.json` write),
+`write_usage`, `fold_used_count_into_usage`, `seed_record_if_missing`,
+`reanchor_clock`, `curated_report`, and `record_use`. The `STATUS` verb
+returns per-skill lifecycle state rows via `curated_report`. Phrases and
+memory mining are out of scope (removed with the retired observability module).
+
+#### Business Logic
+
+- On `USAGE`, the agent shall call `scan_sessions` (30-day window), then
+  `write_usage` + `fold_used_count_into_usage`, returning `CLEAN`.
+- On `USAGE` with `verb=seed`, the agent shall call `seed_record_if_missing`.
+- On `USAGE` with `verb=reanchor`, the agent shall call `reanchor_clock`.
+- On `STATUS`, the agent shall call `curated_report` and return the rows.
+- A `SkillsError` raised by the usage capability shall be caught by the
+  agent and mapped to a response carrying the error's exit code and message.
+
+#### Edge Cases
+
+- An unknown maintenance op string shall produce a response with `USAGE_ERROR`
+  exit code and a message naming the unknown op.
+- A `SkillsError` raised by the usage capability shall be caught and mapped
+  to a response with the error's exit code and message.
+
+#### Technical Specification
+
+| Aspect       | Detail                                                                 |
+| ------------ | ---------------------------------------------------------------------- |
+| **Input**    | `MaintenanceRequest` (verb, skill, flags, root). Source: surface / root CLI. |
+| **Output**   | `MaintenanceResponse` (ok, verb, exit_code, message, records). Destination: surface / root CLI. |
+| **Protocol** | `ISkillsUsageProtocol` (observability contract seam, wired into maintenance) |
+| **Method**   | `scan_sessions`, `write_usage`, `fold_used_count_into_usage`, `curated_report`, `seed_record_if_missing`, `reanchor_clock`, `record_use` |
+| **Event**    | None                                                                   |
+| **Error**    | `CLEAN` 0, `ISSUES_FOUND` 1, `USAGE_ERROR` 2                           |
+
+#### Test
+
+| Context          | When Action                   | Then Observable Result                                  |
+| ---------------- | ----------------------------- | ------------------------------------------------------- |
+| A `USAGE` request | `execute` with `verb=USAGE`  | `MaintenanceResponse` with `ok=True`, exit code `CLEAN` |
+| A `STATUS` request | `execute` with `verb=STATUS` | `MaintenanceResponse` with `ok=True`, rows populated     |
+
+#### Metric
+
+| Target Metric                  | Value |
+| ------------------------------ | ----- |
+| Dispatch p95 latency           | 5 ms  |
+| Unknown-op rejection rate      | 100 % |
+| Unhandled exception escape rate | 0 %  |
+
 ## Public Interface
 
 | Aspect      | Detail                                                        |

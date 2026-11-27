@@ -1,12 +1,13 @@
 """Maintenance agent (AES agent layer).
 
 Implements ``ISkillsMaintenanceAggregate`` over the maintenance-side capabilities:
-prune, runner, piner, mover. Owns the ops: prune, run, pause, resume,
-pin, unpin, move.
+prune, runner, piner, mover, usage, status. Owns the ops: prune, run, pause,
+resume, pin, unpin, move, usage, status.
 """
 
 from __future__ import annotations
 
+import tempfile
 from collections.abc import Callable
 from typing import cast
 
@@ -32,6 +33,9 @@ from shared.src.maintenance.taxonomy_maintenance_request import (
 from shared.src.maintenance.taxonomy_maintenance_response import (
     MaintenanceResponse,
 )
+from shared.src.observability.contract_observability_protocol import (
+    ISkillsUsageProtocol,
+)
 
 __all__ = [
     "ISkillsMaintenanceAggregate",
@@ -48,12 +52,14 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
         runner: ISkillsRunnerProtocol | None = None,
         piner: ISkillsPinerProtocol | None = None,
         mover: ISkillsMoverProtocol | None = None,
+        usage: ISkillsUsageProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._prune = prune
         self._runner = runner
         self._piner = piner
         self._mover = mover
+        self._usage = usage
         self._default_root = default_root
 
     # ─── Block 1: Module Declaration ────────────────────────────────────────
@@ -230,6 +236,57 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
                 message=str(failure),
             )
         return MaintenanceResponse(ok=True, verb=op.value, message=str(result))
+
+    def _execute_usage(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
+        """USAGE: scan sessions and fold usage analytics into the pack usage.json."""
+        usage = self._require(self._usage, "usage")
+        root = self._root(request)
+        verb = request.flags.get("verb", "report")
+        skill = str(request.skill or "").strip()
+
+        if verb == "seed":
+            usage.seed_record_if_missing(skill, root)
+            return MaintenanceResponse(
+                ok=True, verb=op.value, message=f"seeded {skill}"
+            )
+        if verb == "reanchor":
+            usage.reanchor_clock(skill, root)
+            return MaintenanceResponse(
+                ok=True, verb=op.value, message=f"reanchored {skill}"
+            )
+
+        # Default: scan + fold.
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "") or ""
+        if not run_dir:
+            run_dir = tempfile.mkdtemp(prefix="sac-usage-")
+
+        scan_result = usage.scan_sessions(grok_home, run_dir)
+        records = scan_result.records
+
+        usage.write_usage(grok_home, run_dir, records)
+        usage.fold_used_count_into_usage(grok_home, run_dir, records)
+
+        return MaintenanceResponse(
+            ok=True,
+            verb=op.value,
+            exit_code=0,
+            message=f"Usage scanned → {run_dir}/usage.json",
+            records=(),
+        )
+
+    def _execute_status(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
+        """STATUS: inspect lifecycle state for all skills in the pack."""
+        usage = self._require(self._usage, "usage")
+        root = self._root(request)
+        report = usage.curated_report(root)
+        return MaintenanceResponse(
+            ok=True,
+            verb=op.value,
+            exit_code=0,
+            records=tuple(r.name for r in report),
+            root=root,
+        )
 
     def _execute_move(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
         """MOVE: plan/apply a move of a skill to another category."""
