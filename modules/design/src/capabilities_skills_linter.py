@@ -1,7 +1,7 @@
 """Skills linter capability (AES capabilities layer).
 
 Implements ``ISkillsLinterProtocol``: a combined scan that runs the
-13-rule validator plus the weed report in one pass, returning a single
+14-rule validator plus the weed report in one pass, returning a single
 ``LintReport``. The lint is read-only — it reports, it never writes.
 
 The lint supports an optional *category* filter: when provided, only
@@ -9,7 +9,7 @@ issues whose ``category`` or ``path`` belongs to that category are
 included in the report. The weed lines are not filtered (they are
 library-wide duplicate/empty-category signals).
 
-The 13-rule checks run inline here, ported from the retired
+The 14-rule checks run inline here, ported from the retired
 ``capabilities_skills_validator.py`` which was folded into this
 capability during the deep-clean. Rule IDs and message templates come
 from the shared rule SSOT, so the checker and the generated rules doc
@@ -64,22 +64,20 @@ __all__ = ["SkillsLinter"]
 
 # ─── Block 1: Module Declaration ───
 class SkillsLinter(ISkillsLinterProtocol):
-    """Combined lint: 13-rule checks + weed report, optionally category-filtered."""
+    """Combined lint: 14-rule checks + weed report, optionally category-filtered."""
 
     # ─── Block 2: Module Contract ───
-    def lint(
-        self, root: SkillsRoot, category: str | None = None
-    ) -> LintReport:
+    def lint(self, root: SkillsRoot, category: str | None = None) -> LintReport:
         """Run the full lint over *root*; optionally filter by *category*.
 
-        Runs the 13-rule validator (per-skill, category, placement, and
+        Runs the 14-rule validator (per-skill, category, placement, and
         duplicate checks) inline plus the shared ``plan_weed`` helper for
         the weed lines. When *category* is set, issues are narrowed to
         that category; weed lines are kept as-is (library-wide signals).
         """
         skills_root = Path(root)
 
-        # 13-rule validator checks
+        # 14-rule validator checks
         entries = skill_entries(skills_root)
         categories = category_summaries(entries, skills_root)
         assets = assets_container(skills_root)
@@ -211,7 +209,7 @@ class SkillsLinter(ISkillsLinterProtocol):
                     )
                 )
             else:
-                if any(ch in entry.description for ch in ('<', '>', '"')):
+                if any(ch in entry.description for ch in ("<", ">", '"')):
                     issues.append(
                         Issue(
                             type=IssueType.INVALID_DESCRIPTION_CHARACTERS.value,
@@ -354,9 +352,7 @@ class SkillsLinter(ISkillsLinterProtocol):
                 ref_name = ref_path.name
                 # A reference is "linked" if its filename appears anywhere in SKILL.md.
                 if ref_name not in body:
-                    unlinked.append(
-                        relpath(ref_path, skills_root)
-                    )
+                    unlinked.append(relpath(ref_path, skills_root))
 
             if unlinked:
                 issues.append(
@@ -419,7 +415,7 @@ class SkillsLinter(ISkillsLinterProtocol):
             h2_originals: dict[str, list[str]] = {}
             for l in body_lines:
                 if l.startswith("## "):
-                    name = l[len("## "):].strip().lower()
+                    name = l[len("## ") :].strip().lower()
                     h2_headings.add(name)
                     h2_originals.setdefault(name, []).append(l)
 
@@ -477,6 +473,20 @@ class SkillsLinter(ISkillsLinterProtocol):
                         message=issue_message(
                             IssueType.UNEXPECTED_HEADING,
                             headings=", ".join(unexpected),
+                        ),
+                        path=entry.path,
+                    )
+                )
+
+            # Deep-heading check: no H3 or deeper
+            deep_headings = [l for l in body_lines if l.startswith("###")]
+            if deep_headings:
+                issues.append(
+                    Issue(
+                        type=IssueType.FORBIDDEN_DEEP_HEADING.value,
+                        message=issue_message(
+                            IssueType.FORBIDDEN_DEEP_HEADING,
+                            headings=", ".join(deep_headings),
                         ),
                         path=entry.path,
                     )
@@ -544,6 +554,7 @@ class SkillsLinter(ISkillsLinterProtocol):
 
 
 # Linter-local tree walkers (single-consumer, moved out of utility)
+
 
 def assets_container(skills_root: Path) -> set[str]:
     """Category names that carry a declared DM2 asset-container marker.

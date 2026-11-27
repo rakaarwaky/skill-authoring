@@ -34,7 +34,7 @@ SUMMARIES: Final = {
     "name-mismatch": "Frontmatter `name:` equals the skill directory name",
     "name-format": "Skill names are lowercase letters, digits, and hyphens",
     "description-present": "Every skill carries a `description:`",
-    "description-characters": "Descriptions contain no `<`, `>`, or `\"`",
+    "description-characters": 'Descriptions contain no `<`, `>`, or `"`',
     "description-length": "Descriptions are at most 1024 characters",
     "skill-placement": "`SKILL.md` lives at `<category>/<skill>/SKILL.md`",
     "category-depth": "No nesting deeper than `<category>/<skill>/`",
@@ -55,6 +55,7 @@ SUMMARIES: Final = {
     "rules-table": "## Rules carries a table with `| ID | Rule | Check |` header",
     "routing-table": "## Routing carries a table with `| Scenario | File | Purpose |` header",
     "intro-paragraph": "SKILL.md contains an explanation paragraph under `# <Skill Name>`",
+    "forbidden-deep-heading": "SKILL.md headings must not go deeper than H2 (no ### or below)",
 }
 
 #: Loader citations: the file each constraint was first read from. Empty
@@ -69,7 +70,7 @@ CITATIONS: Final = {
     "description-present": "`create-skills/SKILL.md` (required frontmatter shape)",
     "description-characters": (
         "`create-skills/SKILL.md` (Grok Build embeds the value in "
-        "`<skill description=\"...\">`)"
+        '`<skill description="...">`)'
     ),
     "description-length": (
         "`create-skills/SKILL.md` and `validation-criteria.md` "
@@ -107,6 +108,7 @@ CITATIONS: Final = {
     "rules-table": "`template/skill.md` (Rules table columns)",
     "routing-table": "`template/skill.md` (Routing table columns)",
     "intro-paragraph": "`template/skill.md` (one paragraph explanation under title)",
+    "forbidden-deep-heading": "`template/skill.md` (body is exactly three sections, nothing else)",
 }
 
 # ── Lifecycle ────────────────────────────────────────────────────────
