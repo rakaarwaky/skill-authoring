@@ -1,8 +1,7 @@
 """Maintenance agent (AES agent layer).
 
 Implements ``ISkillsMaintenanceAggregate`` over the maintenance-side capabilities:
-prune, runner, piner, mover, usage, status. Owns the ops: prune, run, pause,
-resume, pin, unpin, move, usage, status.
+prune, piner, mover, usage. Owns the ops: prune, pin, unpin, move, usage, status.
 """
 
 from __future__ import annotations
@@ -23,7 +22,6 @@ from shared.src.maintenance.contract_maintenance_protocol import (
     ISkillsMoverProtocol,
     ISkillsPinerProtocol,
     ISkillsPrunerProtocol,
-    ISkillsRunnerProtocol,
 )
 from shared.src.maintenance.taxonomy_maintenance_request import (
     MaintenanceRequest,
@@ -44,19 +42,17 @@ __all__ = [
 
 
 class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
-    """Maintenance-side agent: prune, run, pause, resume, pin, unpin, move."""
+    """Maintenance-side agent: prune, pin, unpin, move."""
 
     def __init__(
         self,
         prune: ISkillsPrunerProtocol | None = None,
-        runner: ISkillsRunnerProtocol | None = None,
         piner: ISkillsPinerProtocol | None = None,
         mover: ISkillsMoverProtocol | None = None,
         usage: ISkillsUsageProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._prune = prune
-        self._runner = runner
         self._piner = piner
         self._mover = mover
         self._usage = usage
@@ -145,51 +141,6 @@ class SkillsMaintenanceAgent(ISkillsMaintenanceAggregate):
             message=report.message,
             dry_run=dry_run,
         )
-
-    def _execute_run(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
-        """RUN: apply automatic transitions per pass."""
-        runner = self._require(self._runner, "runner")
-        root = self._root(request)
-        try:
-            report = runner.apply_automatic_transitions(root)
-        except (OSError, ValueError) as failure:
-            return MaintenanceResponse(
-                ok=False,
-                verb=op.value,
-                exit_code=1,
-                message=str(failure),
-            )
-        return MaintenanceResponse(ok=True, verb=op.value, message=str(report))
-
-    def _execute_pause(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
-        """PAUSE: set pause=True in config."""
-        runner = self._require(self._runner, "runner")
-        root = self._root(request)
-        try:
-            runner.pause(root)
-        except (OSError, ValueError) as failure:
-            return MaintenanceResponse(
-                ok=False,
-                verb=op.value,
-                exit_code=1,
-                message=str(failure),
-            )
-        return MaintenanceResponse(ok=True, verb=op.value, message="lifecycle paused")
-
-    def _execute_resume(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
-        """RESUME: set pause=False in config."""
-        runner = self._require(self._runner, "runner")
-        root = self._root(request)
-        try:
-            runner.resume(root)
-        except (OSError, ValueError) as failure:
-            return MaintenanceResponse(
-                ok=False,
-                verb=op.value,
-                exit_code=1,
-                message=str(failure),
-            )
-        return MaintenanceResponse(ok=True, verb=op.value, message="lifecycle resumed")
 
     def _execute_pin(self, request: MaintenanceRequest, op: MaintenanceVerb) -> MaintenanceResponse:
         """PIN: set pinned=True on skill sidecar."""

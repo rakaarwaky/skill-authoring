@@ -30,9 +30,7 @@ SkillQuery = NewType("SkillQuery", str)
 #:
 #: The enum is the union of every op the aggregate dispatches; it is
 #: deliberately broader than the design protocol surface. Design owns
-#: create and lint. Lifecycle verbs (RUN, PAUSE, RESUME) route to the
-#: maintenance aggregate via ``ISkillsRunnerProtocol`` in the maintenance
-#: contract; telemetry ops (USAGE, STATUS, TRACES) route through
+#: create and lint. Telemetry ops (USAGE, STATUS, TRACES) route through
 #: ``ISkillsUsageProtocol`` in the observability contract. PRUNE and
 #: the remaining lifecycle verbs are dispatched by the maintenance and
 #: observability aggregates. Keep the enum as the authoritative op list;
@@ -52,9 +50,6 @@ class SkillsOp(StrEnum):
     CREATE = "create"
     STATUS = "status"
     USAGE = "usage"
-    RUN = "run"
-    PAUSE = "pause"
-    RESUME = "resume"
     PIN = "pin"
     UNPIN = "unpin"
     RESTORE = "restore"

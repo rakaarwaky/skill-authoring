@@ -4,9 +4,9 @@
 
 The maintenance feature sits in the agent layer and is called by the surface
 and root CLI through the `ISkillsMaintenanceAggregate` contract. It orchestrates
-four capabilities — prune, runner, piner, mover — and routes each maintenance
+three capabilities — prune, piner, mover — and routes each maintenance
 op to the matching capability through a single `execute` entry point. The agent
-performs no filesystem I/O; every archive, purge, transition, pin, and move is
+performs no filesystem I/O; every archive, purge, pin, and move is
 delegated to a capability. Archive and restore of individual skills belong to
 the [storage module](../storage/FRD.md), which owns its own
 `ISkillsArchiverProtocol` / `ISkillsRestoreProtocol` seams.
@@ -83,11 +83,13 @@ agent performs no filesystem I/O; the prune capability owns all I/O.
 
 ### FR-maintenance-002: Runner
 
+**Status:** Removed 2026-11-27 — the runner capability and its `RUN`/`PAUSE`/`RESUME` verbs were deleted; automatic lifecycle transitions and pause/resume are no longer available.
+
 **Description:** `SkillsMaintenanceAgent.execute(request)` shall route the
 `RUN`, `PAUSE`, and `RESUME` maintenance ops to the runner capability and
 return a typed `MaintenanceResponse` to the caller. The runner capability
 applies automatic lifecycle transitions, pauses, and resumes them via
-`ISkillsRunnerProtocol`.
+`ISkillsRunnerProtocol` (removed).
 
 #### Business Logic
 

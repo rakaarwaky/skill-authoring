@@ -38,7 +38,7 @@ class SkillsMcpAdapter:
     # ── Tool registry ───────────────────────────────────────────────
 
     def list_tools(self) -> list[dict]:
-        """Return MCP tool descriptors, one per sac verb (18 tools).
+        """Return MCP tool descriptors, one per sac verb (15 tools).
 
         Each descriptor carries a draft-07 ``inputSchema`` so MCP clients
         can validate arguments before they reach the aggregate.
@@ -202,29 +202,6 @@ class SkillsMcpAdapter:
                         },
                     },
                 },
-            },
-            {
-                "name": "sac_run",
-                "description": "Run automated state transitions",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "apply": {
-                            "type": "boolean",
-                            "description": "Execute state transitions",
-                        },
-                    },
-                },
-            },
-            {
-                "name": "sac_pause",
-                "description": "Pause automatic transitions",
-                "inputSchema": {"type": "object", "properties": {}},
-            },
-            {
-                "name": "sac_resume",
-                "description": "Resume automatic transitions",
-                "inputSchema": {"type": "object", "properties": {}},
             },
             {
                 "name": "sac_pin",
@@ -397,9 +374,6 @@ class SkillsMcpAdapter:
             "create": SkillsOp.CREATE,
             "status": SkillsOp.STATUS,
             "usage": SkillsOp.USAGE,
-            "run": SkillsOp.RUN,
-            "pause": SkillsOp.PAUSE,
-            "resume": SkillsOp.RESUME,
             "pin": SkillsOp.PIN,
             "unpin": SkillsOp.UNPIN,
             "restore": SkillsOp.RESTORE,

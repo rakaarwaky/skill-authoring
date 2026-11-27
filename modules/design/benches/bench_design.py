@@ -13,5 +13,3 @@ def bench_design_dispatch() -> None:
     """Time op dispatch through the design agent."""
     agent = SkillsDesignAgent()
     _ = agent.execute(SkillsRequest(op=SkillsOp.LINT, query=""))
-    _ = agent.execute(SkillsRequest(op=SkillsOp.RUN, query=""))
-    _ = agent.execute(SkillsRequest(op=SkillsOp.PAUSE, query=""))
