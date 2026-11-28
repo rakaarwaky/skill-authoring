@@ -40,7 +40,7 @@ class SkillsExporter(ISkillsExportProtocol):
 
         target_files = self._collect_skill_files(skill_dir)
         # Filter to supported text extensions only, skipping binary/cache noise
-        supported_exts = {".md", ".py", ".rs", ".ts", ".json", ".sh"}
+        supported_exts = {".md", ".py", ".rs", ".ts", ".json", ".sh", ".toml"}
         target_files = [
             (rp, fp) for rp, fp in target_files if fp.suffix.lower() in supported_exts
         ]

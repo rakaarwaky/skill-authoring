@@ -9,7 +9,6 @@ import re
 from pathlib import Path
 
 import pytest
-
 from shared.src.common.taxonomy_common_constant import EXIT_USAGE
 from shared.src.common.taxonomy_common_error import SkillNotFoundError
 from shared.src.common.taxonomy_common_vo import SkillsRoot
@@ -489,8 +488,8 @@ def test_exporter_per_extension_inclusion(
 ) -> None:
     """UT-STORAGE-020: every supported extension is included; unsupported ones dropped.
 
-    Creates one file per supported extension (.md, .py, .rs, .ts, .json, .sh) plus
-    one unsupported (.dat), and asserts each supported file appears as an Index
+    Creates one file per supported extension (.md, .py, .rs, .ts, .json, .sh, .toml)
+    plus one unsupported (.dat), and asserts each supported file appears as an Index
     bullet with its full relative path while the .dat file does not. This pins
     the extension filter so a typo dropping a legitimate extension is caught.
     """
@@ -513,11 +512,23 @@ def test_exporter_per_extension_inclusion(
         ".ts": "index.ts",
         ".json": "data.json",
         ".sh": "run.sh",
+        ".toml": "persona.toml",
     }
     expected_paths: list[str] = ["SKILL.md"]
     for ext, name in supported.items():
-        (ref_dir / name).write_text(f"// {ext} sample\n", encoding="utf-8")
+        if ext == ".toml":
+            (ref_dir / name).write_text(f"# {ext} sample\n", encoding="utf-8")
+        else:
+            (ref_dir / name).write_text(f"// {ext} sample\n", encoding="utf-8")
         expected_paths.append(f"references/{name}")
+
+    # Location-agnostic: a .toml under scripts/ is also included.
+    scripts_dir = skill_dir / "scripts"
+    scripts_dir.mkdir()
+    (scripts_dir / "persona.toml").write_text(
+        "# scripts .toml sample\n", encoding="utf-8"
+    )
+    expected_paths.append("scripts/persona.toml")
 
     (ref_dir / "binary.dat").write_text("binary-data", encoding="utf-8")
 
@@ -531,6 +542,9 @@ def test_exporter_per_extension_inclusion(
     # Unsupported extension is not listed.
     assert "references/binary.dat" not in bullets
     assert "binary.dat" not in content
+
+    # .toml body content flows through the export.
+    assert "## references/persona.toml\n\n# .toml sample" in content
 
     # Each supported file also has a matching body section, in lockstep.
     assert _parse_body_headings(content) == bullets
