@@ -96,6 +96,7 @@ class SkillsExporter(ISkillsExportProtocol):
             ("reference", "references"),
             ("template", "templates"),
             ("scripts",),
+            ("persona",),
         ]
         for group in subdirs:
             for sub_name in group:
